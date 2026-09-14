@@ -1,0 +1,919 @@
+                                             Do LLMs Know Your Neighborhood? Auditing LLM Priors for
+                                               Neighborhood-Level Mobility Prediction and Structural
+                                                                   Alignment
+                                                     Saad Mohammad Abrar                                                     Eesha Kurella                                 Arnav Dadarya
+                                                      sabrar@terpmail.umd.edu                                            ekurella@umd.edu                             arnav1@terpmail.umd.edu
+                                                       University of Maryland                                           University of Maryland                          University of Maryland
+                                                                USA                                                              USA                                             USA
+
+                                                            Naman Awasthi                                                Kazi Tasnim Zinat                           Vanessa Frias-Martinez
+arXiv:2609.00345v1 [cs.LG] 31 Aug 2026
+
+
+
+
+                                                    nawasthi@terpmail.umd.edu                                        kzintas@terpmail.umd.edu                              vfrias@umd.edu
+                                                      University of Maryland                                          University of Maryland                            University of Maryland
+                                                               USA                                                             USA                                               USA
+                                         Abstract                                                                                        should not be treated as structurally grounded without auditing
+                                         Human mobility is central to urban planning, transportation man-                                their empirical alignment and potential bias.
+                                         agement, public health, and emergency response, yet the fine-
+                                         grained trajectory data needed to model movement are often pro-                                 CCS Concepts
+                                         prietary, access-restricted, and privacy-sensitive, motivating the                              • Information systems → Spatial-temporal systems; Data min-
+                                         search for alternatives. Recent work suggests that large language                               ing; • Computing methodologies → Supervised learning.
+                                         models (LLMs) offer one such alternative, generating plausible mo-
+                                         bility traces and predicting individual movement. However, little                               Keywords
+                                         is known about whether they can infer aggregate mobility pat-                                   Large language models, human mobility, neighborhood-level mobil-
+                                         terns across neighborhoods, which reveal collective dynamics that                               ity, urban computing, geospatial AI, directional alignment, mobility
+                                         can directly inform public health response, transportation mod-                                 prediction, algorithmic auditing
+                                         eling, and emergency planning. Beyond inference, whether these
+                                         predictions capture empirically meaningful context-mobility rela-                               ACM Reference Format:
+                                         tionships also remains open. We address this gap by evaluating                                  Saad Mohammad Abrar, Eesha Kurella, Arnav Dadarya, Naman Awasthi,
+                                                                                                                                         Kazi Tasnim Zinat, and Vanessa Frias-Martinez. 2018. Do LLMs Know
+                                         zero-shot LLMs on Census Block Group-level mobility prediction
+                                                                                                                                         Your Neighborhood? Auditing LLM Priors for Neighborhood-Level Mo-
+                                         across four U.S. metropolitan areas, using anonymized Cuebiq mo-
+                                                                                                                                         bility Prediction and Structural Alignment. In Proceedings of Make sure
+                                         bility traces to construct point-level, trajectory-level, and temporal                          to enter the correct conference title from your rights confirmation email
+                                         mobility outcomes and pairing them with sociodemographic and                                    (Conference acronym ’XX). ACM, New York, NY, USA, 15 pages. https:
+                                         built-environment predictors. We compare LLM predictions against                                //doi.org/XXXXXXX.XXXXXXX
+                                         supervised baselines and introduce a directional alignment anal-
+                                         ysis that tests whether LLM-implied predictor effects agree with
+                                                                                                                                         1    Introduction
+                                         empirical OLS and Jonckheere–Terpstra trends. Results show that
+                                         neighborhood context contains substantial predictive signal, with                               Human mobility is a fundamental dimension of urban life, reflect-
+                                         supervised baselines reaching 0.580 average accuracy compared                                   ing how people access opportunities, navigate infrastructure, and
+                                         with 0.435 for the best LLM, while spatial extent outcomes are the                              experience cities in everyday life [3, 10, 15, 36]. Because move-
+                                         most predictable but also exhibit the largest LLM–baseline gaps.                                ment patterns shape access to jobs and services, pandemic spread,
+                                         Directional analysis further shows that LLMs rely on coarse, stable                             environmental burdens, and broader forms of social interaction,
+                                         predictor-level priors that often remain invariant across outcomes                              mobility data have become central to understanding cities and
+                                         and cities, including asymmetric treatment of protected-group pre-                              informing urban policy [1, 7, 8, 34, 35]. The growing availability
+                                         dictors. These findings suggest that LLMs can partially recover ag-                             of passively collected digital traces, especially smartphone- and
+                                         gregate mobility patterns from urban context, but their predictions                             mobile-phone-based location data, has substantially expanded this
+                                                                                                                                         potential. Compared with traditional travel surveys [6] and other
+                                                                                                                                         coarse data sources, such data provide much finer spatial and tempo-
+                                         Permission to make digital or hard copies of all or part of this work for personal or
+                                         classroom use is granted without fee provided that copies are not made or distributed           ral resolution, often capturing behavior continuously over longer
+                                         for profit or commercial advantage and that copies bear this notice and the full citation       periods and at much larger scales [12, 14]. This has enabled re-
+                                         on the first page. Copyrights for components of this work owned by others than the              searchers to characterize everyday activity patterns, travel extent,
+                                         author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or
+                                         republish, to post on servers or to redistribute to lists, requires prior specific permission   accessibility, and behavioral heterogeneity with unprecedented
+                                         and/or a fee. Request permissions from permissions@acm.org.                                     detail, greatly enlarging the empirical toolkit available to urban
+                                         Conference acronym ’XX, Woodstock, NY                                                           science and policy research.
+                                         © 2018 Copyright held by the owner/author(s). Publication rights licensed to ACM.
+                                         ACM ISBN 978-1-4503-XXXX-X/2018/06                                                                 Yet the smartphone-based location data that enable these analy-
+                                         https://doi.org/XXXXXXX.XXXXXXX                                                                 ses are largely proprietary, access-restricted, and subject to privacy
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY                                                                              Abrar et al.
+
+
+constraints that limit their availability to many researchers and        Cuebiq, which amasses anonymized location data from nearly 70
+public agencies, raising the question of whether models that encode      million mobile devices, covering roughly 20% of the U.S. population.
+broad knowledge about cities and human behavior could serve as           We aggregate these data to the Census Block Group (CBG) level and
+useful alternatives in data-scarce settings. Large language models       derive multiple mobility indicators capturing three complementary
+(LLMs) are a natural candidate for this role. Trained on vast corpora    dimensions of behavior: (i) point-level, (ii) trajectory-level, and
+encompassing urban descriptions, census and demographic data,            (iii) temporal-level mobility. Given built-environment and neigh-
+transportation research, and accounts of everyday life across cities,    borhood sociodemographic characteristics as input, we ask two
+LLMs may encode the kinds of contextual knowledge that underlie          research questions:
+mobility patterns. Recent studies suggest they do. Prior work has            RQ1: To what extent can LLMs predict neighborhood-level mo-
+used LLMs for tasks such as next-location prediction and zero-shot       bility outcomes given built-environment and sociodemographic
+mobility inference, showing that LLMs can sometimes act as mobil-        context?
+ity predictors even without task-specific training [4, 24, 31]. Other        RQ2: To what extent do LLM predictions align with empirically
+work has explored whether prompted LLMs can generate synthetic           observed relationships between neighborhood characteristics and
+travel-survey responses for urban mobility assessment, producing         mobility behavior?
+plausible diary-like behavior from background knowledge alone [5].           The remainder of the paper is organized as follows. Section 2
+More broadly, benchmarks such as CityBench evaluate LLMs across          reviews prior work on LLMs for mobility generation, prediction,
+a range of urban tasks and show that, while advanced models can          and urban reasoning, as well as recent efforts to evaluate geospa-
+be competitive on tasks grounded in commonsense and semantic             tial knowledge and bias in LLMs. Section 3 presents our problem
+understanding, they remain less reliable on tasks requiring stronger     formulation, mobility outcome construction, zero-shot LLM predic-
+urban reasoning [11]. However, all of these studies share a common       tion framework, supervised baselines, and directional alignment
+target of evaluation, assessing whether LLMs can produce plausible       methodology. Section 4 describes the datasets, study areas, contex-
+outputs about individual-level mobility, such as a person’s next trip,   tual predictors, model settings, as well as the predictive performance
+a synthetic travel diary, or a single device’s behavioral signature.     results for RQ1 and the directional alignment results for RQ2. Fi-
+   This individual-level focus is valuable in its own right, but it      nally, Section 5 summarizes the main findings and discusses their
+does not fully address the forecasting needs of many real-world          implications for using LLMs in aggregate urban mobility inference.
+systems, where the key quantity of interest is aggregate mobility
+patterns. Transportation agencies, urban planners, emergency man-        2 Related Work
+agers, and public health officials typically require predictions of
+origin-destination flows, demand surges, and population redistribu-
+                                                                         2.1 LLMs for Mobility Generation, Prediction,
+tion patterns rather than individual trajectories [28, 38]. Although         and Urban Tasks
+one possible approach is to simulate many individual LLM-based           A growing body of work uses large language models (LLMs) to
+agents and aggregate their generated trajectories, this strategy can     generate, predict, and simulate mobility and urban phenomena. In
+be computationally expensive. We instead study whether LLMs can          mobility modeling, several studies adapt LLMs to represent individ-
+directly infer aggregate mobility outcomes from contextual urban         ual trajectories, activity chains, and travel behavior. Ma et al. [24]
+inputs. This framing positions LLM-based neighborhood-level mo-          propose a foundation model for universal human mobility patterns
+bility prediction as a distinct and underexplored problem, asking        that fuses cross-domain data and semantically enriches GPS traces
+whether models that have shown promise on individual mobility            with survey-informed knowledge, achieving robust performance
+tasks can also recover collective mobility patterns across neighbor-     in activity inference and POI classification across settings such as
+hoods from sociodemographic and built-environment context.               Los Angeles and Egypt. Wang et al. [30] introduce LLMob, an LLM-
+   In addition, even if LLMs can recover aggregate neighborhood-         agent framework that generates personal mobility trajectories by
+level outcomes, prediction accuracy alone does not establish that        extracting patterns from historical traces and reasoning about daily
+they have learned the empirical relationships that structure mobil-      motivations, producing realistic movement sequences even during
+ity across places. Plausible performance may instead reflect shal-       abnormal periods such as the pandemic. Shao et al. [29] similarly
+low heuristics, broad stereotypes [25, 27], or memorization [16]         explore the use of LLMs for human mobility generation through
+of patterns seen during pretraining, all of which could align with       context-aware reasoning, emphasizing that language models can ex-
+outcomes on average while diverging from the specific relation-          plain the intentions behind movement segments rather than merely
+ships that actually structure how context shapes mobility. Thus,         imitate observed sequences. [18] propose Geo-Llama, a fine-tuned
+whether LLM predictions recover the structural relationships be-         framework for generating mobility trajectories under explicit spa-
+tween neighborhood context and travel patterns that empirical data       tiotemporal constraints, showing that LLMs can produce coherent
+reveal remains an open question.                                         synthetic movements while satisfying visit-level requirements.
+   To address these gaps, we evaluate whether LLMs encode use-              Other work focuses on generating richer behavioral records,
+ful priors about urban mobility by testing their ability to infer        such as travel diaries and activity schedules. Li et al. [19] develop
+neighborhood-level mobility outcomes from urban context, assess-         MobAgent, which constructs fine-grained profiles and uses re-
+ing the structural alignment of those predictions with empirical         cursive reasoning to generate realistic travel diaries aligned with
+context-mobility relationships, and examining whether this align-        empirical mobility patterns and road-network constraints. Bhandari
+ment holds across cities. Our analysis is grounded in large-scale,       et al. [5] evaluate whether LLMs can generate synthetic travel sur-
+real-world mobility trajectories from the United States, provided by     vey data resembling the National Household Travel Survey (NHTS),
+Do LLMs Know Your Neighborhood? Auditing LLM Priors for Neighborhood-Level Mobility Prediction and StructuralConference
+                                                                                                              Alignmentacronym ’XX, June 03–05, 2018, Woodstock, NY
+
+
+finding that fine-tuned models effectively capture complex activity                  Their results suggest that while models perform well on straightfor-
+chains and transition probabilities across major U.S. metropolitan                   ward factual extraction, they struggle with more complex semantic
+areas. Liu et al. Liu et al. [22] present a retrieval-augmented frame-               reasoning over long GPS trajectories.
+work with a feedback loop for generating daily activity chains                           This evaluation-oriented literature also highlights important lim-
+under limited information, showing that the approach can repro-                      itations and biases in LLMs’ geographic knowledge. Manvi et al. [25]
+duce coordinated household behaviors such as joint shopping trips                    show that although LLMs can make reasonably accurate zero-shot
+or shared meal times. Extending this direction, Liu et al. [21] studies              geospatial predictions for objective topics, they exhibit systematic
+discrete travel demand modeling with persona-conditioned LLMs,                       geographic bias on subjective judgments, rating wealthier regions
+demonstrating that behavioral traits and socioeconomic context                       more favorably on attributes such as intelligence or work ethic. Wu
+improve simulation of individual travel choices.                                     and Wang [33] probe demographic and geographic biases in LLM-
+   A related stream uses LLMs for mobility prediction and rec-                       predicted POI visits, finding that models reflect and amplify race
+ommendation rather than full-sequence generation. Li et al. [17]                     and gender stereotypes in the types of places they associate with
+propose LLM4POI, a next-POI recommendation framework that                            different groups. Moayeri et al. [27] further demonstrates broad
+fine-tunes LLMs on check-in data and combines this with key-query                    disparities in factual recall through WorldBench, showing that
+similarity to retain collaborative and contextual information. Gong                  state-of-the-art LLMs perform substantially worse for countries in
+et al. [13] introduce Mobility-LLM, a reprogramming framework                        low-income and non-Western regions than for Western countries.
+that uses behavioral prompts and semantic location representa-                           Recent work has also begun evaluating LLMs as broader mod-
+tions to improve next-location prediction, arrival-time estimation,                  els of urban knowledge rather than only as task-specific predic-
+and user-link prediction. Chen et al. [9] develop QT-Mob, which                      tors. Zhang et al. [37] introduce AI4US, which tests whether LLMs
+introduces semantic location tokenization to encode coordinates                      can reproduce foundational urban-science relationships such as
+as semantically meaningful discrete tokens, substantially improv-                    scaling laws, distance decay, and urban vitality. They find that
+ing next-location prediction and trajectory recovery. At the urban                   LLMs often recover broad aggregate patterns with high fidelity, but
+scale, Li et al. [20] present UrbanGPT, which integrates spatiotem-                  also oversimplify urban complexity, showing limited diversity and
+poral encoding with instruction tuning to align urban interdepen-                    weaker causal depth than real urban systems.
+dencies with LLM reasoning, demonstrating strong zero-shot gen-                          Our RQ2 work is most closely related to this evaluation-oriented
+eralization across prediction tasks such as taxi flows, bike flows,                  literature and extends it in a new direction. Rather than examin-
+and crime rates.                                                                     ing factual geospatial recall, mobility question answering, or broad
+   Taken together, this literature shows that LLMs can serve as                      urban-theory reproduction, we probe whether LLMs encode empiri-
+flexible models for synthetic mobility generation, travel simula-                    cally meaningful priors about neighborhood-level mobility behavior
+tion, recommendation, and urban prediction. It also suggests that                    from built-environment and sociodemographic context.
+these models encode nontrivial mobility-relevant signals. There are
+a few aggregate-oriented examples: UrbanGPT studies regional                         3 Method
+spatiotemporal prediction tasks such as taxi flows and bike flows,
+and Bhandari et al. [5] evaluate generated surveys using aggregate
+                                                                                     3.1 Problem Formulation
+pattern-level mobility metrics. Still, the dominant targets of eval-                 Let 𝑖 index Census Block Groups (CBGs), let x𝑖 ∈ R𝑝 denote the
+uation remain individual trajectories, travel diaries, next-location                 vector of contextual predictors for CBG 𝑖, and let 𝑚 ∈ M denote
+prediction, or task-specific urban outputs rather than direct re-                    a mobility outcome. For each outcome 𝑚, let 𝑧𝑖(𝑚) ∈ R denote the
+covery of neighborhood-level mobility indicators from contextual                     continuous CBG-level mobility value derived from aggregated indi-
+urban features, which we address in RQ1.                                             vidual mobility traces. We formulate CBG-level mobility outcome
+                                                                                     prediction as an outcome-specific three-class classification task in
+                                                                                     which the goal is to infer a discretized mobility label
+
+                                                                                                           𝑦𝑖(𝑚) ∈ {low, neutral, high}                         (1)
+2.2     Evaluating Geospatial and Mobility
+        Knowledge in LLMs                                                            from neighborhood context x𝑖 . More formally, for each outcome 𝑚,
+                                                                                     we evaluate a predictor
+A second line of work asks what kinds of geographic and mobil-
+ity knowledge LLMs already encode. Manvi et al. [26] introduce                                                   𝐹 (𝑚) : x𝑖 ↦→ 𝑦𝑖(𝑚) .                          (2)
+GeoLLM, which fine-tunes LLMs on reverse-geocoded map data
+and shows that the resulting models can accurately predict geospa-                      Here, 𝐹 (𝑚) may represent either an LLM-based zero-shot pre-
+tial socioeconomic indicators such as population density and asset                   dictor, which reasons over textual descriptions of neighborhood
+wealth. Luo et al. [23] propose TSI-LLM, a framework for trajectory                  context and outcome semantics, or a supervised baseline trained di-
+semantic inference that uses context-rich prompting and chain-                       rectly on labeled CBG examples. This formulation allows us to test
+of-thought reasoning to infer occupation categories, activity se-                    whether socio-demographic and built-environment context alone
+quences, and detailed textual descriptions from raw movement                         is sufficient to recover structured variation in aggregate mobility
+traces. Asano et al. [2] introduce MobQA, a benchmark of 5,800                       behavior across neighborhoods.
+question-answer pairs for evaluating LLMs on mobility-related                           Our analysis considers two complementary evaluation objec-
+factual retrieval, semantic inference, and interpretive explanation.                 tives. The first is predictive performance (RQ1): whether a model
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY                                                                               Abrar et al.
+
+
+
+
+           Figure 1: Overview of the evaluation pipeline for assessing LLM priors about neighborhood-level mobility.
+
+
+can correctly classify the mobility level of a CBG for a given out-       user, we identify the associated home CBG and assign the user-level
+come 𝑚. The second is directional alignment (RQ2): whether the            mobility measures to that area. Then, for each CBG, we summarize
+model captures empirically meaningful relationships between con-          the mobility behavior of all associated users to obtain aggregate mo-
+textual predictors and mobility outcomes. Specifically, for contex-       bility outcomes representing the typical mobility profile of residents
+tual predictor 𝑥𝑖 𝑗 and mobility outcome 𝑚, we assess whether the         in that CBG.
+directional implication of the model’s reasoning agrees with the             This aggregation serves two purposes. First, it aligns the mo-
+empirical direction estimated from observed data. This second ob-         bility outcomes with the same spatial unit used for the contextual
+jective is important because accurate class prediction alone does         predictors in the classification task. Second, it preserves privacy by
+not establish that a model has recovered the underlying monotonic         ensuring that the prediction targets are aggregate behavioral sum-
+structure relating urban context to mobility behavior.                    maries rather than individual trajectories. To improve reliability, we
+   The remainder of this section presents the methodological com-         retain only CBGs with sufficient user support in the mobility data.
+ponents required to instantiate this formulation. Figure 1 provides       The resulting dataset therefore, consists of robust CBG-level mobil-
+an overview of the evaluation pipeline for assessing LLM priors           ity outcomes that serve as the ground-truth targets throughout the
+about neighborhood-level mobility. We first describe how CBG-             paper.
+level mobility outcomes are constructed from individual mobility
+traces, then introduce the prediction framework for both LLM-             3.2.2 Mobility Outcome Families and Definitions. Following Wu
+based and supervised models, and finally present the directional          et al. [32] taxonomy of mobility characterization from individual
+alignment framework used to compare model-implied relationships           trajectories, we organize the mobility outcomes into three fami-
+with empirical patterns in the data.                                      lies: point-level, trajectory-level, and temporal-level outcomes.
+                                                                          Point-level outcomes summarize the spatial footprint and organi-
+3.2     Mobility Outcome Construction                                     zation of visited locations; trajectory-level outcomes characterize
+                                                                          movement over observed travel sequences; and temporal-level out-
+In this paper, we construct CBG-level mobility outcomes from
+                                                                          comes quantify the temporal regularity of activity patterns.
+anonymized individual mobility traces. The goal is to derive aggre-
+                                                                             For each user, we represent annual mobility as an ordered se-
+gate measures that characterize different dimensions of resident
+                                                                          quence of stops and travel segments,
+mobility behavior and that can be paired with socio-demographic
+and built-environment predictors at the same spatial scale.                                     trv1      trv2      trv𝑁 −1
+                                                                                             𝑠 1 −−−→ 𝑠 2 −−−→ · · · −−−−−→ 𝑠 𝑁 ,             (3)
+3.2.1 From Individual Mobility Data to CBG-Level Aggregates. The
+mobility data used in this study consist of anonymized individual         where each stop 𝑠𝑖 is associated with a location x𝑖 ∈ R2 , a dwell
+mobility traces collected over 2021. From these traces, we first derive   time 𝜏𝑖 , and an observation day 𝑑𝑖 , and each travel segment trv𝑖
+user-level mobility measures described in 3.2.2, that summarize           connecting 𝑠𝑖 and 𝑠𝑖+1 is associated with a travel length 𝐿𝑖 and a
+annual movement behavior. These measures are computed from                travel duration 𝑎𝑖 . Unless otherwise noted, all outcomes are first
+observed stops and travel episodes and capture complementary              computed at the user-year level and then aggregated to the Census
+aspects of mobility, including spatial extent, movement structure,        Block Group (CBG) level. We further define normalized dwell-time
+and temporal variability.                                                 weights as
+   Because our prediction task is defined at the CBG level, we ag-                                   𝑤 𝑖 = Í𝑁
+                                                                                                             𝜏𝑖
+                                                                                                                   .                      (4)
+gregate the user-level mobility measures to the CBG scale. For each                                         𝑘=1 𝜏𝑘
+Do LLMs Know Your Neighborhood? Auditing LLM Priors for Neighborhood-Level Mobility Prediction and StructuralConference
+                                                                                                              Alignmentacronym ’XX, June 03–05, 2018, Woodstock, NY
+
+
+       Family              Outcome                             What it measures                                     Interpretation of higher values
+                           Stay-points entropy                 Evenness of dwell time across visited locations      Activity time is distributed more evenly across places
+                           Radius of gyration                  Dispersion of stops around the center of activity    Larger spatial spread of routine activity locations
+       Point-level
+                           Convex hull diameter                Maximum distance across the activity space           Wider geographic extent of observed mobility
+                           Ellipse area                        Size of elliptical approximation of activity space   Broader spatial footprint of activity locations
+                           Total travel length                 Cumulative distance traveled across observed trips   More extensive travel over the observation period
+       Trajectory-level    Travel entropy                      Diversity of route or trip signatures                More varied routing or travel behavior
+                           Average duration                    Mean duration of observed travel segments            Longer average trips
+       Temporal-level      Daily temporal fragmentation        Within-day variability in dwell durations            Greater irregularity in daily activity timing
+Table 1: Summary of mobility outcome families and metrics. All metrics are computed at the user-year level from annual stop
+and travel-segment sequences and then aggregated to the Census Block Group (CBG) level.
+
+
+
+   (1) Point-level outcomes. Point-level outcomes quantify the ex-                             be the weighted covariance matrix of stop coordinates, and let
+tent, dispersion, and spatial organization of visited locations. Let                           𝜆1 ≥ 𝜆2 be its eigenvalues. The ellipse area is
+a user have stops indexed by 𝑖 = 1, . . . , 𝑛, where stop 𝑖 has coordi-                                                           √︁ √︁
+nates s𝑖 and dwell time 𝑑𝑖 . Define normalized dwell-time weights                                                     𝐴ellipse = 𝜋 𝜆1 𝜆2 𝑐 2,            (11)
+as                                                                                             where 𝑐 is a scale factor. Larger values indicate a broader activity
+                                    𝑑𝑖                                                         space.
+                          𝑤𝑖 = Í𝑛           .                       (5)
+                                   𝑘=1 𝑑𝑘                                                          (2) Trajectory-level outcomes. Trajectory-level outcomes charac-
+   Stay-points entropy measures how evenly dwell time is distributed                           terize mobility over sequences of trips and capture the extent and
+across distinct visited locations. Let L denote the set of unique stay                         diversity of travel behavior.
+locations, and let 𝑝𝑙 be the proportion of total dwell time spent at                               Total travel length measures the cumulative distance traveled
+location 𝑙 ∈ L. Then                                                                           over all observed trips. Let trajectory segments be indexed by 𝑡 =
+                                   ∑︁                                                          1, . . . ,𝑇 , and let 𝐿𝑡 denote the length of segment 𝑡. Then,
+                        𝐻 stay = −    𝑝𝑙 log2 𝑝𝑙 .                  (6)
+                                                                                                                                          𝑇
+                                         𝑙∈L                                                                                             ∑︁
+                                                                                                                              𝐿total =          𝐿𝑡 .                         (12)
+Higher values indicate that activity time is distributed more evenly                                                                     𝑡 =1
+across locations, whereas lower values indicate concentration in a                             Higher values indicate more extensive travel over the observation
+small number of places.                                                                        period.
+   Radius of gyration measures the characteristic distance of visited                            Travel entropy measures the diversity of routes used by a user.
+locations from the user’s center of activity. Let                                              Let R denote the set of unique route signatures, and let 𝑝𝑟 be the
+                                          𝑁
+                                         ∑︁                                                    proportion of trips corresponding to route 𝑟 ∈ R. Then,
+                                 x̄ =          𝑤𝑖 x𝑖                               (7)                                           ∑︁
+                                                                                                                    𝐻 travel = −    𝑝𝑟 log2 𝑝𝑟 .             (13)
+                                         𝑖=1
+                                                                                                                                      𝑟 ∈R
+denote the weighted centroid, and let 𝛿 (x𝑖 , x̄) denote the haversine                         Higher values indicate more varied routing behavior, while lower
+distance between stop 𝑖 and the centroid. The radius of gyration is                            values indicate repetitive travel patterns.
+                          v
+                          u
+                          t𝑁                                                                      Average duration measures the mean duration of observed trips.
+                             ∑︁                                                                Let 𝑎𝑖 denote the duration of travel segment trv𝑖 , 𝑖 = 1, . . . , 𝑁 − 1.
+                     𝑟𝑔 =       𝑤𝑖 𝛿 (x𝑖 , x̄) 2 .                  (8)
+                                      𝑖=1
+                                                                                               Then
+                                                                                                                                    𝑁 −1
+                                                                                                                               1 ∑︁
+Larger values indicate more spatially dispersed activity patterns.                                                      𝑎¯ =             𝑎𝑖 .                       (14)
+                                                                                                                             𝑁 − 1 𝑖=1
+   Convex hull diameter quantifies the maximum spatial extent of
+the activity space. Let H denote the set of vertices of the convex                             Higher values indicate longer average trip durations over the ob-
+hull formed by the observed stop locations. Then,                                              servation period.
+
+                            𝐷 hull = max 𝑑 (u, v),                                 (9)            (3) Temporal-level outcomes. Temporal-level outcomes character-
+                                        u,v∈ H                                                 ize the temporal organization and irregularity of mobility behavior.
+                                                                                                  Daily temporal fragmentation measures within-day variability in
+where 𝑑 (·, ·) is the haversine distance. This outcome represents
+                                                                                               dwell durations. For each observed day 𝑑 ∈ D, let
+the largest distance between any two locations in a user’s activity
+space.                                                                                                                    𝜎𝑑2 = Var{𝜏𝑖 : 𝑑𝑖 = 𝑑}                             (15)
+   Ellipse area measures the size of an elliptical approximation of
+                                                                                               denote the variance of dwell times across all stops observed on that
+the activity space. Let
+                                                                                               day. We define daily temporal fragmentation as
+                                𝑛
+                               ∑︁                                                                                                1 ∑︁ 2
+                          C=         𝑤𝑖 (s𝑖 − s̄)(s𝑖 − s̄) ⊤                      (10)                                𝐹 daily =         𝜎𝑑 .                   (16)
+                                                                                                                                |D|
+                               𝑖=1                                                                                                           𝑑∈D
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY                                                                                       Abrar et al.
+
+
+Higher values indicate greater within-day temporal irregularity,                     The contextual predictors are expressed in a percentile-based
+reflected in a wider mix of short and long stays across stops within             format designed to convey both absolute and relative neighborhood
+observed days.                                                                   context. For each predictor 𝑥𝑖 𝑗 , the prompt includes its raw value,
+   These three types of mobility outcomes provide complemen-                     its within-CBSA percentile rank 𝑟𝑖 𝑗 , and a quintile-based categorical
+tary views of aggregate mobility behavior at the CBG level. In                   bucket
+the remainder of the paper, we use this organization to structure
+the prediction tasks, the directional alignment analysis, and the                        𝑏𝑖 𝑗 ∈ {very_low, low, neutral, high, very_high}.
+presentation of results.
+                                                                                 Thus, each CBG is represented as a structured textual profile sum-
+3.3     Mobility Outcome Prediction Framework                                    marizing how its socio-demographic and built-environment char-
+We evaluate two classes of predictors for CBG-level mobility out-                acteristics compare with those of other CBGs in the same metro-
+come prediction: LLM-based zero-shot predictors and super-                       politan area. This prompt design encourages the model to reason
+vised baseline models. Both use the same contextual predictors                   over relative urban context rather than relying only on raw feature
+for each CBG, but they differ in how the mapping from neighbor-                  magnitudes.
+hood context to mobility outcomes is obtained. The LLM setting                      The task is outcome-specific. For each mobility outcome 𝑚, a
+evaluates zero-shot contextual inference from textual descriptions,              separate prompt is constructed using the outcome definition and
+whereas the supervised baselines learn the mapping directly from                 the corresponding CBSA-specific tertile thresholds, while the con-
+labeled examples.                                                                textual predictor profile of the CBG remains fixed. The model is
+   Recall from Section 3.2.2 that each CBG 𝑖 is represented by a                 then asked to output one of three class labels, {low, neutral, high}.
+contextual predictor vector x𝑖 ∈ R𝑝 , and that for each mobility                 In addition to the class prediction, the model is instructed to provide
+outcome 𝑚 ∈ M, the prediction target is the discretized class                    brief reasoning and a ranked assessment of influential predictors.
+label 𝑦𝑖(𝑚) ∈ {low, neutral, high}. The prediction task is therefore                For comparison, we also train a set of supervised baseline mod-
+outcome-specific: for each 𝑚, we construct a predictor 𝐹 (𝑚) that                els on the same contextual predictors and outcome labels. Specifi-
+maps neighborhood context x𝑖 to a three-class mobility label.                    cally, for each mobility outcome 𝑚, we fit the following multiclass
+                                                                                 classifiers: logit_multinomial, random_forest, decision_tree,
+3.3.1 LLM-Based Prediction. For each CBG 𝑖 and mobility outcome                  hist_gradient_boosting, and xgboost. These trained baselines
+𝑚, we construct an outcome-specific prompt 𝑃 (𝑖, 𝑚) that describes               provide data-driven reference points for the classification task and
+the local contextual characteristics of the CBG and asks the model               allow us to compare zero-shot contextual inference by LLMs against
+to predict the corresponding mobility class (0-shot). Each prompt                conventional supervised learning approaches trained directly on
+contains four components (see Figure 2): (1) the Core-Based Statisti-            labeled CBG examples.
+cal Area (CBSA) in which the CBG is located; (2) a natural-language
+definition of the target mobility outcome 𝑚; (3) the CBSA-specific               3.3.2 Evaluation Setup. Prompts are generated for all available
+tertile thresholds used to discretize the continuous outcome into                CBGs and mobility outcomes. For predictive evaluation, however,
+low, neutral, and high classes; and (4) a textual profile of the CBG’s           we report LLM performance on the same held-out 20% test split
+contextual predictors. The associated system prompt is provided in               used for the supervised baselines, so that both model classes are
+the Appendix, Figure 6.                                                          evaluated on an identical subset of CBGs allowing a direct com-
+                                                                                 parison between zero-shot LLM-based contextual inference and
+ User Prompt Template                                                            conventional supervised prediction for CBG-level mobility outcome
+                                                                                 classification.
+ You are given Census Block Group (CBG) characteristics for CBSA: [CBSA name].
+
+ ## Outcome Description
+ Mobility outcome: [outcome name]
+                                                                                 3.4    Directional Alignment Framework
+ Definition: [outcome definition]                                                Since classification accuracy alone does not indicate whether a
+ Tertile cutpoints within [CBSA name]: low <= [c1]; neutral ([c1], [c2]];        model captures the empirical structure relating neighborhood con-
+ high > [c2].                                                                    text to mobility behavior, we also examine whether correct pre-
+ ## Predictor Descriptor                                                         dictions may still be based on misleading or weakly grounded rea-
+ - Percentiles are computed within the CBSA.
+ - Predictor buckets correspond to CBSA-wide quintiles:
+                                                                                 soning. To address this, we introduce a complementary directional
+   very_low | low | neutral | high | very_high.                                  alignment analysis that evaluates whether the directional impli-
+ - Outcome labels are tertiles: low | neutral | high.
+                                                                                 cations of model reasoning (LLM) are consistent with empirical
+ ## CBG Features                                                                 relationships observed in the data (baseline models).
+ - [feature 1]; [raw value] (CBSA percentile Pxx, [bucket])
+ - [feature 2]; [raw value] (CBSA percentile Pxx, [bucket])                          Let 𝑥𝑖 𝑗 denote contextual predictor 𝑗 for CBG 𝑖, and let 𝑧𝑖(𝑚)
+ - ...
+ - [feature p]; [raw value] (CBSA percentile Pxx, [bucket])
+                                                                                 denote the continuous value of mobility outcome 𝑚. For each CBSA
+                                                                                 𝑐, mobility outcome 𝑚, and contextual predictor 𝑗, we estimate a
+ ## Question
+ Predict the mobility outcome category for this CBG.                             ground truth empirical directional relationship between 𝑥𝑖 𝑗 and
+ A. low
+ B. neutral
+                                                                                 𝑧𝑖(𝑚) as follows. We fit an ordinary least squares (OLS) regression in
+ C. high                                                                         which the continuous mobility outcome is regressed on the contex-
+                                                                                 tual predictors. The sign of the standardized coefficient for predictor
+                  Figure 2: User prompt for RQ1.
+Do LLMs Know Your Neighborhood? Auditing LLM Priors for Neighborhood-Level Mobility Prediction and StructuralConference
+                                                                                                              Alignmentacronym ’XX, June 03–05, 2018, Woodstock, NY
+
+
+𝑗, denoted 𝛽𝑐OLS
+              𝑗𝑚 , provides a parametric estimate of direction:
+                                                                                         CBSA      # CBGs     Total devices   Mean devices/CBG     Median [Q1, Q3]
+                                                                                         ATL         1051           209099               198.95        146 [89, 266]
+                       dir𝑐OLS         OLS
+                            𝑗𝑚 = sign(𝛽𝑐 𝑗𝑚 ) ∈ {−1, +1}.                (17)            LA          4196           359987                85.79         73 [52, 104]
+                                                                                         MIA         1730           273187               157.91        126 [80, 195]
+    We then derive an LLM-implied directional signal from the model                      SF          1779           134379                75.54          57 [37, 90]
+outputs. As shown in the system prompt Figure 8 and correspond-                      Table 2: Coverage statistics across the study CBSAs. The table
+ing user prompt Figure 7 in Appendix, the model is additionally                      reports the number of CBGs covered, the total number of
+asked to provide a ranked assessment of influential predictors to-                   devices, and the distribution of devices per CBG.
+gether with whether each predictor pushes the mobility outcome
+downward, upward, or neither. We encode this directional push as
+𝑝𝑖 𝑗𝑚 ∈ {−1, 0, +1}, where −1, 0, and +1 denote negative, neutral,
+and positive influence on outcome 𝑚, respectively.                                   GDPR-compliant framework. Through its Social Impact program,
+    To test whether the LLM-implied pushes agree with the em-                        Cuebiq provides mobility insights for academic research and hu-
+pirical OLS direction, we examine how 𝑝𝑖 𝑗𝑚 varies across the or-                    manitarian initiatives. The Cuebiq responsible data sharing frame-
+dered predictor buckets (described using a quintile-based bucket,                    work enables research partners to query anonymized and privacy-
+𝑏𝑖 𝑗 ∈ {very_low, low, neutral, high, very_high}). If the empiri-                    enhanced data, by providing access to an auditable, on-premise Data
+cal coefficient for predictor 𝑗 is positive, then increasing values                  Cleanroom environment. All final outputs provided to partners are
+of 𝑏𝑖 𝑗 should correspond to increasingly positive LLM pushes. If                    aggregated in order to preserve privacy. The data cover four Core-
+the empirical coefficient is negative, then increasing values of 𝑏𝑖 𝑗                Based Statistical Areas (CBSAs) in the United States: Atlanta–Sandy
+should correspond to increasingly negative LLM pushes. We for-                       Springs–Roswell, GA (ATL); Los Angeles–Long Beach–Anaheim,
+malize this by orienting each LLM-implied push by the empirical                      CA (LA); Miami–Fort Lauderdale–West Palm Beach, FL (MIA);
+OLS sign:                                                                            and San Francisco–Oakland–Berkeley, CA (SF). We use data from
+                       𝑝˜𝑖 𝑗𝑚 = dir𝑐OLS                                              calendar year 2021 and retain only users observed on more than 60
+                                     𝑗𝑚 × 𝑝𝑖 𝑗𝑚 .                (18)
+                                                                                     days during the year. To ensure reliable CBG-level aggregation, we
+After this transformation, larger values of 𝑝˜𝑖 𝑗𝑚 always indicate
+                                                                                     further restrict the analysis to CBGs with at least 20 devices. Under
+stronger agreement with the empirical direction, regardless
+                                                                                     these criteria, the final dataset covers 8,756 CBGs 2 and 976,652
+of whether the OLS coefficient is positive or negative.
+                                                                                     devices across the four CBSAs. At the CBG level, device support
+    For each CBSA–predictor–outcome combination (𝑐, 𝑗, 𝑚), we
+                                                                                     varies across study areas, with median devices per CBG ranging
+then apply two one-sided Jonckheere–Terpstra (JT) tests to 𝑝˜𝑖 𝑗𝑚
+                                                                                     from 57 in SF to 144 in ATL. These mobility traces are used to
+across the ordered buckets 𝑏𝑖 𝑗 . The increasing JT test evaluates
+                                                                                     construct the continuous user-level mobility measures described
+whether the OLS-oriented LLM signal becomes more aligned with
+                                                                                     in Section 3.2.2, which are then aggregated to the CBG level and
+the empirical direction as the predictor bucket increases from
+                                                                                     discretized into outcome classes for prediction. Table 2 and Figure 9
+very_low to very_high. The decreasing JT test evaluates whether
+                                                                                     (Appendix) show the distribution of the sample sizes as well as the
+the LLM signal instead moves in the opposite direction. We apply
+                                                                                     CBGs covered.
+Benjamini–Hochberg correction within each CBSA–outcome panel
+to account for multiple predictors.                                                     Socio-demographic predictors. We obtain socio-demographic vari-
+    Based on the corrected JT results, we assign each (𝑐, 𝑗, 𝑚) com-                 ables from the 2019 American Community Survey (ACS) 5-year
+bination one of three directional labels:                                            estimates. These predictors characterize the population and house-
+  {aligned_increasing, opposite_trend, no_clear_trend}.                              hold composition of each CBG and include measures such as median
+                                                                                     income, racial and ethnic composition, age structure, educational
+A relationship is labeled aligned_increasing when the increasing
+                                                                                     attainment, and vehicle ownership. In the prediction framework,
+JT test is significant and the decreasing test is not, indicating that the
+                                                                                     these variables serve as contextual signals describing the demo-
+LLM-implied direction agrees with the empirical OLS direction. It is
+                                                                                     graphic and socioeconomic profile of each neighborhood. For the
+labeled opposite_trend when the decreasing JT test is significant
+                                                                                     OLS, we drop some of the correlated features.
+and the increasing test is not, indicating that the LLM-implied
+direction moves against the empirical relationship. All remaining                       Built-environment predictors. Built-environment variables are de-
+cases are labeled no_clear_trend.                                                    rived from the EPA Smart Location Database (SLD), which provides
+                                                                                     CBG-level indicators related to density, street-network structure,
+4 Experiments                                                                        transit accessibility, and land-use mix. Because the raw SLD vari-
+4.1 Experimental Setting                                                             ables are numerous and highly correlated, we summarize them
+                                                                                     using principal component analysis (PCA). For each conceptual
+4.1.1    Data.
+                                                                                     built-environment domain, we retain the first principal component
+   Mobility data. We derive the mobility outcomes from anonymized                    and use it as a composite index in the downstream analysis. This
+and aggregated mobility traces provided by Cuebiq1 . Aggregated                      yields four interpretable built-environment predictors correspond-
+mobility data is provided by Cuebiq, a location intelligence platform.               ing to density, connectivity, transit access, and land-use mix.
+Data is collected from anonymized users who have opted-in to pro-
+vide access to their location data anonymously, through a CCPA and
+                                                                                     2 CBGs corresponding to military locations are excluded in accordance with Cuebiq’s
+1 https://docs.spectus.ai/                                                           data-sharing policies.
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY                                                                                 Abrar et al.
+
+
+   Predictor standardization. To support both the LLM prompting          pronounced in MIA CBSA, where the gap reaches 0.231 for radius
+framework and the supervised baselines, all predictors are harmo-        of gyration, 0.200 for convex hull diameter, and 0.194 for ellipse area.
+nized at the CBG level. For the LLM-based experiments, each pre-
+                                                                            Finding 3: Entropy-based mobility measures are the least pre-
+dictor is represented using its raw value, within-CBSA percentile,
+                                                                         dictable from static neighborhood context. Figure 3 shows that the
+and a quintile-based bucket. For the supervised baselines, the same
+                                                                         two diversity measures, stay-point entropy and travel entropy, are
+underlying predictor values are used directly as numeric features.
+                                                                         the weakest outcomes for zero-shot LLMs and are among the weak-
+                                                                         est for supervised baselines. For LLMs they are the only outcomes
+4.1.2 LLM Prediction Settings. We evaluate models from eight fam-
+                                                                         whose best accuracy falls below 0.40, averaging 0.394 (stay-point
+ilies in a zero-shot setting using the prompt template described
+                                                                         entropy) and 0.342 (travel entropy) across the four CBSAs. Travel
+in Section 3.3: Claude, GPT, GPT-OSS, Gemini, Gemma, Qwen,
+                                                                         entropy is the more extreme case: the best LLM stays near the
+DeepSeek, and Llama (Table 3, Appendix). The set spans both propri-
+                                                                         three-class chance level of 0.333 in every CBSA, recovering little
+etary and open-weight models across a range of sizes. Open-weight
+                                                                         context-based signal, whereas stay-point entropy recovers a weak
+models are served with vLLM, while proprietary and other hosted
+                                                                         signal in most cities but also falls to chance in SF. Supervised base-
+models are accessed through AWS cloud infrastructure. Across all
+                                                                         lines perform lowest on the same two outcomes (0.480 and 0.527),
+models, decoding is deterministic with temperature 0.0. For each
+                                                                         the two lowest of any outcome, so the limitation is not specific to
+CBG and mobility outcome, we issue one outcome-specific prompt
+                                                                         LLMs but reflects weaker predictability from the available CBG-
+and parse the response into a class prediction and predictor-level
+                                                                         level socio-demographic and built-environment predictors. Unlike
+directional assessments LLM performance is reported on the same
+                                                                         spatial extent, these entropy measures capture behavioral variabil-
+held-out 20% test split used for the supervised baselines. For the
+                                                                         ity in which locations and trips are taken, which likely depends on
+RQ1 accuracy comparison, LLM performance is reported on the
+                                                                         finer-grained factors such as individual routines, trip purpose, and
+same held-out 20% test split used for the supervised baselines. How-
+                                                                         day-to-day variability that static neighborhood attributes do not
+ever, for the RQ2 directional analysis, we retain all the CBGs to
+                                                                         capture.
+maximize the power of the JT trend tests.
+                                                                            Finding 4. Gemma3-27B leads across most mobility outcomes,
+                                                                         while Claude-Sonnet is strongest for daily temporal fragmentation.
+4.2     RQ1: Predictive Performance Results
+                                                                         Across the LLM results in Fig. 3, Gemma3-27B is the most consistent
+    Finding 1. Neighborhood context provides strong signal for CBG-      zero-shot predictor. It is the top LLM in 20 of the 32 city–outcome
+level mobility prediction, but zero-shot LLMs only partially recover     pairs, ranks first for convex hull diameter, ellipse area, and radius of
+it. Figure 3 shows that CBG-level mobility outcomes are learnable        gyration in all four CBSAs, and is frequently the second-best LLM
+from socio-demographic and built-environment context. Across             elsewhere. The exception is daily temporal fragmentation, where
+the 32 city–outcome pairs, the best supervised baseline achieves an      Claude-Sonnet-4.5 is the strongest LLM in all four CBSAs and
+average accuracy of 0.580, well above the random three-class base-       GPT-5.1 is second in three of them, so the proprietary chat-tuned
+line of 0.333. This confirms the notion that contextual predictors       models are comparatively strongest on the temporal outcome rather
+contain meaningful information about aggregate mobility behav-           than the spatial ones. The best-performing LLM therefore depends
+ior. Zero-shot LLMs also recover part of this signal, with the best      on the mobility dimension being inferred.
+LLM averaging 0.435 accuracy across all outcomes. Although LLMs
+remain consistently below supervised baselines, with an average          4.3    RQ2: Directional Alignment Results
+best-baseline–best-LLM gap of 0.144 (range [0.059–0.231]) accu-
+                                                                         RQ2 asks whether LLMs recover empirically meaningful direc-
+racy points, this gap is also expected because the supervised models
+                                                                         tional relationships between neighborhood context and mobility
+are trained directly on the target mobility labels while the LLMs
+                                                                         outcomes. Figure 4 compares the empirical directions estimated
+operate without task-specific examples. Table 4 contains the top
+                                                                         from OLS regression (left panels) with the LLM-based directional
+performing model results and the their corresponding gaps with
+                                                                         alignment results from the Jonckheere–Terpstra analysis (right pan-
+the best trained baselines.
+                                                                         els). Overall, the results suggest that LLMs often capture the broad
+                                                                         sign of context–mobility relationships, but do so in a coarse and
+    Finding 2. Spatial extent outcomes are most predictable, but also
+                                                                         simplified way that does not fully reflect metropolitan variation or
+exhibit the largest LLM–baseline gaps. Figure 3 shows that the spatial
+                                                                         outcome-specific complexity. To illustrate how the LLM-implied
+extent measures carry the strongest signal from neighborhood
+                                                                         directions are derived, Figure 5 shows one example for SF CBSA
+context and also show the widest gap between zero-shot LLMs
+                                                                         and Convex Hull Diameter.
+and supervised baselines. For example, for convex hull diameter,
+                                                                            Because Gemma-3-27B achieves the strongest classification per-
+ellipse area, and radius of gyration, the best supervised baselines
+                                                                         formance for the point-level and line-level mobility outcomes, we
+achieve average accuracies of 0.653, 0.671, and 0.670, respectively,
+                                                                         report its directional alignment results for those outcome groups.
+while the best LLMs reach 0.495, 0.510, and 0.484. Thus, LLMs
+                                                                         For the only temporal feature, Claude-Sonnet-4.5 performs best
+perform relatively well on activity-space extent, but supervised
+                                                                         across CBSAs; we therefore report its directional results separately
+models extract substantially more predictive structure from the
+                                                                         for that outcome in Figure ?? in the Appendix.
+same contextual features. The average LLM–baseline gap for these
+three outcomes is 0.168, larger than the gap for line-level outcomes       Finding 1: For empirically significant relationships, Gemma-3-
+(0.132) and the temporal outcome (0.123). The pattern is especially      27B applies predictor-level directional priors that are largely invariant
+Do LLMs Know Your Neighborhood? Auditing LLM Priors for Neighborhood-Level Mobility Prediction and StructuralConference
+                                                                                                              Alignmentacronym ’XX, June 03–05, 2018, Woodstock, NY
+
+
+
+
+Figure 3: Mean 3-class prediction accuracy across four CBSAs for mobility outcomes inferred from socio-demographic and
+built-environment predictors. Outcomes are grouped into point-level, line-level, and temporal mobility features; bars show the
+top two LLMs and top two supervised baselines for each outcome, averaged over repeated 20% held-out test splits, with error
+bars denoting standard deviation across 5 repetitions. The horizontal dashed line marks chance accuracy (1/3), and the black
+line shows the performance gap between the best baseline and best LLM for each outcome. Across CBSAs, supervised baselines
+consistently outperform zero-shot LLMs, although LLMs remain above chance on many tasks, with the strongest performance
+typically observed for point-level mobility outcomes.
+
+
+
+
+Figure 4: Empirical and LLM-implied directional relationships between contextual predictors and mobility outcomes across the
+four CBSAs. For each CBSA, the left heatmap reports standardized OLS regression coefficientsThe right heatmap reports the
+corresponding LLM-implied directions from JT trend tests, restricted to predictor–outcome pairs with statistically significant
+OLS coefficients. Each JT cell is annotated with the corresponding standardized OLS coefficient and JT significance indica-
+tor.Results are shown for Gemma-3-27B, the best-performing LLM overall across mobility outcomes, except for Daily Temporal
+Fragmentation, for which Claude-Sonnet-4.5 results are reported in Appendix Figure ??.
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY                                                                             Abrar et al.
+
+
+across mobility outcomes. Among predictor–outcome pairs with sta-           Finding 2: Gemma-3-27B assigns a uniquely negative directional
+tistically significant OLS coefficients, Gemma-3-27B shows a strong     prior to Black population share. Gemma-3-27B assigns markedly
+tendency to assign a fixed direction to each contextual predictor,      different directional priors across protected-group predictors. Black
+rather than adapting its directional expectation to the specific mo-    population share is the only protected-group predictor that the
+bility outcome. This pattern is clearest when considering cases         model maps exclusively to lower mobility whenever the JT test
+where the JT test yields a clear monotonic direction. In these cases,   yields a clear monotonic trend: across 28 Black population share
+9/10 contextual predictors receive a single implied direction across    relationships, 25 receive a negative implied direction and 3 show no
+nearly all city–outcome combinations. Black population share is the     clear direction, with all 25 clear cases being negative. This pattern
+clearest example. Across the 25 Black population share relationships    is strongest in LA, MIA and SF, where all seven outcomes receive a
+with a clear JT direction, Gemma-3-27B implies a negative direction     negative implied direction. By contrast, Asian population share has
+in all 25 cases. This pattern holds for all seven mobility outcomes     negative OLS coefficients in 27 of 28 relationships, yet the model
+in LA, MIA, and SF, and for four of the seven outcomes in ATL,          assigns a positive implied direction in all 25 clear JT cases and no
+with the remaining ATL outcomes showing no clear monotonic              clear direction in the remaining three. Hispanic/Latino population
+direction.                                                              share shows a similar pattern with negative OLS coefficients in
+   The same outcome-invariant structure appears for several pre-        25/28 relationships, Gemma-3-27B assigns a positive implied di-
+dictors with positive LLM-implied directions. Median income is          rection in 21 cases, no clear direction in the remaining six, and a
+mapped to a positive direction in all 25 cases with a clear JT direc-   negative direction in only one. These results suggest that the model
+tion. Asian population share is also mapped to a positive direction     does not apply a uniform low-mobility prior to protected-group
+in all 25 clear cases, despite the empirical OLS coefficients being     population shares. Instead, it encodes group-specific priors, with
+negative in many of these relationships. Land-use mix shows the         Black population share receiving a consistently mobility-reducing
+most uniform positive pattern, with positive implied directions in      prior while Asian and Hispanic/Latino shares are usually mapped
+27 of 28 city–outcome pairs and only one no-direction case. Transit     to mobility-increasing or non-negative directions.
+access is similarly consistent: all 21 cases with a clear JT direc-
+tion are positive. Connectivity, density, and the share of young
+adults also show positive implied directions whenever the model            Finding 3: Directional priors do not change across metropolitan
+produces a clear monotonic trend, although these predictors have        contexts. Gemma-3-27B’s implied directions are largely consistent
+more no-direction cases. Hispanic/Latino population share is the        across CBSAs. For most predictors, whenever the JT test yields a
+main exception to complete invariance, but it is still predominantly    clear monotonic trend, the model assigns the same implied direction
+mapped to a positive direction, with 21 positive implied directions,    in ATL, LA, MIA, and SF. Median income is mapped to a positive
+one negative implied direction, and six no-direction cases.             direction in all clear cases across the four CBSAs: 7/7 in ATL, 6/6
+   These results suggest that Gemma-3-27B does not primarily            in LA, 6/6 in MIA, and 6/6 in SF. Black population share shows the
+reason about how a contextual predictor should affect each mobility     opposite but equally stable pattern, receiving a negative implied
+feature separately. Instead, once a predictor is salient, the model     direction in all clear cases: 4/4 in ATL and 7/7 in each of LA, MIA,
+appears to attach a broad directional prior to that predictor and       and SF. Similar cross-CBSA patterns appear for Asian population
+reuse it across different types of mobility outcomes.                   share, which is mapped positive in all clear cases across cities, and
+                                                                        for land-use mix, which is positive in 27 of 27 clear cases. Built-
+                                                                        environment predictors also show stable positive priors: transit
+                                                                        access is positive in all 21 clear cases, connectivity in all 17 clear
+                                                                        cases, and density in all 11 clear cases. Hispanic/Latino population
+                                                                        share is the main exception, with one negative implied direction
+                                                                        in Los Angeles, but it is still predominantly positive across CBSAs.
+                                                                        Overall, these patterns suggest that Gemma-3-27B’s directional pri-
+                                                                        ors are not strongly tailored to local metropolitan context. Instead,
+                                                                        the model tends to reuse the same predictor-level direction across
+                                                                        CBSAs, with differences appearing mainly as no-direction cases
+                                                                        rather than sign reversals.
+
+
+                                                                        5   Conclusion
+                                                                        Fine-grained mobility data are an important basis for computa-
+                                                                        tional models that characterize how people move through cities
+Figure 5: Example of LLM prediction shifts across predictor             and support applications in transportation planning, public health,
+bins for SF CBSA and Convex Hull Diameter. Bars show the                and emergency response. However, such data are often propri-
+percentage of LLM predictions pushed toward lower, neu-                 etary, access-restricted, and privacy-sensitive, raising the question
+tral, or higher mobility classes within each bin, illustrating          of whether large language models can provide useful priors about
+how the model’s directional response is estimated from or-              aggregate mobility in data-scarce settings. In this paper, we evalu-
+dered predictor values. Text annotations report the number              ated this question by testing whether zero-shot LLMs can predict
+of CBGs in each bin.
+Do LLMs Know Your Neighborhood? Auditing LLM Priors for Neighborhood-Level Mobility Prediction and StructuralConference
+                                                                                                              Alignmentacronym ’XX, June 03–05, 2018, Woodstock, NY
+
+
+CBG-level mobility outcomes from sociodemographic and built-                                 illustration of no-bias conditions with a commercial data source. Annals of
+environment context across four U.S. metropolitan areas. We fur-                             epidemiology 70 (2022), 16–22.
+                                                                                        [13] Letian Gong, Yan Lin, Xinyue Zhang, Yiwen Lu, Xuedi Han, Yichen Liu, Shengnan
+ther introduced a directional alignment framework that examines                              Guo, Youfang Lin, and Huaiyu Wan. 2024. Mobility-llm: Learning visiting inten-
+whether LLM-implied predictor effects agree with empirical rela-                             tions and travel preference from human mobility data with large language models.
+                                                                                             Advances in Neural Information Processing Systems 37 (2024), 36185–36217.
+tionships estimated from observed mobility traces. Our results show                     [14] Ana Belén Rodríguez González, Javier Burrieza-Galán, Juan José Vinagre Díaz,
+that LLMs recover nontrivial signal about neighborhood-level mo-                             Inés Peirats de Castro, Mark Richard Wilby, and Oliva Garcia Cantú-Ros. 2024. Us-
+bility, but remain substantially below supervised baselines trained                          ing app usage data from mobile devices to improve activity-based travel demand
+                                                                                             models. IEEE Transactions on Big Data 10, 5 (2024), 633–643.
+on local data. More importantly, the alignment analysis shows that                      [15] Torsten Hägerstrand. 1970. What about people in regional science. Transport
+LLMs often rely on coarse and stable predictor-level priors that                             Sociology: Social aspects of transport planning (1970), 143–158.
+persist across mobility outcomes and metropolitan areas, includ-                        [16] Valentin Hartmann, Anshuman Suri, Vincent Bindschaedler, David Evans, Shruti
+                                                                                             Tople, and Robert West. 2023. Sok: Memorization in general-purpose large
+ing asymmetric directional patterns for protected-group predictors.                          language models. arXiv preprint arXiv:2310.18362 (2023).
+These findings suggest that LLMs may be useful as exploratory                           [17] Peibo Li, Maarten de Rijke, Hao Xue, Shuang Ao, Yang Song, and Flora D Salim.
+                                                                                             2024. Large language models for next point-of-interest recommendation. In
+tools for mobility inference, but their predictions should not be                            Proceedings of the 47th International ACM SIGIR Conference on Research and
+treated as structurally grounded without empirical validation. Au-                           Development in Information Retrieval. 1463–1472.
+diting both predictive performance and directional alignment is                         [18] Siyu Li, Toan Tran, Haowen Lin, John Krumm, Cyrus Shahabi, Lingyi Zhao,
+                                                                                             Khurram Shafique, and Li Xiong. 2024. Geo-llama: Leveraging llms for human
+therefore necessary before using LLMs in urban mobility analysis                             mobility trajectory generation with spatiotemporal constraints. arXiv preprint
+or policy-support settings.                                                                  arXiv:2408.13918 (2024).
+                                                                                        [19] Xuchuan Li, Fei Huang, Jianrong Lv, Zhixiong Xiao, Guolong Li, and Yang Yue.
+                                                                                             2024. Be more real: Travel diary generation using llm agents and individual
+                                                                                             profiles. arXiv preprint arXiv:2407.18932 (2024).
+Acknowledgments                                                                         [20] Zhonghang Li, Lianghao Xia, Jiabin Tang, Yong Xu, Lei Shi, Long Xia, Dawei Yin,
+During the preparation of this work the author(s) used GPT (Ope-                             and Chao Huang. 2024. Urbangpt: Spatio-temporal large language models. In
+                                                                                             Proceedings of the 30th ACM SIGKDD conference on knowledge discovery and data
+nAI) and Claude (Anthropic) to assist with polishing the writing,                            mining. 5351–5362.
+and Google Gemini and NotebookLM to help identify and organize                          [21] Tianming Liu, Manzi Li, and Yafeng Yin. 2025. Aligning LLM with human
+relevant scholarly articles. After using these tools/services, the au-                       travel choices: a persona-based embedding learning approach. arXiv preprint
+                                                                                             arXiv:2505.19003 (2025).
+thor(s) reviewed and edited the content as needed and take(s) full                      [22] Yifan Liu, Xishun Liao, Haoxuan Ma, Brian Yueshuai He, Chris Stanford, and Jiaqi
+responsibility for the content of the published article.                                     Ma. 2025. Human Mobility Modeling with Household Coordination Activities
+                                                                                             under Limited Information via Retrieval-Augmented LLMs. In 2025 IEEE 28th
+                                                                                             International Conference on Intelligent Transportation Systems (ITSC). IEEE, 951–
+                                                                                             958.
+References                                                                              [23] Yuxiao Luo, Zhongcai Cao, Xin Jin, Kang Liu, and Ling Yin. 2024. Deciphering
+ [1] Saad Mohammad Abrar, Naman Awasthi, Daniel Smolyak, and Vanessa Frias-                  human mobility: Inferring semantics of trajectories with large language models.
+     Martinez. 2023. Analysis of performance improvements and bias associated with           In 2024 25th IEEE international conference on mobile data management (MDM).
+     the use of human mobility data in COVID-19 case prediction models. ACM                  IEEE, 289–294.
+     Journal on Computing and Sustainable Societies 1, 2 (2023), 1–36.                  [24] Haoxuan Ma, Xishun Liao, Yifan Liu, Qinhua Jiang, Chris Stanford, Shangqing
+ [2] Hikaru Asano, Hiroki Ouchi, Akira Kasuga, and Ryo Yonetani. 2025. MobQA:                Cao, and Jiaqi Ma. 2025. Learning universal human mobility patterns with a
+     A Benchmark Dataset for Semantic Understanding of Human Mobility Data                   foundation model for cross-domain data fusion. Transportation Research Part C:
+     through Question Answering. arXiv preprint arXiv:2508.11163 (2025).                     Emerging Technologies 180 (2025), 105311.
+ [3] Hugo Barbosa, Marc Barthelemy, Gourab Ghoshal, Charlotte R James, Maxime           [25] Rohin Manvi, Samar Khanna, Marshall Burke, David Lobell, and Stefano Er-
+     Lenormand, Thomas Louail, Ronaldo Menezes, José J Ramasco, Filippo Simini,              mon. 2024. Large language models are geographically biased. arXiv preprint
+     and Marcello Tomasini. 2018. Human mobility: Models and applications. Physics           arXiv:2402.02680 (2024).
+     Reports 734 (2018), 1–74.                                                          [26] Rohin Manvi, Samar Khanna, Gengchen Mai, Marshall Burke, David Lobell,
+ [4] Ciro Beneduce, Bruno Lepri, and Massimiliano Luca. 2025. Large language models          and Stefano Ermon. 2023. Geollm: Extracting geospatial knowledge from large
+     are zero-shot next location predictors. IEEE Access (2025).                             language models. arXiv preprint arXiv:2310.06213 (2023).
+ [5] Prabin Bhandari, Antonios Anastasopoulos, and Dieter Pfoser. 2024. Urban           [27] Mazda Moayeri, Elham Tabassi, and Soheil Feizi. 2024. Worldbench: Quantify-
+     mobility assessment using llms. In Proceedings of the 32nd ACM International            ing geographic disparities in llm factual recall. In Proceedings of the 2024 ACM
+     Conference on Advances in Geographic Information Systems. 67–79.                        Conference on Fairness, Accountability, and Transparency. 1211–1228.
+ [6] Stacey Bricka, Timothy Reuscher, Paul Schroeder, Mitchell Fisher, Justina Beard,   [28] Can Rong, Jingtao Ding, and Yong Li. 2024. An interdisciplinary survey on
+     and Xiaoyuan Layla Sun. 2024. Summary of travel trends: 2022 national household         origin-destination flows modeling: Theory and techniques. Comput. Surveys 57,
+     travel survey. (2024).                                                                  1 (2024), 1–49.
+ [7] Caroline O Buckee, Satchit Balsari, Jennifer Chan, Mercè Crosas, Francesca         [29] Chenyang Shao, Fengli Xu, Bingbing Fan, Jingtao Ding, Yuan Yuan, Meng Wang,
+     Dominici, Urs Gasser, Yonatan H Grad, Bryan Grenfell, M Elizabeth Halloran,             and Yong Li. 2024. Beyond imitation: Generating human mobility from context-
+     Moritz UG Kraemer, et al. 2020. Aggregated mobility data could help fight               aware reasoning with large language models. arXiv preprint arXiv:2402.09836
+     COVID-19. Science 368, 6487 (2020), 145–146.                                            (2024).
+ [8] Serina Chang, Emma Pierson, Pang Wei Koh, Jaline Gerardin, Beth Redbird, David     [30] Jiawei Wang, Renhe Jiang, Chuang Yang, Zengqing Wu, Makoto Onizuka,
+     Grusky, and Jure Leskovec. 2021. Mobility network models of COVID-19 explain            Ryosuke Shibasaki, Noboru Koshizuka, and Chuan Xiao. 2024. Large language
+     inequities and inform reopening. Nature 589, 7840 (2021), 82–87.                        models as urban residents: An llm agent framework for personal mobility genera-
+ [9] Yile Chen, Yicheng Tao, Yue Jiang, Shuai Liu, Han Yu, and Gao Cong. 2025.               tion. Advances in Neural Information Processing Systems 37 (2024), 124547–124574.
+     Enhancing large language models for mobility analytics with semantic location      [31] Xinglei Wang, Meng Fang, Zichao Zeng, and Tao Cheng. 2023. Where would i
+     tokenization. In Proceedings of the 31st ACM SIGKDD Conference on Knowledge             go next? large language models as human mobility predictors. arXiv preprint
+     Discovery and Data Mining V. 2. 262–273.                                                arXiv:2308.15197 (2023).
+[10] Yunhan Du, Takaaki Aoki, and Naoya Fujiwara. 2025. A review of human mobility:     [32] Lun Wu, Liu Yang, Zhou Huang, Yaoli Wang, Yanwei Chai, Xia Peng, and Yu Liu.
+     Linking data, models, and real-world applications. Journal of Computational             2019. Inferring demographics from human trajectories and geographical context.
+     Social Science 8, 4 (2025), 90.                                                         Computers, Environment and Urban Systems 77 (2019), 101368.
+[11] Jie Feng, Jun Zhang, Tianhui Liu, Xin Zhang, Tianjian Ouyang, Junbo Yan, Yuwei     [33] Xinhua Wu and Qi R Wang. 2024. Popular llms amplify race and gender disparities
+     Du, Siqi Guo, and Yong Li. 2025. Citybench: Evaluating the capabilities of large        in human mobility. arXiv preprint arXiv:2411.14469 (2024).
+     language models for urban tasks. In Proceedings of the 31st ACM SIGKDD Confer-     [34] Fengli Xu, Qi Wang, Esteban Moro, Lin Chen, Arianna Salazar Miranda, Marta C
+     ence on Knowledge Discovery and Data Mining V. 2. 5413–5424.                            González, Michele Tizzoni, Chaoming Song, Carlo Ratti, Luis Bettencourt, et al.
+[12] Michael D Garber, Katie Labgold, and Michael R Kramer. 2022. On selection               2025. Using human mobility data to quantify experienced urban inequalities.
+     bias in comparison measures of smartphone-generated population mobility: an             Nature human behaviour 9, 4 (2025), 654–664.
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY                                                                                                    Abrar et al.
+
+
+[35] Takahiro Yabe, Bernardo García Bulle Bueno, Morgan R Frank, Alex Pentland,       A     Appendix
+     and Esteban Moro. 2025. Behaviour-based dependency networks between places
+     shape urban economic resilience. Nature human behaviour 9, 3 (2025), 496–506.
+[36] Yanni Yang, Alex Pentland, and Esteban Moro. 2023. Identifying latent activity
+     behaviors and lifestyles using mobility data to describe urban dynamics. EPJ
+     Data Science 12, 1 (2023), 15.
+[37] Yecheng Zhang, Rong Zhao, Zimu Huang, Xinyu Wang, Yue Ma, and Ying Long.
+     2025. GenAI Models Capture Urban Science but Oversimplify Complexity. arXiv      System Prompt for Mobility Outcome Classification
+     preprint arXiv:2505.13803 (2025).
+[38] Dong Zhao, Adriana-Simona Mihăiţă, Yuming Ou, Hanna Grzybowska, and Mo Li.       You are a careful classifier for mobility outcomes.
+     2024. Origin–destination matrix estimation for public transport: A multi-modal
+     weighted graph approach. Transportation Research Part C: Emerging Technologies   Output ONLY one XML document that starts with <response> and ends with
+     165 (2024), 104694.                                                              </response>, with EXACTLY three child elements in this order:
+                                                                                      <reasoning>, <rank>, <answer>.
+                                                                                      Do not output anything else.
+
+                                                                                      Primary task: Predict the mobility outcome class in <answer> using ONLY
+                                                                                      the information provided in the user prompt (outcome definition,
+                                                                                      CBSA-specific cutpoints, and CBG feature buckets/percentiles).
+
+                                                                                      Keep <reasoning> concise and focused on direction and justification:
+                                                                                      explain how the most influential features (the ones you will rank
+                                                                                      highest) push the mobility outcome up or down, and why they matter more
+                                                                                      than other features. Avoid listing everything; summarize.
+
+                                                                                      <rank> is an explanation-only section. List the 10 most relevant
+                                                                                      predictors for THIS CBG’s prediction (most important first).
+                                                                                      <rank> MUST contain exactly 10 <item/> tags.
+                                                                                      Each <item/> MUST have EXACTLY three attributes:
+                                                                                      feature="..." val="very_low|low|neutral|high|very_high" push="+"|"-"|"0"
+
+                                                                                      - val MUST be copied exactly from the bucket given in the prompt for
+                                                                                        that feature.
+                                                                                      - push is the direction this feature (given its val) pushes the mobility
+                                                                                        outcome for THIS CBG: "+" pushes toward higher outcome, "-"
+                                                                                        toward lower, "0" neutral or unclear.
+
+                                                                                      <answer> MUST be exactly one of: A | B | C.
+                                                                                      A = low outcome (lowest tertile),
+                                                                                      B = middle tertile,
+                                                                                      C = high outcome (highest tertile).
+
+                                                                                      The tertile cutpoints for A/B/C are provided in the prompt.
+                                                                                      When deciding <answer>, weigh items by rank: items earlier in <rank>
+                                                                                      matter much more than later items. Treat ranks 1--3 as primary evidence,
+                                                                                      ranks 4--6 as supporting evidence, and ranks 7--10 as weak evidence.
+
+
+                                                                                                      Figure 6: System prompt for RQ1
+
+
+
+
+                                                                                      User Prompt for Directional Alignment
+
+                                                                                      You are given Census Block Group (CBG) characteristics for CBSA: [CBSA name].
+
+                                                                                      ## Outcome Description
+                                                                                      Mobility outcome: [outcome name]
+                                                                                      Definition: [outcome definition]
+
+                                                                                      ## Predictor Descriptor
+                                                                                      - Percentiles are computed within the CBSA.
+                                                                                      - Predictor buckets correspond to CBSA-wide quintiles:
+                                                                                        very_low | low | neutral | high | very_high.
+                                                                                      - Outcome labels are tertiles: low | neutral | high.
+
+                                                                                      ## CBG Features
+                                                                                      - [feature 1]; [raw value] (CBSA percentile Pxx, [bucket])
+                                                                                      - [feature 2]; [raw value] (CBSA percentile Pxx, [bucket])
+                                                                                      - ...
+                                                                                      - [feature p]; [raw value] (CBSA percentile Pxx, [bucket])
+
+                                                                                      ## Task
+                                                                                      Based on the outcome definition provided, assess the directional push (+, -, 0)
+                                                                                      for each feature in this specific CBG.
+
+
+
+                                                                                          Figure 7: User prompt for RQ2 Directional Alignment.
+Do LLMs Know Your Neighborhood? Auditing LLM Priors for Neighborhood-Level Mobility Prediction and StructuralConference
+                                                                                                              Alignmentacronym ’XX, June 03–05, 2018, Woodstock, NY
+
+
+
+ System Prompt for Directional Alignment
+
+ You are a spatial data analyst. Your task is to provide reasoning for
+ characteristic mobility outcomes within a small geographic region
+ (Census Block Group).
+
+ Output ONLY one XML document that starts with <response> and ends with
+ </response>. This document must contain EXACTLY two child elements in
+ this order:
+ <reasoning>, <assessment>.
+
+ ### Primary Task
+ Identify the directional push of every predictor on the mobility outcome
+ for this CBG.
+
+ ### Analytical Framework (Two-Step Evaluation)
+ For each predictor, apply the following logic:                                                        (a) ATL                                           (b) MIA
+ 1. Classify the relationship: Is the feature a Facilitator
+    (positive association) or a Restrictor (inverse association) for the
+    outcome?
+ 2. Apply the instance value:
+    - If a feature is a Facilitator and its value is high or very_high,
+      then push="+"
+    - If a feature is a Facilitator and its value is low or very_low,
+      then push="-"
+    - If a feature is a Restrictor and its value is high or very_high,
+      then push="-"
+    - If a feature is a Restrictor and its value is low or very_low,
+      then push="+"
+
+ <reasoning>
+ Provide a concise explanation. Explicitly list which predictors you
+ classified as Facilitators and which you classified as Restrictors
+ based on the outcome definition.
+ </reasoning>
+
+ <assessment>
+ List EVERY predictor provided in the user prompt as an <item/>.
+ Each <item/> must have these attributes:
+                                                                                                        (c) LA                                             (d) SF
+ - feature: the exact name of the feature as provided
+ - val: the observed bucket
+   (very_low|low|neutral|high|very_high)                                             Figure 9: Sample size distributions for CBGs across four CB-
+ - push: "+", "-", or "0"                                                            SAs.
+ </assessment>
+
+                                                                                             CBSA      Outcomes              Best LLM                 Best Base.         Gap
+ Figure 8: System prompt for RQ2 Directional Alignment.
+                                                                                                       HD              Gemma-3-27B, .532            MNLR, .678            .146
+                                                                                                       EA              Gemma-3-27B, .558         Random Forest, .708      .149
+                                                                                                       RoG             Gemma-3-27B, .528         Random Forest, .689      .161
+                                                                                                       SE              Gemma-3-27B, .428            MNLR, .589            .161
+                                                                                             ATL
+                                                                                                       AD                Qwen-3-4B, .463            MNLR, .580            .116
+                                                                                                       TL                Qwen-3-4B, .405         Random Forest, .556      .151
+                                                                                                       TE             Gemini-2.5-Flash, .341     Random Forest, .505      .164
+                                                                                                       TF             Claude Sonnet 4.5, .443       MNLR, .609            .166
+                                                                                                       HD              Gemma-3-27B, .495            MNLR, .606            .111
+                                                                                                       EA              Gemma-3-27B, .494            MNLR, .644            .149
+       Model                   Parse success rate     Used in analysis                                 RoG             Gemma-3-27B, .473         Random Forest, .647      .173
+                                                                                                       SE              Gemma-3-27B, .383            MNLR, .461            .077
+       Claude-Sonnet-4.5             99.999%                 Yes                             LA
+                                                                                                       AD              Gemma-3-27B, .420         Random Forest, .510      .090
+       GPT-5.1                       99.999%                 Yes                                       TL              Gemma-3-27B, .393         Random Forest, .521      .128
+                                                                                                       TE             Gemini-2.5-Flash, .341     Random Forest, .436      .095
+       Gemini-2.5-Pro                99.999%                 Yes                                       TF             Claude Sonnet 4.5, .394    Random Forest, .454      .059
+       Gemma-3-27B                   99.980%                 Yes                                       HD              Gemma-3-27B, .481         Random Forest, .681      .200
+       gemma-3-12B                   99.813%                 Yes                                       EA              Gemma-3-27B, .508            MNLR, .702            .194
+       Gemini-2.5-Flash              99.79%                  Yes                                       RoG             Gemma-3-27B, .460         Random Forest, .690      .231
+                                                                                                       SE              Gemma-3-27B, .432            MNLR, .550            .118
+       Qwen3_30B_a3B                 99.315%                 Yes                             MIA
+                                                                                                       AD              Gemma-3-27B, .435         Random Forest, .543      .108
+       Qwen3_8B                      99.180%                 Yes                                       TL              Gemma-3-27B, .402         Random Forest, .584      .181
+                                                                                                       TE              Gemini-2.5-Pro, .350      Random Forest, .499      .149
+       GPT-OSS-20B-low               98.814%                 Yes                                       TF             Claude Sonnet 4.5, .381       MNLR, .530            .149
+       Qwen3_4b                      96.222%                 Yes
+                                                                                                       HD              Gemma-3-27B, .472         Random Forest, .648      .176
+       Qwen3_5_35b_a3b               88.769%                 No                                        EA              Gemma-3-27B, .479            MNLR, .630            .151
+       Qwen_3_5_9b                   87.350%                 No                                        RoG             Gemma-3-27B, .476            MNLR, .654            .177
+                                                                                                       SE             Qwen-3-30B-A3B, .334          MNLR, .506            .172
+       Deepseek_v3.2                 72.187%                 No                              SF
+                                                                                                       AD              Gemma-3-27B, .467            MNLR, .575            .108
+       Llama_3_1_8b_inst             56.273%                 No                                        TL             Claude Sonnet 4.5, .401       MNLR, .551            .150
+                                                                                                       TE             Gemini-2.5-Flash, .337        MNLR, .478            .140
+       GPT-OSS-120B                  20.744%                 No                                        TF             Claude Sonnet 4.5, .413       MNLR, .532            .119
+Table 3: Parse success rates across evaluated LLMs. Models                             Notes. HD = hull diameter, EA = ellipse area, RoG = radius of gyration, SE = stay entropy, AD =
+                                                                                      average duration, TL = travel length, TE = travel entropy, TF = temporal fragmentation. MNLR –
+with parse success rate below 95% were excluded from down-                                                             multinomial logistic regression.
+stream analysis.                                                                     Table 4: Best zero-shot LLM and supervised baseline by CBSA
+                                                                                     and mobility outcome. Gap is computed as best baseline ac-
+                                                                                     curacy minus best LLM accuracy.
+Conference acronym ’XX, June 03–05, 2018, Woodstock, NY   Abrar et al.
+Do LLMs Know Your Neighborhood? Auditing LLM Priors for Neighborhood-Level Mobility Prediction and StructuralConference
+                                                                                                              Alignmentacronym ’XX, June 03–05, 2018, Woodstock, NY
+

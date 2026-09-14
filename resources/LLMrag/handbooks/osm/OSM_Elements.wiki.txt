@@ -1,0 +1,124 @@
+{{Languages}}
+
+'''Elements''' are the basic components of OpenStreetMap's ''conceptual data model of the physical world''. There are three types of elements: 
+* '''[[node]]s''' (defining points in space), 
+* '''[[way]]s''' (defining linear features and [[area]] boundaries), and 
+* '''[[relation]]s''' (defining how other elements work together). 
+All of the above can have one or more associated [[tag]]s (which describe the meaning of a particular element).
+
+==Node {{IconNode}}==
+{{main|Node}}
+
+A [[node]] represents a specific point on the earth's surface defined by its latitude and longitude, referred to the World Geodetic System 1984[https://en.wikipedia.org/wiki/World_Geodetic_System#WGS84]. Each node comprises at least an id number and a pair of coordinates. 
+
+Nodes can be used to define standalone point features. For example, a node could represent a park bench or a water well.
+
+Nodes are also used to define the shape of a [[way]]. When used as points along ways, nodes usually have no tags, though some of them could. For example, {{tag|highway|traffic_signals}} marks traffic signals on a road, and {{tag|power|tower}} represents a pylon along an electric power line.
+
+A node can be included as a member of a [[relation]]. The relation also may indicate the member's [[role]]: that is, the node's function in this particular set of related data elements.
+
+==Way {{IconWay}} {{IconClosedway}} {{IconArea}}==
+{{main|Way}}
+
+A ''[[way]]'' is an ordered list of between 1 (!) and 2,000 nodes that define a {{wikipedia|en|Polygonal chain|polyline|text=no}}. Ways are used to represent linear features such as rivers and roads. {{IconWay}}
+
+Ways can also represent the boundaries of ''[[area]]s'' (solid {{wikipedia|en|Polygon|polygons|text=no}}) such as buildings or forests. In this case, the way's first and last node will be the same. This is called a "closed way". {{IconClosedway}}
+
+Note that closed ways occasionally represent loops, such as roundabouts on highways, rather than solid areas. This is usually inferred from tags on the way, for example {{key|landuse}} can never pertain to a linear feature. However, some real-life objects (such as {{Tag|man_made|pier}}) can have both a linear {{IconClosedway}} or an areal representation {{IconArea}}, and the tag {{Tag|area|yes}} or {{Tag|area|no}} can be used to avoid ambiguity or misinterpretation. See also: [[Way#Differences between linear and area representation of features]].   
+
+Areas with holes, or with boundaries of more than 2,000 nodes, cannot be represented by a single way. Instead, the feature will require a more complex [[relation:multipolygon|multipolygon relation]] data structure.
+
+==Relation {{IconRelation}}==
+{{main|Relation}}
+
+A ''[[relation]]'' is a multi-purpose data structure that documents a relationship between two or more data [[element]]s (nodes, ways, and/or other relations). Examples include:
+
+*A [[route]] relation, which lists the ways that form a major (numbered) highway, a cycle route, or a bus route.
+*A [[turn restriction]] that says you can't turn from one way into another way.
+* A [[multipolygon]] that describes an area (whose boundary is the 'outer way') with holes (the 'inner ways').
+
+The relation's meaning is defined by its tags. A relation must have at least the [[Key:type|type]] tag. Other tags need to be interpreted in light of the type tag.
+
+The relation is primarily an ordered list of nodes, ways, or other relations. These objects are known as the relation's members.
+
+Each element can optionally have a ''[[role]]'' within the relation. For example, a turn restriction would have members with "from" and "to" roles, describing the particular turn that is forbidden.
+
+Depending on relation type, a single element may appear multiple times as a member.
+
+==Tag {{IconTag}}==
+{{Main|Tag}}
+
+All types of data elements (nodes, ways and relations), as well as [[changeset]]s, can have tags. Tags describe the meaning of the particular element to which they are attached.
+
+A tag consists of two free-format text fields: a ''key'' and a ''value''. Both are Unicode strings of up to 255 characters. For example, {{tag|highway|residential}} defines the way as a road whose main function is to give access to people's homes. An element cannot have two tags with the same ''key'': the ''keys'' must be unique. For example, you cannot have an element tagged both {{tag|amenity|restaurant}} ''and'' {{tag|amenity|bar}}. In some cases, it is possible to use [[semi-colon value separator]] to assign multiple values to the same key, but this is not universally applicable.
+
+There is no fixed dictionary of tags, but there are many conventions documented on this wiki (starting with the [[map features]] page). Tag usage can be measured with the [[Taginfo]] application. If there is more than one way to tag a given feature, it's probably best to use the most common approach.
+
+Not all elements have tags. Nodes are often untagged if they are part of ways. Both ways and nodes may be untagged if they are members of a relation.
+
+==Common attributes==
+
+Within the OSM database, we store these attributes for nodes, ways and relations. Your application may not need to make use of all of them, and some third-party extracts produced from OSM data may not reproduce them all.
+
+{| class="wikitable"
+|-
+! scope="col" |Name
+! scope="col" |Value
+! scope="col" | Description
+|- id="id"
+|<tt>id</tt>
+|integer ([[{{LL|64-bit Identifiers}}|64-bit]]) 
+|Used for identifying the element. Element types have their own ID space, so there could be a node with id=100 and a way with id=100, which are unlikely to be related or geographically near to each other.<br /> Positive (>0) values are used for all existing elements (and will remain assigned when they are modified or deleted); negative values (<0) are reserved (their scope limited to the current changeset and never stored in the database) and only used when sending data to the OSM database for identifying new objects to create and reference them in other created or modified objects (the server will replace these temporary identifiers sent by the editing application, by assigning an actual positive identifier for each created object, and will return a mapping from the negative identifiers used to their assigned positive identifiers).
+|-
+|<tt>user</tt>
+|character string
+|The display name of the user who last modified the object (informative only and may be empty). A user can change their display name at any time (existing elements will reflect the new user name without needing any version change).
+|-
+|<tt>uid</tt>
+|integer
+|The numeric identifier of the user who last modified the object. User identifiers never change.
+|-
+|<tt>timestamp</tt>
+|[https://www.w3.org/TR/NOTE-datetime W3C standard date and time formats]. 
+|Time of the last modification (e.g. "2016-12-31T23:59:59Z"), without fractional seconds.
+|-
+|<tt>visible</tt>
+|"<tt>true</tt>" or "<tt>false</tt>"
+|Whether the object is deleted or not in the database, if visible="false" then the object should only be returned by history calls.
+|-
+|<tt>version</tt>
+|integer
+| The edit version of the object. Newly created objects start at version 1 and the value is incremented by the server when a client uploads a new version of the object. The server will reject a new version of an object if the version sent by the client does not match the current version of the object in the database. 
+|-
+|<tt>changeset</tt>
+|integer
+|The [[changeset]] number in which the object was created or updated (supporting [[{{LL|64-bit Identifiers}}|64-bit]] is recommended in applications for compatibility with long term evolution of the OSM database, but applications that only query data without updating them may ignore this informative attribute).
+|}
+
+Of course, in addition, we store the tags, and also a full editing history of every element.
+
+==Historical==
+
+Historically there was another element type. This is:
+*'''[[segment]]s''' (connecting two nodes and making up a way).
+
+== XML Caution and Notes on Nomenclature==
+{{main|OSM XML}}
+
+This documentation targets users of high level OSM tools such as editors, it does not serve as a low level data standard. Users who are looking for a low level standard will need to do some interpreting of the documentation to get a clear understanding and should be aware of departures from the XML standard.
+
+===Elements===
+The set of Elements in OSM XML that are referred to as elements in documentation are a subset of the actual XML elements found in the data. i.e. the term Element in XML and the term Element in OSM XML are not synonymous.
+
+Elements in OSM data are defined as one of '''''node''''', '''''way''','' and '''''relation'''''.  XML elements '''''tag''''', '''''nd''''', and '''''member''''' are not referred to as elements in OSM XML but they are indeed XML elements.
+
+This does not serve to make the data invalid in any way it is merely a semantic obfuscation that has crept into the documentation that is viewed as too unimportant to rectify.
+
+===Ids===
+Users of XML tools should also be aware that nodes, ways and relations do not share the same object id space. Any tool which is solely referring to an OSM object by its id will encounter undefined behavior (e.g. <tt>Document.getElementById()</tt>). OSM Objects must always be referred to both with their object ids and their respective object type (node, way, relation).
+
+
+{{Elements}}
+
+[[Category:Elements| ]]
+[[Category:Concepts]]

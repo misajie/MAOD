@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MapAgents spatial program",
+  "type": "object",
+  "required": ["version", "name", "features"],
+  "properties": {
+    "version": {"const": 1},
+    "name": {"type": "string"},
+    "features": {
+      "type": "array", "minItems": 1, "maxItems": 128,
+      "items": {
+        "type": "object", "required": ["name", "scope", "expression"],
+        "properties": {
+          "name": {"type": "string"},
+          "scope": {"enum": ["both", "origin", "destination", "pair"]},
+          "expression": {"$ref": "#/$defs/expression"},
+          "mechanism": {"type": "string"},
+          "evidence": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "expression": {
+      "type": "object", "required": ["op"],
+      "properties": {
+        "op": {"enum": ["source", "area", "constant", "log1p", "sqrt", "add", "subtract", "multiply", "ratio", "clip", "neighborhood", "osm", "origin", "destination", "distance", "exp_decay"]},
+        "column": {"type": "string"},
+        "value": {"type": "number"},
+        "arg": {"$ref": "#/$defs/expression"},
+        "left": {"$ref": "#/$defs/expression"},
+        "right": {"$ref": "#/$defs/expression"},
+        "radius_km": {"type": "number", "exclusiveMinimum": 0},
+        "scale": {"type": "number", "exclusiveMinimum": 0},
+        "epsilon": {"type": "number", "exclusiveMinimum": 0},
+        "buffer_m": {"type": "number", "minimum": 0, "maximum": 50000},
+        "predicate": {"type": "object", "minProperties": 1}
+      },
+      "description": "Operator-specific required arguments and endpoint typing are enforced by programs.validate_program."
+    }
+  }
+}

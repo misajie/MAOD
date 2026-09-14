@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mapagents"
+version = "0.1.0"
+description = "Retrieval-grounded spatial program discovery for OD prediction"
+requires-python = ">=3.11"
+dependencies = ["numpy>=1.24", "pandas>=2.0", "torch>=2.3", "scipy>=1.10", "scikit-learn>=1.3", "geopandas>=0.14", "shapely>=2.0", "pyarrow>=14", "PyYAML>=6", "openai>=1.50"]
+
+[project.optional-dependencies]
+osm = ["osmium>=4.0"]
+
+[project.scripts]
+mapagents = "mapagents.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["mapagents*"]
+
+[tool.setuptools.package-data]
+mapagents = ["*.json"]

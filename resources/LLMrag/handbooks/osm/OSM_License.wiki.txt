@@ -1,0 +1,7 @@
+{{Languages|OpenStreetMap License}}
+
+{{Hatnote|'''Licence''' and '''License''' redirect here. For discussion of the licensing of non-OSM geodata, see [[:Category:Licenses compatible for OSM data imports]] and related categories.}}
+
+{{Wfmessage|type=advice|text=Be aware that this page can be edited by any registered user and therefore cannot authoritatively represent the views of the OSMF. Refer to https://www.openstreetmap.org/copyright and https://wiki.osmfoundation.org/wiki/Licence for official statements about the licensing of OpenStreetMap data and derivatives.}}
+
+[[Category:License]]

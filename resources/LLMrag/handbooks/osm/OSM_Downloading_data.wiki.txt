@@ -1,0 +1,87 @@
+{{Languages|Downloading data}}
+It is possible to '''download map data''' from the OpenStreetMap dataset in a number of ways. The full dataset is available from the OpenStreetMap website [https://planet.openstreetmap.org download] area. It is also possible to select smaller areas to download. Data normally comes in the form of <code>.osm</code> files in the [[OSM XML]] format. If you just want to use a "map" (e.g. for a GPS device) then you likely do not want to download this raw data, instead see [[Use OpenStreetMap|other OSM download options]].
+
+Some things to consider:
+* The entire planet is a lot of data. Start with a regional extract to make sure your setup works properly. Common tools like [[Osmosis]] or various import tools for [[Databases_and_data_access_APIs|database]] imports and converters take hours or days to import data, depending largely on disk speed.
+* OpenStreetMap is a federative project. That means that a lot of essential resources are provided by third party providers. Be bold, try to download there first. The official [[servers]] aren't huge data centres and don't have ample resources. They are rather dedicated to keep the data flow in sync.
+* Some tools are OK only for small scale or specific use, for example [[OSM editing API]] must not be misused for bulk downloads
+== All data at once ==
+
+[[Planet.osm]] contains the entire planet. This is a snapshot of the current data, usually from last Wednesday. As of 2025 it is about 100 GB compressed or 2 TB uncompressed, and growing each day.
+
+The [[History_API_and_Database|planet history]] contains the history of almost all objects and is even bigger.
+
+You can download the whole planet file using a [[Planet.osm#BitTorrent|Bittorrent client]], or...
+
+Use the "[[download-osm tool]]" which streams from multiple OSM mirrors at the same time.
+
+== Huge amounts of data ==
+
+Several [[Planet.osm#Extracts|extract services]] allow you to download more manageable file sizes, from an entire continent to parts of a country. Popular services include [[Geofabrik]] (multiple file formats), [https://openplanetdata.com OpenPlanetData] (daily planet snapshots in PBF and GOL format) and [[SliceOSM]] (arbitrary geographies). Tools like [[Osmosis]], [[osmconvert]], and [[osmfilter]] will assist you to extract specific data from these extracts. [https://openstreetmap.us/our-work/layercake/ Layercake] provides thematic layers of OSM in GeoParquet format.
+
+[[Overpass API]] and the [https://learnosm.org/en/osm-data/geofabrik-and-hot-export/ Export Tool] allow to download custom data sets like arbitrary bounding boxes, elements with specific tags, public transport networks or other features.
+
+== Small amounts of data ==
+
+=== For mobile navigation devices ===
+See [[Processed data providers]], especially [https://extract.bbbike.org/ BBBike.org's] custom extraction service.
+
+=== Dedicated tools ===
+[[Overpass API]], maybe using [[Overpass Turbo]] is a great tool here described in detail on its own pages.
+
+One can [[Overpass_API/Overpass_API_by_Example#All_data|download all data in some small area]] or make more [[Overpass API/Overpass API by Example|advanced filtering]].
+
+Using the [[export]] tab, one can select a piece of the map and download the data in several formats, including OSM XML. This intentionally works only at high zoom levels.
+
+=== For editing ===
+[[API_0.6|main api]] can be used to download data for editing.
+
+A basic operation of the OpenStreetMap [[API]], is the 'map' request. For the relevant API documentation see: [[API v0.6#Retrieving map data by bounding box: GET /api/0.6/map]]. Furthermore, the [[API_0.6|main api]] allows you to download the XML of single elements and the history of each of these elements. It is dedicated to editing, not downloads. Don't use this for mass requests, because this is resource intensive. Please use [[Overpass API]] instead.
+
+[[JOSM]] provides a useful interface for selecting the area you wish to download, and instant visualization of all the data you have downloaded. You can edit the data to re-upload it later. You can also save the data to <tt>.osm</tt> file ([[JOSM file format]]) for further processing. But because it employs the main API, it is not intended for downloading large quantities of data.
+
+Note that use of the API (and especially bbox map data requests) is subject to our [[API usage policy]]. Heavy use (or large numbers of requests from ''many'' users) should use one of the above mentioned services instead. 
+
+==== Choose your region ====
+
+The region is specified by a '''bounding box''', which consists of a minimum and maximum latitude and longitude.  Choose as small a region as will be useful to you, since larger regions will result in larger data files, longer download times, and heavier load on the server. The server may reject your region if it is larger than 1/4 degree in either dimension.  When you're first starting out, choose a very small region so that you can figure things out quickly with small data sets.
+
+There are several ways of finding latitude and longitude values. Since we are interested in a bounding box, perhaps the clearest way is to use the bounding box selection features of the 'export data' link. On the [https://openstreetmap.org homepage map] pan and zoom to roughly the right area, and then click the 'export data' (link on the left). This sidebar display includes the four values you need for a bounding box matching the extents of the viewport. Click 'Manually select a different area' and then drag a box to select exactly the region you want.
+
+==== Construct a URL for the HTTP API ====
+
+You must now construct an API request URL as specified in the [[API v0.6#Retrieving map data by bounding box: GET /api/0.6/map|map request docs]]. In the URL, a bounding box is expressed as four comma-separated numbers, in this order: left, bottom, right, top (min long, min lat, max long, max lat). Latitude and longitude are expressed in decimal degrees. North latitude is positive, south latitude is negative.  West longitude is negative, east longitude is positive. The method described in the previous section will give you suitable values.
+
+Example:
+
+ https://api.openstreetmap.org/api/0.6/map?bbox=11.54,48.14,11.543,48.145
+
+The API is limited to bounding boxes of about 0.5 degree by 0.5 degree and you should avoid using it for larger areas if possible.
+
+==== Download the data ====
+
+You can just type this URL into a browser if you want, but that may not work as well as you'd hope, especially if the data is large.  If you know how to use them, command-line tools like [[Wikipedia:Wget|wget]] and [[Wikipedia:CURL|curl]] will do a better job.
+
+If you've specified a region with a lot of data, you may have to wait a while before the HTTP response begins (the server is crunching your request).  If your client times out, try setting options for a longer timeout, or choose a smaller region.
+
+Here's an example command line for [[Wikipedia:Wget|wget]]:
+
+ wget -O muenchen.osm <nowiki>"https://api.openstreetmap.org/api/0.6/map?bbox=11.54,48.14,11.543,48.145"</nowiki>
+
+== See also ==
+
+* [[Databases and data access APIs]]
+* [[Converting map data between formats]]
+* [[Planet.osm]]
+* [[Overpass API]]
+* [https://geodownloader.com GeoDownloader]
+* [[:Category:OSM processing]]
+* [[Processed data providers]]
+* [[:File:OSMToolsDecisionTree.png|A decision tree on different download tools and for which use-case they are most suited]] (based on the viewpoint of the [[ohsome]] platform)
+
+{{DEFAULTSORT:Downloading data}}
+[[Category:Technical guide]]
+[[Category:OSM API]]
+[[Category:OSM processing]]
+[[Category:Unix command examples]]
+[[Category:Outputs]]

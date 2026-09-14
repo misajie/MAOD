@@ -1,0 +1,368 @@
+{{Languages|Planet.osm}}
+'''[https://planet.openstreetmap.org/ Planet.osm]''' (also known as '''The planet file''') is the OpenStreetMap data in one file: all the [[Elements|nodes, ways and relations]] that make up our map. A new version is released every week. It's a big file (on 2026-08-01, the plain OSM XML variant takes over 2263.2G when uncompressed from the 164.3G bzip2-compressed or 87.6G [[PBF Format|PBF]]-compressed downloaded data file).
+
+There are also files called '''Extracts''' which contain OpenStreetMap Data for individual continents, countries, and metropolitan areas.
+==Cost==
+There is no cost for the planet.osm data. It is provided for free, but use is subject to the licence- see below. 
+== Format ==
+The planet server offers five different dumps of OSM data
+
+* planet data,
+* planet data with history,
+* notes,
+* changesets, and
+* changesets with discussions.
+
+This page is about the first two. They are both available in [[PBF Format|PBF]] or [[OSM XML]]. PBF is a more compact format that is faster to process and should be used whenever possible.
+
+For an overview over all osm file formats and conversion tools have a look at [[OSM file formats]].
+
+If you are using traditional GIS tools you may want to look at [[Processed data providers]].
+
+==Downloading==
+See [[downloading data]] for tools to make downloading easier, including an option to use all mirrors at once, automatically do md5 hash validation, and other features.
+
+Do not attempt to download the planet in a web browser. Instead, use command-line tools to download. Most Linux systems will come with cURL, which can be used
+
+ curl -OL https://planet.openstreetmap.org/pbf/planet-latest.osm.pbf
+
+If you have the AWS CLI tools installed, you can download directly from AWS in the EU Central 1 and US West 2 regions. This is faster than downloading normally<ref>EC2 metadata lookup might slow things down, see https://github.com/aws/aws-sdk-cpp/issues/1511 for discussion</ref>. The AWS bucket layout differs from the historical planet.openstreetmap.org layout, so you can see where the files are with
+
+ aws s3 ls --no-sign-request s3://osm-planet-eu-central-1/
+ aws s3 ls --no-sign-request s3://osm-planet-us-west-2/
+
+If you want to use BitTorrent to download the files, you can do so. On Linux machines, the easiest way to do this is with the aria2c command after finding the appropriate .torrent file.
+
+ aria2c --seed-time=0 https://planet.openstreetmap.org/pbf/planet-latest.osm.pbf.torrent
+
+BitTorrent does not save the OSM servers bandwidth, as the s3 buckets have unlimited bandwidth, but it may be faster than the AWS CLI in rare cases.
+
+RSS feeds for torrents are available on the planet server for automatic torrenting.
+
+==Planet.osm mirrors==
+
+OpenStreetMap data is mirrored to a large number of hosts. It used to be necessary to download mirrors to conserve OSM bandwidth, but that is no longer necessary. If you want to use mirrors, the easiest way is to use the torrent files which will automatically download from multiple mirrors in parallel.
+
+If downloading from a mirror directly, prefer HTTPS over HTTP or FTP.
+
+{| class="wikitable sortable" style="text-align:left"
+|- class="sorttop"
+! colspan="2" scope="col" |Mirror
+! colspan="4" scope="col" |Available Planet data
+! colspan="6" scope="col" |Network protocols
+|- class="sorttop"
+! scope="col" class="unsortable" |Preferred URL
+! scope="col" |Loc
+! scope="col" |Updated
+! scope="col" |Diffs
+! scope="col" |.osm.pbf
+! scope="col" |.osm.bz2
+! scope="col" |HTTP
+! scope="col" |HTTPS
+! scope="col" |FTP
+! scope="col" |RSYNC
+! scope="col" |Torrent
+! scope="col" |IPv6
+|-
+|[https://planet.openstreetmap.org/ planet.openstreetmap.org/] (original source)
+| style="font-size:smaller;text-align:center" title="Netherlands" | [[File:Flag of the Netherlands.svg|26x13px|alt=|link=]]<br /> <tt>NL</tt>
+{{Weekly|(Source)}}
+| {{yes}} || {{yes}} || {{yes}}
+| {{no}} || {{yes}} || {{no}} || {{yes}} || {{yes}} || {{yes}}
+|-
+|[https://ftp5.gwdg.de/pub/misc/openstreetmap/planet.openstreetmap.org/ ftp5.gwdg.de/pub/misc/openstreetmap/planet.openstreetmap.org/]
+| style="font-size:smaller;text-align:center" title="Germany" |[[File:Flag of Germany.svg|26x13px|alt=|link=]]<br /> <tt>DE</tt>
+{{Daily}}
+| {{yes}} || {{yes}} || {{yes}}
+| {{no}} || {{yes}} || {{yes}} || {{yes}} || {{yes}} || {{yes}}
+|-
+|[https://planet.maps.mail.ru/ planet.maps.mail.ru/]
+| style="font-size:smaller;text-align:center" title="Russia" |[[File:Flag of Russia.svg|26x13px|alt=|link=]]<br /> <tt>RU</tt>
+{{Minutely}}
+| {{yes}} || {{yes}} || {{yes}}
+| {{yes}} || {{yes}} || {{no}} || {{yes}} || {{yes}} || {{no}}
+|-
+|[https://mirror.marwan.ma/openstreetmap/ mirror.marwan.ma/openstreetmap/]
+| style="font-size:smaller;text-align:center" title="Morocco" |[[File:Flag of Morocco.svg|26x13px|alt=|link=]]<br /> <tt>MA</tt>
+{{Minutely}}
+| {{yes}} || {{yes}} || {{yes}}
+| {{yes}} || {{yes}} || {{no}} || {{yes}} || {{yes}} || {{yes}}
+|-
+|[https://ftpmirror.your.org/pub/openstreetmap/ ftpmirror.your.org/pub/openstreetmap/] 
+| style="font-size:smaller;text-align:center" title="United States" |[[File:Flag of the United States.svg|26x13px|alt=|link=]]<br /> <tt>US</tt>
+{{Daily}}
+| {{yes}} || {{yes}} || {{yes}}
+| {{yes}} || {{yes}} || {{yes}} || {{yes}} || {{yes}} || {{yes}}
+|-
+|[https://ftp.fau.de/osm-planet/ ftp.fau.de/osm-planet/]
+| style="font-size:smaller;text-align:center" title="Germany" |[[File:Flag of Germany.svg|26x13px|alt=|link=]]<br /> <tt>DE</tt>
+{{Daily}}
+| {{no}} || {{yes}} || {{no}}
+| {{yes}} || {{yes}} || {{yes}} || {{yes}} || {{yes}} || {{yes}}
+|-
+|[https://mirror.init7.net/openstreetmap/ mirror.init7.net/openstreetmap/]
+| style="font-size:smaller;text-align:center" title="Switzerland" |[[File:Flag of Switzerland.svg|26x13px|alt=|link=]]<br /> <tt>CH</tt>
+{{Daily}}
+| {{no}} || {{yes}} || {{yes}}
+| {{yes}} || {{yes}} || {{no}} || {{yes}} || {{yes}} || {{yes}}
+|-
+|[http://ftp.snt.utwente.nl/pub/misc/openstreetmap/ ftp.snt.utwente.nl/pub/misc/openstreetmap/]
+| style="font-size:smaller;text-align:center" title="Netherlands" | [[File:Flag of the Netherlands.svg|26x13px|alt=|link=]]<br /> <tt>NL</tt>
+{{Weekly}}
+| {{no}} || {{yes}} || {{yes}}
+| {{yes}} || {{yes}} || {{yes}} || {{yes}} || {{no}} || {{yes}}
+|-
+|[https://ftp.spline.de/pub/openstreetmap/ ftp.spline.de/pub/openstreetmap/]
+| style="font-size:smaller;text-align:center" title="Germany" |[[File:Flag of Germany.svg|26x13px|alt=|link=]]<br /> <tt>DE</tt>
+{{Weekly}}
+| {{no}} || {{yes}} || {{yes}}
+| {{yes}} || {{yes}} || {{yes}} || {{yes}} || {{yes}} || {{no}}
+|-
+|[https://ftp.osuosl.org/pub/openstreetmap/ ftp.osuosl.org/pub/openstreetmap/] 
+| style="font-size:smaller;text-align:center" title="United States" |[[File:Flag of the United States.svg|26x13px|alt=|link=]]<br /> <tt>US</tt>
+{{Weekly}}
+| {{no}} || {{yes}} || {{yes}}
+| {{yes}} || {{yes}} || {{yes}} || {{yes}} || {{no}} || {{yes}}
+|-
+|[https://download.bbbike.org/osm/planet/ download.bbbike.org/osm/planet/]
+| style="font-size:smaller;text-align:center" title="Germany" |[[File:Flag of Germany.svg|26x13px|alt=|link=]]<br /> <tt>DE</tt>
+{{Weekly}}
+| {{no}} || {{yes}} || {{yes}}
+| {{no}} || {{yes}} || {{no}} || {{no}} || {{no}} || {{no}}
+|-
+|[https://downloads.opencagedata.com/planet/ downloads.opencagedata.com/planet/]
+| style="font-size:smaller;text-align:center" title="Germany" |[[File:Flag of Germany.svg|26x13px|alt=|link=]]<br /> <tt>DE</tt>
+{{Weekly}}
+| {{no}} || {{yes}} || {{yes}}
+| {{yes}} || {{yes}} || {{no}} || {{no}} || {{yes}} || {{no}}
+|-
+|[https://ftp.nluug.nl/maps/planet.openstreetmap.org/ ftp.nluug.nl/maps/planet.openstreetmap.org/]
+| style="font-size:smaller;text-align:center" title="Netherlands" |[[File:Flag of Netherlands.svg|26x13px|alt=|link=]]<br /> <tt>NL</tt>
+{{Weekly}}
+| {{no}} || {{yes}} || {{yes}}
+| {{yes}} || {{yes}} || {{yes}} || {{no}} || {{no}} || {{yes}}
+|-
+|[https://planet.passportcontrol.net/pbf/ planet.passportcontrol.net/pbf/] 
+| style="font-size:smaller;text-align:center" title="Japan" |[[File:Flag of Japan.svg|26x13px|alt=|link=]]<br /> <tt>JP</tt>
+{{Weekly}}
+| {{no}} || {{yes}} || {{no}}
+| {{no}} || {{yes}} || {{no}} || {{no}} || {{no}} || {{no}}
+|-
+|[https://osm.cquest.org/torrents/ osm.cquest.org/torrents/] Since 2021-04-21 does not act as (hidden) webseed anymore, and publishes regular torrents
+| style="font-size:smaller;text-align:center" title="France" |[[File:Flag of France.svg|26x13px|alt=|link=]]<br /> <tt>FR</tt>
+{{Weekly}} but in test and manual update.
+| {{no}} || {{yes}} || {{no}}
+| {{yes}} || {{yes}} || {{no}} || {{no}} || {{no}} || {{no}}
+|-
+| [https://planet.osm-hr.org/ planet.osm-hr.org] Last 30 days
+| style="font-size:smaller;text-align:center" title="Croatia" |[[File:Flag of Croatia.svg|26x13px|alt=|link=]]<br /> <tt>HR</tt>
+{{Daily}}
+| {{no}} || {{yes}} || {{yes}}
+| {{yes}} || {{yes}} || {{no}} || {{no}} || {{yes}} || {{yes}}
+|-
+|[https://mirror.zdvac.cz/osm-geodata-files/ mirror.zdvac.cz/osm-geodata-files/]
+|🇨🇿
+<code>CZ</code>
+{{weekly}}
+|{{no|no}}
+|{{yes|yes}}
+|{{no|no}}
+|﻿{{yes|yes}}
+|{{yes|yes}}
+|{{no|no}}
+|{{no|no}}
+|{{no|no}}
+|{{no|no}}
+|}
+
+==Extracts==
+OSM data for the full planet is large. If you only want data for an area, you can download an extract that has that data only, extracted from the full planet file. Extract providers may also offer [[Processed data providers|processed data]] in other formats.
+
+===Worldwide extract sources===
+{| class="wikitable sortable" style="text-align:left"
+|-
+! scope="col" |Mirror
+! scope="col" |Area
+! scope="col" |Updated
+! scope="col" |Diffs
+! scope="col" |HTTPS
+! scope="col" |Metadata included
+|-
+|[https://www.overpass-api.de/ www.overpass-api.de]
+|[[Overpass API]] excerpts up to ~300MB uncompressed
+{{Minutely}}
+| {{Yes}}, since v0.7.50
+| {{Yes}}
+|Optional
+|-
+|[http://download.openstreetmap.fr/ download.openstreetmap.fr/]
+|Minutely diffs and daily extracts in [[PBF]]:
+*Entire continents
+*Many countries in all continents
+*Sub-country admin regions for several countries
+{{Minutely}}
+| {{Yes}}
+| {{yes}}
+|
+|-
+| [https://download.geofabrik.de/ download.geofabrik.de]
+|Daily extracts in [[PBF]] stripped from personal metadata (user names, user IDs, changeset IDs):
+*Entire continents
+*Most countries
+*Sub-country admin regions for Brasil, Canada, France, Germany, Italy, Japan, Poland, Russia, UK, US
+{{Daily}}
+| {{Yes}}
+| {{Yes}}
+|Version and timestamp only
+|-
+| [https://geo2day.com/ geo2day.com]
+|Over 1000 sub-regions in Europe, Asia, South and North America, Africa and Australia.
+{{Daily}}
+| {{no}}
+| {{Yes}}
+|All fields
+|-
+| [https://osm.download.movisda.io/ osm.download.movisda.io]
+| more than 3000 '''precisely cut''' administrative areas worldwide as [[PBF]]
+{{Weekly}}
+| {{no}}
+| {{Yes}}
+| Version only
+|-
+|[https://osm-internal.download.geofabrik.de/ osm-internal.download.geofabrik.de]
+|Same as download.geofabrik.de but with full personal metadata:
+* Weekly full history extracts for all regions mentioned above (no diffs)
+'''Note''': Login with OSM account required. '''Files are subject to data protection regulation.'''
+{{Daily}}
+| {{Yes}}
+| {{Yes}}
+|All fields
+|-
+|[https://download.bbbike.org/osm/ download.bbbike.org/osm/]
+| Different extracts offered:
+* more than 200 cities and regions worldwide
+*extract your own individual area
+'''Note''': Extracts are not suitable for editing OSM, because they omit metadata such as version number. See the [https://extract.bbbike.org/extract.html FAQ].
+{{Weekly}}
+| {{No}}
+| {{Yes}}
+|No metadata
+|-
+|[https://slice.openstreetmap.us slice.openstreetmap.us]
+|Extracts up to ~100 million nodes in [[PBF]]
+* extract rectangular area or draw polygon
+* updated minutely
+* More info at the [[SliceOSM]] page.
+* Open source
+{{Minutely}}
+| {{No}}
+| {{Yes}}
+|Version for all objects; Timestamp for ways, relations and tagged nodes
+|-
+|[https://www.interline.io/osm/extracts/ interline.io/osm/extracts]
+|Over 200 extracts for city and metropolitan regions:
+
+* inspired by Michal Migurski's Extractotron and Mapzen's Metro Extracts
+* extract formats include OSM PBF, GeoJSON, and [https://www.interline.io/blog/geojsonl-extracts/ GeoJSONL]
+* powered by [https://github.com/interline-io/planetutils PlanetUtils], a "high level" library that makes use of Osmosis, OSM C tools, and Osmium among other open-source components
+{{Daily}}
+| {{No}}
+| {{Yes}}
+|}
+
+====Regional extract sources====
+{| class="wikitable sortable"
+|-
+! scope="col" |Mirror
+! scope="col" |Area
+! scope="col" |Updated
+! scope="col" |Diffs
+! scope="col" |HTTPS
+! scope="col" |Metadata included
+|-
+|[https://osm.kewl.lu/luxembourg.osm/ osm.kewl.lu/luxembourg.osm/]
+|[[Luxembourg]] (beta)
+{{Hourly}}
+| Yes but not Osmosis/Pyosmium compatible directory structure
+| {{Yes}}
+|Partially
+|-
+| [https://planet.osm.ch/ planet.osm.ch] 
+|[[Switzerland|Swiss]] extract from the Swiss OpenStreetMap association. Including all lakes crossing the Swiss boundary and a few km of the surrounding countries. 
+{{Hourly}}
+| {{Yes}}
+| {{Yes}}
+|All fields
+|-
+<!--  Moved from [http://osm.kyblsoft.cz/archiv/ osm.kyblsoft.cz/archiv/] -->
+|[https://osm.fit.vutbr.cz/extracts/czech_republic/ osm.fit.vutbr.cz/extracts/czech_republic/]
+| [[Czechia]]
+{{Daily}}
+| {{No}}
+| {{Yes}}
+|version and timestamp only
+|-
+|[https://data.osm-hr.org/ data.osm-hr.org]
+|[[Croatia]], [[Slovenia]], [[Bosnia and Herzegovina]], [[Montenegro]], [[North Macedonia]], [[Serbia]], and [[Kosovo]], [[Albania]], [[Bulgaria]], [[Hungary]], [[Romania]]
+*daily extracts in [[PBF]]
+*daily [[OSM Map On Garmin/Download|Garmin]] maps
+* daily [[Osmand]] maps
+*Croatia archive
+* Croatia diffs
+*planet thematic extracts
+{{Daily}}
+| {{Yes}}
+| {{Yes}}
+|all fields
+|-
+|[https://osmit-estratti.wmcloud.org/ osmit-estratti.wmcloud.org]
+|[[Italy]]; daily extracts for Italian regions, provinces and municipalities; supported file formats: [[PBF]], [[GeoPackage]] and [[OsmAnd|OsmAnd OBF]] (Regions only).
+{{Daily}}
+| {{No}}
+| {{Yes}}
+| Partially
+|-
+|[https://osm.kcwu.csie.org/download/tw-extract/ osm.kcwu.csie.org/download/tw-extract/]
+|[[Taiwan]]; only [[o5m]] format
+{{Daily}}
+| Yes but not Osmosis/Pyosmium compatible directory structure
+| {{Yes}}
+|all fields
+|}
+
+===Global thematic extracts===
+
+*[https://osmdata.openstreetmap.de OpenStreetMapData] provides shapefiles of global coastlines, land polygons or water polygons.
+
+===Update frequency===
+
+A new version of planet.osm is '''released weekly''' (currently on Fridays). We have these, going back to the start of April 2006. Due to the license change to ODbL on September 12th 2012, older CC-BY-SA licensed planet and diff files are only available in a dedicated folder with CC-BY-SA licensed data.
+
+The size of a planet.osm file can be seen in the header information on the [https://planet.openstreetmap.org/ planet download page]. Planet files are very large (tens of GBs) so please check the size before starting to download.
+
+The weekly dump normally starts at around 01:10am UK time on Monday morning and is guaranteed to contain all updates prior to that time. The dump is constructed from a database dump using [http://github.com/zerebubuth/planet-dump-ng conversion software], and the result should ensure referential integrity. Please note that this doesn't always apply to extracts. The result is usually ready on Fridays.
+
+Note: The timestamp of the file is recorded in it like this: <code> <osm version="0.6" generator="OpenStreetMap planet.c" (...) timestamp="2013-01-02T01:10:14Z"> </code> it will be useful to decide what "diffs" to use if you want them<span> </span>:
+
+Additionally we offer '''regular diffs'''. These are produced as daily (under the 'daily' subdirectory), hourly and minutely diffs. For minutely diffs, we're using [https://github.com/openstreetmap/osmdbt osmdbt], hourly and daily diffs are generated using  [[Osmosis]] by combining multiple minutely diff files for a given time span<ref>Once https://github.com/openstreetmap/osmdbt/issues/32 has been implemented, osmosis will no longer be used.</ref>. Diff files can be used to reconstruct the full dataset (see examples at OSM Wiki pages [[Osmosis]] and [[osmupdate]]). Since these only contain the differences, they are much smaller files; A daily diff is generally about 40-80 MB, but can easily grow to 300-400 MB (both compressed) in exceptional cases. For more information please see [[Planet.osm/diffs]]
+
+Planet and diff notifications are available on the [[w:Amazon Simple Notification Service|Amazon Simple Notification Service]] in beta testing, enabling AWS applications to trigger workflows as soon as new data becomes available. [https://community.openstreetmap.org/t/new-openstreetmap-planet-and-diff-notifications-via-aws-sns-subscription/129702]
+
+==License==
+
+Planet files remain licensed under the same license as the master OpenStreetMap geo-database from which they are extracted - currently this is the [[Open Database License]]. Planet files from before September 12, 2012 have a [http://creativecommons.org/licenses/by-sa/2.0/ Creative Commons Attribution-ShareAlike 2.0] license.
+
+==Source code of planet.osm.org ==
+
+Code powering primary website providing planet.osm is at https://github.com/openstreetmap/chef/tree/master/cookbooks/planet/files/default/html and https://github.com/openstreetmap/chef/tree/master/cookbooks/planet
+
+== External links ==
+* https://planet.openstreetmap.org/
+== References ==
+
+{{DEFAULTSORT:Planet.osm}}
+[[Category:OSM file formats]]
+[[Category:Outputs]]
+[[Category:Export]]
+[[Category:Unix command examples]]
+[[Category:Translate to Portuguese]]

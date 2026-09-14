@@ -1,0 +1,104 @@
+{{Languages|Tags}}
+[[File:Mf tag.svg|120px|right]]
+
+'''Tags''' are attributes associated with map [[elements]] ([[node]]s, [[way]]s, or [[relation]]s). They describe specific properties of [[map features]] represented by those elements. A tag consists of two parts, a ''key'' and a ''value'', separated by an equals sign (<code>=</code>). Both parts are free-format text fields, but often represent numeric or other structured values. A map element may have any number of tags. 
+
+Conventions are agreed on the meaning and use of tags, which are captured on this wiki. In some cases, there are competing visions what tags actually mean, or mappers using them in a different ways. {{AsOf|2026|05}}, OpenStreetMap [https://taginfo.openstreetmap.org/sources/db contains over 100 thousand distinct keys and over 190 million distinct tags].
+
+A limited number of tags may also be applied to [[changesets]], describing metadata such as comment and data sources. See [[changeset tags]] for details.
+
+== Keys and values ==
+
+Tags are applied to elements or changesets, resulting in a collection of tags of any size. However, each collection may only contain a key once. Where a tag is not present, there are often considered to be default values or values inherited from parent elements.
+
+The ''key'', therefore, is used to describe a topic, category, or type of feature (e.g., [[Key:highway|highway]] or [[Names|name]]). Keys can be qualified with prefixes, infixes, or suffixes (usually, separated with a colon, :), forming super- or sub-categories, or [[namespace]]. Common namespaces are language specification and a [[Proposed features/Date namespace|date namespace]] specification for name keys.
+
+The ''value'' provides detail for the key-specified feature. Commonly, values are free-form text (e.g., <code>name="Jeff Memorial Highway"</code>), one of a set of distinct values (an enumeration; e.g., <code>highway=motorway</code>), multiple values from an enumeration (separated by a [[semi-colon value separator|semicolon]]), or a number (integer or decimal), such as a distance. The value is obligatory for the tag, even if the key is self-explanatory (e.g. <code>motorcycle:rental=yes</code>).
+
+Here are a few examples used in practice:
+* {{tag|highway|residential}} a tag with a key of <code>highway</code> and a value of <code>residential</code> which should be used on a [[way]] to indicate a road along which people live.
+* {{tag|name||Park Avenue}} a tag for which the value field is used to convey the name of the particular street
+* {{tag|maxspeed|50}} a tag whose value is a numeric speed and speed unit. The unit, <code>km/h</code>, is implied, but can be explicitly specified; miles per hour can be alternatively specified by appending <code> mph</code>. Across OSM, metric units are the default.
+* {{tag|maxspeed|subkey=forward}} a key that includes a [[namespace]] for <code>maxspeed</code> to further distinguish its meaning.
+* {{tag|name:de|subkey=1953-1990||Ernst-Thälmann-Straße}} a tag with the <code>name</code> key suffixed [[namespace]]s to specify the German name which was valid in some years.
+
+== Finding your tag ==
+
+The following resources are often used to find an appropriate tag or explore tag usage:
+* Browse this wiki
+** [[Map features]] – a list of accepted tags grouped by key meaning.
+** [[:Category:Features]] – for tags grouped by their purpose or function.
+** [[:Category:Proposed features]] – to find ''new tags'' and ''not-popular-yet'' tags.
+** [[:Category:Tags]]
+** [[How to map a]] – an alphabetic list of real-world objects.
+** [[Special:Search|Search this wiki]]
+* [[Taginfo]] – site that explores current tag usage in the OSM database, including keys and values that are not necessarily documented (but it includes links to this wiki if there is a documentation for a tag)
+* [[TagFinder]] – Website providing full text search engine for OSM tags. (Also webservices available).
+* [[Name Suggestion Index]]
+* [[Browsing#Data access|Look how]] a similar object at another place is mapped (if you know where it might also exist)
+* Propose [[any tags you like]]
+* Search the [https://lists.openstreetmap.org/pipermail/tagging/ tagging mailing list archive] or [https://help.openstreetmap.org/tags/tagging/?sort=mostvoted questions about “tagging” at the help site] or [[Forum|forum.openstreetmap.org]]. Of course you also could ask at all three sites (but please only one at a time).
+* [[OSM Semantic Network]] – a machine-readable structure containing the OSM tags
+
+== Technical specifications ==
+[[Elements#Tag|Elements]] describes the technical limitations, encoding and formatting of Tags.
+
+== Use in an editor ==
+{{Main|Preset}}
+
+Some OSM [[Editors|editors]] (for example [[iD]], [[Potlatch|Potlatch 3]], [[MapComplete]]) hide the tags of objects by default, making them not directly editable; instead users choose a [[preset]] and fill in a form. However, in most editors<!-- that may not be the case for all editors!--> all tags can be displayed and edited by entering some kind of advanced mode of your editor.
+
+=== [[iD]] ===
+# (only needed if you created a new object) Select the generic feature type preset (it is the bottom one). For example select “point” if you created a new “point” object.
+# Select “All tags” (bottom left)
+
+=== [[StreetComplete]] ===
+# Press undo (bottom-left of the screen)
+# Select either last edit option or show edit history
+# On final confirmation screen StreetComplete will list tags that were added in edit (and would be modified by a revert)
+
+=== [[MapComplete]] ===
+MapComplete will hide tags for new users. Once a contributor has more then 25 changesets, the added tags will be shown just below the 'save'-button for a question and below the preset.
+
+== key=value syntax ==
+In discussions and when working with certain tools, it is common to refer to a tag using the syntax <code>key=value</code>, that is, the <var>key</var>, then an equals sign, then the <var>value</var>. Sometimes, the key or value is surrounded by quotes to avoid confusion: <code>key="value"</code> or <code>"key"="value"</code>; the quotes (and, indeed, equals sign) are not part of the tag content.
+
+The <code>key=value</code> syntax or a variant thereof is used in the following tools:
+
+* [[iD]] – When a feature is selected, expand the Tags section of the left sidebar and change the view from [[File:OOjs UI icon table.svg|x24px|alt=list]] to [[File:Font Awesome 5 solid i-cursor.svg|x24px|alt=text]].
+* [[JOSM]] – Right-click on the Tags panel and choose "Copy all Keys/Values".
+* [[Level0]]
+* [[Name Suggestion Index]] – A tagset in key=value format is listed under each entry in the index.
+* [[OpenStreetMap Tags Editor]]
+* [[Osmium]] – [https://docs.osmcode.org/osmium/latest/osmium-tags-filter.html#filter-expressions Filter expressions] supplement key-value syntax with additional syntax for alternative keys or values.
+* [[Overpass turbo]] – This syntax appears in OverpassQL as a [[Overpass API/Overpass QL#By tag (has-kv)|has-kv filter]] and in the simpler [[Overpass turbo/Wizard|wizard]] syntax.
+* [[Taginfo]] – Enter key=value syntax into the search box to find a tag.
+
+On this wiki, you can refer to a tag using key=value syntax by including the {{tl|tag}} template.
+
+Sometimes, a relation [[Relation#roles|role]] is given as <code>role=…</code>. This means the element's role in the relation is set to the value on the right side of the equals sign, not that a key named {{tag|role}} is set to that value.
+
+== Metadata ==
+
+Some tags were used in data [[Elements|elements]] only for attaching metadata displayed in map editors or in quality assurance tools (such as completion status, things to do, approximations, data or imagery source, tool or editor version, etc.). Since version 0.6 of the API, map editors and import tools are encouraged to attach a few metadata tags to the [[Changeset|changesets]] they create (changesets are not data elements) instead of tagging every added or modified data element: these tags are now documented on this wiki as "discardable", meaning that they may be silently deleted from data elements by editors when they update them (they are still usable in changesets, and these tags are still visible in older versions of elements where these discardable tags have been removed and you can still inspect these old tags from old changesets that did not use this now preferred tagging method because these changeset still point to the older versions of elements that had these tags).
+
+== Software support ==
+
+* www.openstreetmap.org links tag keys and values to the pages on this wiki that describe them. All currently linked ones are defined in [https://github.com/openstreetmap/openstreetmap-website/blob/master/config/wiki_pages.yml a data file]. To update the file for a new key or value documentation page, [https://github.com/openstreetmap/openstreetmap-website/blob/master/script/misc/update-wiki-pages a script] must be run and the resulting file submitted in GitHub. Examples of doing this are available for [https://github.com/openstreetmap/openstreetmap-website/pull/3294 Linux] and for [https://github.com/openstreetmap/openstreetmap-website/pull/7085 macOS]. (Some values have links defined in [https://github.com/JOSM/tag2link/blob/master/index.json through a different file] by [https://github.com/JOSM/tag2link tag2link] depending on [[Property:P8]].)
+
+* The iD editor completes known tag keys and values, and links from each tag to a page on this wiki that describes it. To inform iD about a new key or value documentation page, create a [[Data items|data item]] for the page and wait (for about a day) until iD has scanned the new data item.
+
+== See also ==
+* [[Any tags you like#Syntactic conventions for new tags|Syntactic conventions for new tags]]
+* [[Homonymous keys]]
+* [[Synonymous tags]]
+* [[Counterintuitive keys and values]]
+* [[Deprecated tags]]
+* [[Redundant tags]]
+* [[Discardable tags]]
+
+{{Data types}}
+
+[[Category:Tags| ]]
+[[Category:Concepts]]
+[[Category:Semantics]]

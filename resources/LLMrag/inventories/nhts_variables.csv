@@ -1,0 +1,428 @@
+file,name,label,type,length
+Household,CDIVMSAR,"Grouping of household by combination of Census division, MSA status, and presence of rail",C,2.0
+Household,CENSUS_D,Census division classification for home address,C,2.0
+Household,CENSUS_R,Census region classification for home address,C,2.0
+Household,CNTTDHH,Count of household trips on travel day,N,8.0
+Household,DRVRCNT,Number of drivers in the household,N,8.0
+Household,FLAG100,All HH members completed survey?,C,2.0
+Household,HBHTNRNT,Category of the percent of renter-occupied housing in the census block group of the household's home location,C,2.0
+Household,HBHUR,Urban / Rural indicator - Block group,C,2.0
+Household,HBPPOPDN,Category of population density (persons per square mile) in the census block group of the household's home location,C,2.0
+Household,HBRESDN,Category of housing units per square mile in the census block group of the household's home location,C,2.0
+Household,HHFAMINC,Household income,C,2.0
+Household,HHFAMINC_IMP,Household income (imputed),C,2.0
+Household,HHRELATD,Flag indicating at least 2 persons in HH are related,C,2.0
+Household,HHSIZE,Total number of people in household,N,8.0
+Household,HHVEHCNT,Total number of vehicles in household,N,8.0
+Household,HH_HISP,Hispanic status of household respondent,C,2.0
+Household,HH_RACE,Race of household respondent,C,2.0
+Household,HOMEOWN,Whether home owned or rented,C,2.0
+Household,HOMETYPE,Type of home,C,2.0
+Household,HOUSEID,Unique Identifier- Household,C,10.0
+Household,HTEEMPDN,Category of workers per square mile in the census tract of the household's home location,C,2.0
+Household,HTHTNRNT,Category of the percent of renter-occupied housing in the census tract of the household's home location,C,2.0
+Household,HTPPOPDN,Category of population density (persons per square mile) in the census tract of the household's home location,C,2.0
+Household,HTRESDN,Category of housing units per square mile in the census tract of the household's home location,C,2.0
+Household,LIF_CYC,Life Cycle classification for the household,C,2.0
+Household,MSACAT,MSA category for the HH home address,C,2.0
+Household,MSASIZE,Population size category of the MSA from the five-year ACS API,C,2.0
+Household,NUMADLT,Count of adult household members at least 18 years old,N,8.0
+Household,PPT517,Count of household members 5-17 years old,N,8.0
+Household,RAIL,MSA heavy rail status for household,C,2.0
+Household,RESP_CNT,Count of responding persons in household,N,8.0
+Household,STRATUMID,Household Stratum ID,C,4.0
+Household,TDAYDATE,Date of travel day (YYYYMM),C,6.0
+Household,TRAVDAY,Travel day - day of week,C,2.0
+Household,URBAN,"Household urban area classification, based on 2020 TIGER/Line Shapefile",C,2.0
+Household,URBANSIZE,Urban area size where home address is located,C,2.0
+Household,URBRUR,Household in urban/rural area,C,2.0
+Household,URBRUR_2010,Household in urban/rural area based on 2010 Census,C,2.0
+Household,WRKCOUNT,Count of workers in household,N,8.0
+Household,WTHHFIN,7-day natl household weight,N,8.0
+Household,WTHHFIN2D,2-day natl household weight,N,8.0
+Household,WTHHFIN5D,5-day natl household weight,N,8.0
+Household,YOUNGCHILD,Count of household members under 5 years old,N,8.0
+Person,BIKESHARE22,Days in last 30 days bike share used,N,8.0
+Person,BIKETRANSIT,Days in last 30 days cycling used,N,8.0
+Person,CDIVMSAR,"Grouping of household by combination of Census division, MSA status, and presence of rail",C,2.0
+Person,CENSUS_D,Census division classification for home address,C,2.0
+Person,CENSUS_R,Census region classification for home address,C,2.0
+Person,CNTTDTR,Count of person trips on travel day,N,8.0
+Person,CONDNIGH,Limited driving to daytime due to condition or disability,C,2.0
+Person,CONDNONE,Travel not affected by condition or disability,C,2.0
+Person,CONDPUB,Used bus or subway less frequently due to condition or disability,C,2.0
+Person,CONDRF,Prefer not to answer if travel is affected by condition or disability,C,2.0
+Person,CONDRIDE,Asked others for rides due to condition or disability,C,2.0
+Person,CONDRIVE,Given up driving due to condition or disability,C,2.0
+Person,CONDSHARE,Used rideshare due to condition or disability,C,2.0
+Person,CONDSPEC,Used special transportation services due to condition or disability,C,2.0
+Person,CONDTRAV,Reduced travel due to condition or disability,C,2.0
+Person,COV1_OHD,COVID impact on online purchases for home delivery,C,2.0
+Person,COV1_PT,COVID impact on use of public transit,C,2.0
+Person,COV1_SCH,COVID impact on travel to a physical school/class location,C,2.0
+Person,COV1_WK,COVID impact on travel to a physical work location,C,2.0
+Person,COV2_OHD,Home delivery changes temporary or permanent,C,2.0
+Person,COV2_PT,Public transit use changes temporary or permanent,C,2.0
+Person,COV2_SCH,School travel changes temporary or permanent,C,2.0
+Person,COV2_WK,Work travel changes temporary or permanent,C,2.0
+Person,DELIVER,Number of online purchase deliveries in past 30 days,N,8.0
+Person,DELIV_FOOD,Number of times food delivered in past 30 days,N,8.0
+Person,DELIV_GOOD,Number of times goods delivered in past 30 days,N,8.0
+Person,DELIV_GROC,Number of times groceries delivered in past 30 days,N,8.0
+Person,DELIV_PERS,Number of times services delivered in the past 30 days,N,8.0
+Person,DRIVER,"Driver status, derived",C,2.0
+Person,DRIVINGOCCUPATION,Drive for work,C,2.0
+Person,DRIVINGVEHICLE,Vehicle driven for work,C,2.0
+Person,DRVRCNT,Number of drivers in the household,N,8.0
+Person,EDUC,Highest level of education,C,2.0
+Person,EMPLOYMENT2,Hours worked for pay each week,N,8.0
+Person,EMPPASS,Employer pays for discounted transit pass,C,2.0
+Person,ESCOOTERUSED,Days in last 30 days e-scooter used,N,8.0
+Person,FRSTHM,Started travel day at home,C,2.0
+Person,GCDWORK,Great circle distance (miles) between home and work,N,8.0
+Person,HBHTNRNT,Category of the percent of renter-occupied housing in the census block group of the household's home location,C,2.0
+Person,HBHUR,Urban / Rural indicator - Block group,C,2.0
+Person,HBPPOPDN,Category of population density (persons per square mile) in the census block group of the household's home location,C,2.0
+Person,HBRESDN,Category of housing units per square mile in the census block group of the household's home location,C,2.0
+Person,HHFAMINC,Household income,C,2.0
+Person,HHFAMINC_IMP,Household income (imputed),C,2.0
+Person,HHSIZE,Total number of people in household,N,8.0
+Person,HHVEHCNT,Total number of vehicles in household,N,8.0
+Person,HH_HISP,Hispanic status of household respondent,C,2.0
+Person,HH_RACE,Race of household respondent,C,2.0
+Person,HOMEOWN,Whether home owned or rented,C,2.0
+Person,HOUSEID,Unique Identifier- Household,C,10.0
+Person,HTEEMPDN,Category of workers per square mile in the census tract of the household's home location,C,2.0
+Person,HTHTNRNT,Category of the percent of renter-occupied housing in the census tract of the household's home location,C,2.0
+Person,HTPPOPDN,Category of population density (persons per square mile) in the census tract of the household's home location,C,2.0
+Person,HTRESDN,Category of housing units per square mile in the census tract of the household's home location,C,2.0
+Person,LAST30_BIKE,Used bicycle in last 30 days,C,2.0
+Person,LAST30_BKSHR,Used bike share in last 30 days,C,2.0
+Person,LAST30_ESCT,Used e-scooters in last 30 days,C,2.0
+Person,LAST30_MTRC,Used motorcycle in last 30 days,C,2.0
+Person,LAST30_PT,Used public transit in last 30 days,C,2.0
+Person,LAST30_RDSHR,Used rideshare in last 30 days,C,2.0
+Person,LAST30_TAXI,Used taxi service in last 30 days,C,2.0
+Person,LAST30_WALK,Walked from place to place in last 30 days,C,2.0
+Person,LIF_CYC,Life Cycle classification for the household,C,2.0
+Person,MCTRANSIT,Days in last 30 days motorcycle used,N,8.0
+Person,MEDCOND,Condition or disability that makes travel difficult,C,2.0
+Person,MEDCOND6,Length of time respondent has had condition,C,2.0
+Person,MSACAT,MSA category for the HH home address,C,2.0
+Person,MSASIZE,Population size category of the MSA from the five-year ACS API,C,2.0
+Person,NUMADLT,Count of adult household members at least 18 years old,N,8.0
+Person,OUTOFTWN,Away from home entire travel day,C,2.0
+Person,PARK,Paid for parking at any time during travel day,C,2.0
+Person,PARKHOME,Pay for home parking,C,2.0
+Person,PARKHOMEAMT,Whether respondent pays to park at home,C,4.0
+Person,PARKHOMEAMT_PAMOUNT,Cost of parking at home,N,8.0
+Person,PARKHOMEAMT_PAYTYPE,Duration of payment,C,2.0
+Person,PAYPROF,Worked for pay last week,C,2.0
+Person,PERSONID,Person ID within household,C,2.0
+Person,PRMACT,Primary activity for those who did not work for pay last week,C,2.0
+Person,PROXY,Survey completed by self or someone else,C,2.0
+Person,PTUSED,Days in last 30 days public transit used,N,8.0
+Person,QACSLAN1,Language other than English spoken at home,C,2.0
+Person,QACSLAN3,How well this person speaks English,C,2.0
+Person,RAIL,MSA heavy rail status for household,C,2.0
+Person,RET_AMZ,Number of times returned online purchase at Amazon dropoff center,N,8.0
+Person,RET_HOME,Number of times returned online purchase by home pickup,N,8.0
+Person,RET_PUF,Number of times returned online purchase to post office/UPS/Fed Ex/ similar,N,8.0
+Person,RET_STORE,Number of times returned online purchase by direct to store,N,8.0
+Person,RIDESHARE22,Days in last 30 days rideshare used,N,8.0
+Person,R_AGE,Respondent age,N,8.0
+Person,R_HISP,Person 5 or older - Hispanic or Latino,C,2.0
+Person,R_RACE,Respondent race,C,2.0
+Person,R_RACE_IMP,Respondent race (imputed),C,2.0
+Person,R_RELAT,Respondent relationship to primary respondent,C,2.0
+Person,R_SEX,Respondent sex,C,2.0
+Person,R_SEX_IMP,Respondent sex (imputed),C,2.0
+Person,SAMEPLC,Reason for not taking trips on travel day,C,2.0
+Person,SBHTNRNT,Category of the percent of renter-occupied housing in the census block group of the school's location,C,2.0
+Person,SBHUR,Urban / Rural indicator - School Block group,C,2.0
+Person,SBPPOPDN,Category of population density (persons per square mile) in the census block group of the school's location,C,2.0
+Person,SBRESDN,Category of housing units per square mile in the census block group of the school's location,C,2.0
+Person,SCHOOL1,Enrolled in school or academic program,C,2.0
+Person,SCHOOL1C,Type of non K-12 school enrolled in,C,2.0
+Person,SCHTRN1,Usual transport to school,C,2.0
+Person,SCHTYP,Type of K-12 school enrolled in,C,2.0
+Person,STEEMPDN,Category of workers per square mile in the census tract of the school's location,C,2.0
+Person,STHTNRNT,Category of the percent of renter-occupied housing in the census tract of the school's location,C,2.0
+Person,STPPOPDN,Category of population density (persons per square mile) in the census tract of the school's location,C,2.0
+Person,STRATUMID,Household Stratum ID,C,4.0
+Person,STRESDN,Category of housing units per square mile in the census tract of the school's location,C,2.0
+Person,STUDE,School or academic program description,C,2.0
+Person,TAXISERVICE,Days in last 30 days taxi service used,N,8.0
+Person,TDAYDATE,Date of travel day (YYYYMM),C,6.0
+Person,TRAVDAY,Travel day - day of week,C,2.0
+Person,TRNPASS,Discounted transit pass used in past 30 days,C,2.0
+Person,URBAN,"Household urban area classification, based on 2020 TIGER/Line Shapefile",C,2.0
+Person,URBANSIZE,Urban area size where home address is located,C,2.0
+Person,URBRUR,Household in urban/rural area,C,2.0
+Person,USAGE1,Fewer trips in past 30 days,C,2.0
+Person,USAGE2_1,Reason fewer trips - more deliveries,C,2.0
+Person,USAGE2_10,Reason fewer trips - COVID 19,C,2.0
+Person,USAGE2_2,Reason fewer trips - did not feel safe,C,2.0
+Person,USAGE2_3,Reason fewer trips - did not feel clean/healthy,C,2.0
+Person,USAGE2_4,Reason fewer trips - not reliable,C,2.0
+Person,USAGE2_5,Reason fewer trips - did not go where needed,C,2.0
+Person,USAGE2_6,Reason fewer trips - unaffordable,C,2.0
+Person,USAGE2_7,Reason fewer trips - health problems,C,2.0
+Person,USAGE2_8,Reason fewer trips - no time,C,2.0
+Person,USAGE2_9,Reason fewer trips - other,C,2.0
+Person,USEPUBTR,Public Transit Usage on Travel Date,C,2.0
+Person,WALKTRANSIT,Days in last 30 days walking used,N,8.0
+Person,WBHTNRNT,Category of the percent of renter-occupied housing in the census block group of the workplace's location,C,2.0
+Person,WBHUR,Urban / Rural indicator - Workplace Block group,C,2.0
+Person,WBPPOPDN,Category of population density (persons per square mile) in the census block group of the workplace's location,C,2.0
+Person,WBRESDN,Category of housing units per square mile in the census block group of the workplace's location,C,2.0
+Person,WHOPROXY,Who is completing the survey,C,2.0
+Person,WKFMHM22,Days per week worked from home,C,2.0
+Person,WORKER,Employment status of respondent,C,2.0
+Person,WRKCOUNT,Count of workers in household,N,8.0
+Person,WRKLOC,Description of work location,C,2.0
+Person,WRKTRANS,Usual transport to work,C,2.0
+Person,WTEEMPDN,Category of workers per square mile in the census tract of the workplace's location,C,2.0
+Person,WTHTNRNT,Category of the percent of renter-occupied housing in the census tract of the workplace's location,C,2.0
+Person,WTPERFIN,7 day National person weight,N,8.0
+Person,WTPERFIN2D,2 day National person weight,N,8.0
+Person,WTPERFIN5D,5 day National person weight,N,8.0
+Person,WTPPOPDN,Category of population density (persons per square mile) in the census tract of the workplace's location,C,2.0
+Person,WTRESDN,Category of housing units per square mile in the census tract of the workplace's location,C,2.0
+Person,W_CANE,Uses cane or walking stick,C,2.0
+Person,W_CHAIR,Uses manual scooter or wheel chair,C,2.0
+Person,W_NONE,Uses no medical device for mobility,C,2.0
+Person,W_SCCH,Uses motorized scooter or wheelchair,C,2.0
+Person,W_VISIMP,Uses devices to aid the blind or visually impaired,C,2.0
+Person,W_WKCR,Uses walker or crutches,C,2.0
+Vehicle,ANNMILES,Self-reported annualized mile estimate,N,8.0
+Vehicle,CDIVMSAR,"Grouping of household by combination of Census division, MSA status, and presence of rail",C,2.0
+Vehicle,CENSUS_D,Census division classification for home address,C,2.0
+Vehicle,CENSUS_R,Census region classification for home address,C,2.0
+Vehicle,COMMERCIALFREQ,"Over past 30 days, how many days was vehicle used for business purposes?",C,2.0
+Vehicle,DRVRCNT,Number of drivers in the household,N,8.0
+Vehicle,HBHTNRNT,Category of the percent of renter-occupied housing in the census block group of the household's home location,C,2.0
+Vehicle,HBHUR,Urban / Rural indicator - Block group,C,2.0
+Vehicle,HBPPOPDN,Category of population density (persons per square mile) in the census block group of the household's home location,C,2.0
+Vehicle,HBRESDN,Category of housing units per square mile in the census block group of the household's home location,C,2.0
+Vehicle,HHFAMINC,Household income,C,2.0
+Vehicle,HHFAMINC_IMP,Household income (imputed),C,2.0
+Vehicle,HHSIZE,Total number of people in household,N,8.0
+Vehicle,HHVEHCNT,Total number of vehicles in household,N,8.0
+Vehicle,HHVEHUSETIME_DEL,"Over past 30 days, how many days was vehicle used for deliveries?",C,2.0
+Vehicle,HHVEHUSETIME_OTH,"Over past 30 days, how many days was vehicle used for other business?",C,2.0
+Vehicle,HHVEHUSETIME_RS,"Over past 30 days, how many days was vehicle used for rideshare?",C,2.0
+Vehicle,HH_HISP,Hispanic status of household respondent,C,2.0
+Vehicle,HH_RACE,Race of household respondent,C,2.0
+Vehicle,HOMEOWN,Whether home owned or rented,C,2.0
+Vehicle,HOUSEID,Unique Identifier- Household,C,10.0
+Vehicle,HTEEMPDN,Category of workers per square mile in the census tract of the household's home location,C,2.0
+Vehicle,HTHTNRNT,Category of the percent of renter-occupied housing in the census tract of the household's home location,C,2.0
+Vehicle,HTPPOPDN,Category of population density (persons per square mile) in the census tract of the household's home location,C,2.0
+Vehicle,HTRESDN,Category of housing units per square mile in the census tract of the household's home location,C,2.0
+Vehicle,HYBRID,Hybrid vehicle,C,2.0
+Vehicle,LIF_CYC,Life Cycle classification for the household,C,2.0
+Vehicle,MAKE,Vehicle make ID,C,2.0
+Vehicle,MSACAT,MSA category for the HH home address,C,2.0
+Vehicle,MSASIZE,Population size category of the MSA from the five-year ACS API,C,2.0
+Vehicle,NUMADLT,Count of adult household members at least 18 years old,N,8.0
+Vehicle,RAIL,MSA heavy rail status for household,C,2.0
+Vehicle,STRATUMID,Household Stratum ID,C,4.0
+Vehicle,TDAYDATE,Date of travel day (YYYYMM),C,6.0
+Vehicle,TRAVDAY,Travel day - day of week,C,2.0
+Vehicle,URBAN,"Household urban area classification, based on 2020 TIGER/Line Shapefile",C,2.0
+Vehicle,URBANSIZE,Urban area size where home address is located,C,2.0
+Vehicle,URBRUR,Household in urban/rural area,C,2.0
+Vehicle,VEHAGE,"Age of vehicle, based on model year",N,8.0
+Vehicle,VEHCASEID,Unique vehicle identifier,C,12.0
+Vehicle,VEHCOMMERCIAL,Vehicle used for business purposes,C,2.0
+Vehicle,VEHCOM_DEL,Vehicle used for delivery service,C,2.0
+Vehicle,VEHCOM_OTH,Vehicle used for other business purposes,C,2.0
+Vehicle,VEHCOM_RS,Vehicle used for rideshare,C,2.0
+Vehicle,VEHFUEL,Type of fuel vehicle runs on,C,2.0
+Vehicle,VEHID,Vehicle ID within household,C,2.0
+Vehicle,VEHOWNED,Vehicle owned for 1  year or more,C,2.0
+Vehicle,VEHOWNMO,Vehicles owned less than 1 year - months owned,C,2.0
+Vehicle,VEHTYPE,Vehicle type,C,2.0
+Vehicle,VEHYEAR,Vehicle year,N,8.0
+Vehicle,WHOMAIN,Main driver of vehicle,C,2.0
+Vehicle,WRKCOUNT,Count of workers in household,N,8.0
+Vehicle,WTHHFIN,7-day natl household weight,N,8.0
+Vehicle,WTHHFIN2D,2-day natl household weight,N,8.0
+Vehicle,WTHHFIN5D,5-day natl household weight,N,8.0
+Trip,CDIVMSAR,"Grouping of household by combination of Census division, MSA status, and presence of rail",C,2.0
+Trip,CENSUS_D,Census division classification for home address,C,2.0
+Trip,CENSUS_R,Census region classification for home address,C,2.0
+Trip,DBHTNRNT,Category of the percent of renter-occupied housing in the census block group of the trip destination's location,C,2.0
+Trip,DBHUR,Urban / Rural indicator - Trip Destination Block group,C,2.0
+Trip,DBPPOPDN,Category of population density (persons per square mile) in the census block group of the trip destination's location,C,2.0
+Trip,DBRESDN,Category of housing units per square mile in the census block group of the trip destination's location,C,2.0
+Trip,DRIVER,"Driver status, derived",C,2.0
+Trip,DRVRCNT,Number of drivers in the household,N,8.0
+Trip,DRVR_FLG,Flag for driver on trip,C,2.0
+Trip,DTEEMPDN,Category of workers per square mile in the census tract of the trip destination's location,C,2.0
+Trip,DTHTNRNT,Category of the percent of renter-occupied housing in the census tract of the trip destination's location,C,2.0
+Trip,DTPPOPDN,Category of population density (persons per square mile) in the census tract of the trip destination's location,C,2.0
+Trip,DTRESDN,Category of housing units per square mile in the census tract of the trip destination's location,C,2.0
+Trip,DWELTIME,Time at Destination (minutes),N,8.0
+Trip,EDUC,Highest level of education,C,2.0
+Trip,ENDTIME,24 hour local end time of trip,C,4.0
+Trip,FRSTHM,Started travel day at home,C,2.0
+Trip,GASPRICE,"Weekly regional gasoline price, in cents, during the week of the household's travel day",C,8.0
+Trip,HHACCCNT,Number of household members on trip,C,2.0
+Trip,HHFAMINC,Household income,C,2.0
+Trip,HHFAMINC_IMP,Household income (imputed),C,2.0
+Trip,HHMEMDRV,Household member drove on trip,C,2.0
+Trip,HHSIZE,Total number of people in household,N,8.0
+Trip,HHVEHCNT,Total number of vehicles in household,N,8.0
+Trip,HH_HISP,Hispanic status of household respondent,C,2.0
+Trip,HH_RACE,Race of household respondent,C,2.0
+Trip,HOMEOWN,Whether home owned or rented,C,2.0
+Trip,HOUSEID,Unique Identifier- Household,C,10.0
+Trip,LIF_CYC,Life Cycle classification for the household,C,2.0
+Trip,LOOP_TRIP,Trip origin and destination at Identical location,C,2.0
+Trip,MSACAT,MSA category for the HH home address,C,2.0
+Trip,MSASIZE,Population size category of the MSA from the five-year ACS API,C,2.0
+Trip,NONHHCNT,Number of non-household members on trip,N,8.0
+Trip,NUMADLT,Count of adult household members at least 18 years old,N,8.0
+Trip,NUMONTRP,Number of people on trip,N,8.0
+Trip,OBHTNRNT,Category of the percent of renter-occupied housing in the census block group of the trip origin's location,C,2.0
+Trip,OBHUR,Urban / Rural indicator - Trip Origin Block group,C,2.0
+Trip,OBPPOPDN,Category of population density (persons per square mile) in the census block group of the trip origin's location,C,2.0
+Trip,OBRESDN,Category of housing units per square mile in the census block group of the trip origin's location,C,2.0
+Trip,ONTD_P1,Person 1  was on trip,C,2.0
+Trip,ONTD_P10,Person 10 was on trip,C,2.0
+Trip,ONTD_P2,Person 2 was on trip,C,2.0
+Trip,ONTD_P3,Person 3 was on trip,C,2.0
+Trip,ONTD_P4,Person 4 was on trip,C,2.0
+Trip,ONTD_P5,Person 5 was on trip,C,2.0
+Trip,ONTD_P6,Person 6 was on trip,C,2.0
+Trip,ONTD_P7,Person 7 was on trip,C,2.0
+Trip,ONTD_P8,Person 8 was on trip,C,2.0
+Trip,ONTD_P9,Person 9 was on trip,C,2.0
+Trip,OTEEMPDN,Category of workers per square mile in the census tract of the trip origin's location,C,2.0
+Trip,OTHTNRNT,Category of the percent of renter-occupied housing in the census tract of the trip origin's location,C,2.0
+Trip,OTPPOPDN,Category of population density (persons per square mile) in the census tract of the trip origin's location,C,2.0
+Trip,OTRESDN,Category of housing units per square mile in the census tract of the trip origin's location,C,2.0
+Trip,PARK,Paid for parking at any time during travel day,C,2.0
+Trip,PARK2,Paid for parking on this trip,C,4.0
+Trip,PARK2_PAMOUNT,Amount paid for parking,N,8.0
+Trip,PARK2_PAYTYPE,Periodicity of parking payment,C,2.0
+Trip,PERSONID,Person ID within household,C,2.0
+Trip,PRMACT,Primary activity for those who did not work for pay last week,C,2.0
+Trip,PROXY,Survey completed by self or someone else,C,2.0
+Trip,PSGR_FLG,Flag for passenger on trip,C,2.0
+Trip,PUBTRANS,Used public transit on trip,C,2.0
+Trip,RAIL,MSA heavy rail status for household,C,2.0
+Trip,R_AGE,Respondent age,N,8.0
+Trip,R_HISP,Person 5 or older - Hispanic or Latino,C,2.0
+Trip,R_RACE,Respondent race,C,2.0
+Trip,R_SEX,Respondent sex,C,2.0
+Trip,R_SEX_IMP,Respondent sex (imputed),C,2.0
+Trip,SEQ_TRIPID,Renumbered sequential tripid,C,2.0
+Trip,STRATUMID,Household Stratum ID,C,4.0
+Trip,STRTTIME,24 hour local start time of trip,C,4.0
+Trip,TDAYDATE,Date of travel day (YYYYMM),C,6.0
+Trip,TDCASEID,Unique identifier for every trip record in the file,C,14.0
+Trip,TDWKND,Weekend trip,C,2.0
+Trip,TRAVDAY,Travel day - day of week,C,2.0
+Trip,TRIPID,Trip ID for each trip a person took,C,2.0
+Trip,TRIPMODE,General mode of transportation of trip,C,2.0
+Trip,TRIPPURP,General purpose of trip,C,2.0
+Trip,TRPHHVEH,Household vehicle used for trip,C,2.0
+Trip,TRPMILES,Calculated Trip distance converted into miles,N,8.0
+Trip,TRPTRANS,"Trip mode, derived",C,2.0
+Trip,TRVLCMIN,Trip Duration in Minutes,N,8.0
+Trip,URBAN,"Household urban area classification, based on 2020 TIGER/Line Shapefile",C,2.0
+Trip,URBANSIZE,Urban area size where home address is located,C,2.0
+Trip,URBRUR,Household in urban/rural area,C,2.0
+Trip,VEHCASEID,Unique vehicle identifier,C,12.0
+Trip,VEHID,Vehicle ID of vehicle used from household roster,C,2.0
+Trip,VEHTYPE,Vehicle type,C,2.0
+Trip,VMT_MILE,Calculated Trip distance (miles) for Driver Trips,N,8.0
+Trip,WALK,Minutes walked from parking to destination,C,2.0
+Trip,WHODROVE,Person who drove on trip,C,2.0
+Trip,WHODROVE_IMP,Imputed person who drove on trip,C,2.0
+Trip,WHYFROM,Reason for previous trip,C,2.0
+Trip,WHYTO,Reason for travel to destination,C,2.0
+Trip,WHYTRP1S,Trip purpose summary,C,2.0
+Trip,WHYTRP90,Travel day trip purpose consistent with 1990 NPTS design,C,2.0
+Trip,WORKER,Employment status of respondent,C,2.0
+Trip,WRKCOUNT,Count of workers in household,N,8.0
+Trip,WTTRDFIN,7 day National trip weight,N,8.0
+Trip,WTTRDFIN2D,2 day National trip weight,N,8.0
+Trip,WTTRDFIN5D,5 day National trip weight,N,8.0
+Long Distance,AIRSIZE,Domestic airport hub size based on FY23 NPIAS hub type status (international trips only),C,2.0
+Long Distance,BEGTRIP,Beginning date of trip (YYYYMM),C,6.0
+Long Distance,CDIVMSAR,"Grouping of household by combination of Census division, MSA status, and presence of rail",C,2.0
+Long Distance,CENSUS_D,Census division classification for home address,C,2.0
+Long Distance,CENSUS_R,Census region classification for home address,C,2.0
+Long Distance,DRIVER,"Driver status, derived",C,2.0
+Long Distance,DRVRCNT,Number of drivers in the household,N,8.0
+Long Distance,EDUC,Highest level of education,C,2.0
+Long Distance,ENDTRIP,Ending date of trip (YYYYMM),C,6.0
+Long Distance,EXITCDIV,Census division at which respondent exited the US,C,2.0
+Long Distance,FARCDIV,Farthest domestic destination Census division code (domestic trips only),C,2.0
+Long Distance,FARCREG,Farthest domestic destination Census region FIPS code (domestic trips only),C,2.0
+Long Distance,FARREAS,Main reason for most recent long distance trip,C,2.0
+Long Distance,GCDTOT,Great circle distance from home to farthest domestic dest (domestic trips only),N,8.0
+Long Distance,GCD_FLAG,Flag for long distance trips of 50 miles or more,C,2.0
+Long Distance,HBHTNRNT,Category of the percent of renter-occupied housing in the census block group of the household's home location,C,2.0
+Long Distance,HBHUR,Urban / Rural indicator - Block group,C,2.0
+Long Distance,HBPPOPDN,Category of population density (persons per square mile) in the census block group of the household's home location,C,2.0
+Long Distance,HBRESDN,Category of housing units per square mile in the census block group of the household's home location,C,2.0
+Long Distance,HHFAMINC,Household income,C,2.0
+Long Distance,HHFAMINC_IMP,Household income (imputed),C,2.0
+Long Distance,HHSIZE,Total number of people in household,N,8.0
+Long Distance,HHVEHCNT,Total number of vehicles in household,N,8.0
+Long Distance,HH_HISP,Hispanic status of household respondent,C,2.0
+Long Distance,HH_RACE,Race of household respondent,C,2.0
+Long Distance,HOMEOWN,Whether home owned or rented,C,2.0
+Long Distance,HOUSEID,Unique Identifier- Household,C,10.0
+Long Distance,HTEEMPDN,Category of workers per square mile in the census tract of the household's home location,C,2.0
+Long Distance,HTHTNRNT,Category of the percent of renter-occupied housing in the census tract of the household's home location,C,2.0
+Long Distance,HTPPOPDN,Category of population density (persons per square mile) in the census tract of the household's home location,C,2.0
+Long Distance,HTRESDN,Category of housing units per square mile in the census tract of the household's home location,C,2.0
+Long Distance,INT_FLAG,Farthest destination on the trip was in the US or outside US,C,2.0
+Long Distance,LDT_FLAG,Source of long distance data,C,2.0
+Long Distance,LD_AMT,Number of times used AMTRAK in past year,N,8.0
+Long Distance,LD_ICB,Number of times used Inter-City bus in past year,N,8.0
+Long Distance,LD_NUMONTRP,Number of people with respondent on long distance trip,N,8.0
+Long Distance,LIF_CYC,Life Cycle classification for the household,C,2.0
+Long Distance,LONGDIST,Number of long distance trips in past 30 days,N,8.0
+Long Distance,MAINMODE,Mode of travel for last long distance trip,C,2.0
+Long Distance,MRT_DATE,Date of most recent long distance trip (YYYYMM),C,6.0
+Long Distance,MSACAT,MSA category for the HH home address,C,2.0
+Long Distance,MSASIZE,Population size category of the MSA from the five-year ACS API,C,2.0
+Long Distance,NTSAWAY,Nights away on long distance trip,N,8.0
+Long Distance,NUMADLT,Count of adult household members at least 18 years old,N,8.0
+Long Distance,ONTP_P1,Person 1 on long distance trip,C,2.0
+Long Distance,ONTP_P10,Person 10 on long distance trip,C,2.0
+Long Distance,ONTP_P2,Person 2 on long distance trip,C,2.0
+Long Distance,ONTP_P3,Person 3 on long distance trip,C,2.0
+Long Distance,ONTP_P4,Person 4 on long distance trip,C,2.0
+Long Distance,ONTP_P5,Person 5 on long distance trip,C,2.0
+Long Distance,ONTP_P6,Person 6 on long distance trip,C,2.0
+Long Distance,ONTP_P7,Person 7 on long distance trip,C,2.0
+Long Distance,ONTP_P8,Person 8 on long distance trip,C,2.0
+Long Distance,ONTP_P9,Person 9 on long distance trip,C,2.0
+Long Distance,PERSONID,Person ID within household,C,2.0
+Long Distance,PROXY,Survey completed by self or someone else,C,2.0
+Long Distance,RAIL,MSA heavy rail status for household,C,2.0
+Long Distance,R_AGE,Respondent age,N,8.0
+Long Distance,R_HISP,Person 5 or older - Hispanic or Latino,C,2.0
+Long Distance,R_RACE,Respondent race,C,2.0
+Long Distance,R_SEX,Respondent sex,C,2.0
+Long Distance,R_SEX_IMP,Respondent sex (imputed),C,2.0
+Long Distance,STRATUMID,Household Stratum ID,C,4.0
+Long Distance,TDAYDATE,Date of travel day (YYYYMM),C,6.0
+Long Distance,TRAVDAY,Travel day - day of week,C,2.0
+Long Distance,URBAN,"Household urban area classification, based on 2020 TIGER/Line Shapefile",C,2.0
+Long Distance,URBANSIZE,Urban area size where home address is located,C,2.0
+Long Distance,URBRUR,Household in urban/rural area,C,2.0
+Long Distance,WEEKEND,Trip includes weekend,C,2.0
+Long Distance,WORKER,Employment status of respondent,C,2.0
+Long Distance,WRKCOUNT,Count of workers in household,N,8.0
+Long Distance,WTPERFIN,7 day National person weight,N,8.0
+Long Distance,WTPERFIN2D,2 day National person weight,N,8.0
+Long Distance,WTPERFIN5D,5 day National person weight,N,8.0

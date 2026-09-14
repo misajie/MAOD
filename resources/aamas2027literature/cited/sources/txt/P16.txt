@@ -1,0 +1,1304 @@
+                                         LLMs for Human Mobility: Opportunities, Challenges, and Future
+                                         Directions
+                                         JIE GAO, Delft University of Technology, Netherlands
+                                         YAOXIN WU∗ , Eindhoven University of Technology, Netherlands
+                                         Human mobility studies how people move among meaningful places over time and how these movements aggregate into
+                                         population-level patterns that shape accessibility, congestion, emissions, and public health. Large language models (LLMs) are
+                                         increasingly used in this domain because many human mobility problems require reasoning about place and activity semantics,
+                                         travelers’ intentions and preferences, and diverse real-world constraints that are difficult to capture using coordinates and
+                                         other purely numerical attributes. Despite rapid growth, the literature is still scattered, and there is no clear overview
+arXiv:2603.12420v1 [cs.HC] 12 Mar 2026
+
+
+
+
+                                         that connects human mobility tasks, challenges, and LLM designs in a consistent way. This survey therefore provides a
+                                         comprehensive synthesis of LLM-based research on human mobility across five tasks, including travel itinerary planning,
+                                         trajectory generation, mobility simulation, mobility prediction, and mobility semantics and understanding. For each task, we
+                                         review representative work, connect core challenges to the specific roles of LLMs, and summarize typical LLM-based solution
+                                         designs. We conclude with open challenges and research directions toward reliable, grounded and privacy-aware LLM-based
+                                         approaches for human mobility.
+                                         CCS Concepts: • Human-centered computing → Empirical studies in ubiquitous and mobile computing; • Computing
+                                         methodologies → Knowledge representation and reasoning.
+                                         Additional Key Words and Phrases: Large Language Model, Human Mobility
+                                         ACM Reference Format:
+                                         Jie Gao and Yaoxin Wu. 2018. LLMs for Human Mobility: Opportunities, Challenges, and Future Directions. Proc. ACM Meas.
+                                         Anal. Comput. Syst. 37, 4, Article 111 (August 2018), 25 pages. https://doi.org/XXXXXXX.XXXXXXX
+
+                                         1    Introduction
+                                         Human mobility research investigates how individuals move among meaningful locations over time and how
+                                         these personal trajectories aggregate into population-level patterns [8, 60]. It goes beyond recording where and
+                                         when trips occur by describing the context-driven organization of human daily life, including how long people
+                                         stay in places, how often they return, and how regular routines form and vary across individuals. This individual
+                                         traveler and behavior-centric view complements traditional traffic-flow models, which quantify network states
+                                         such as flows, speeds, and congestion at the link or origin-destination (OD) level. Human mobility instead asks
+                                         why, when, and how individuals move between places, how heterogeneous routines and visitation frequencies
+                                         arise, and how these micro-level behaviors aggregate into macro-level movement patterns. These insights provide
+                                         a quantitative and qualitative basis for urban planning and traffic management, support efforts to reduce emissions
+                                         and air pollution [2, 51], and help reveal socioeconomic inequalities and spatial segregation [60].
+
+                                         Authors’ Contact Information: Jie Gao, j.gao-1@tudelft.nl, Delft University of Technology, Delft, Netherlands; Yaoxin Wu, y.wu2@tue.nl,
+                                         Eindhoven University of Technology, Eindhoven, Netherlands.
+
+                                         Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that
+                                         copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page.
+                                         Copyrights for components of this work owned by others than the author(s) must be honored. Abstracting with credit is permitted. To copy
+                                         otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from
+                                         permissions@acm.org.
+                                         © 2018 Copyright held by the owner/author(s). Publication rights licensed to ACM.
+                                         ACM 2476-1249/2018/8-ART111
+                                         https://doi.org/XXXXXXX.XXXXXXX
+
+
+                                                                                     Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+111:2   •   Jie et al.
+
+
+   Accordingly, an extensive body of literature has developed models and learning methods to describe, predict,
+and generate human mobility [8, 51, 70]. Despite this progress, representing the semantic layers that drive human
+movement remains challenging. Latent factors such as intent, personal preferences, and situational constraints
+are difficult to capture using purely coordinate-based or flow-based representations. Motivated by this limitation,
+recent work has begun to explore large language models (LLMs) as a complementary tool for human mobility. By
+treating mobility as contextual activity sequences and integrating external information, LLM-based approaches
+offer a pathway to connect spatiotemporal traces with interpretable behavioral context. This integration promises
+to enhance personalization, reasoning capabilities, and long-horizon coherence across various human mobility
+tasks.
+   Despite these opportunities, existing surveys have not yet provided a unified, task-centric synthesis of LLMs
+in human mobility. Current surveys often maintain a traffic-centric focus or provide only fragmented views
+of the field. For instance, Zhang et al. [96] review how LLMs are combined with prior machine learning and
+deep learning methods for predicting traffic information and travel behaviors, and Zhang et al. [95] present a
+tutorial on LLMs for traditional mobility analytics. Long et al. [50] focus on LLM applications in traffic forecasting.
+These works establish important foundations, but they provide limited guidance on LLM techniques tailored
+to human-mobility settings where modeling must account for individual routines, activity preferences, and
+persona-dependent constraints. In a different direction, Mayemba et al. [55] survey mobility prediction during
+epidemics using machine learning, including transformer-based models and related pretrained language-model
+ideas; however, the scope is tied to epidemic contexts and does not generalize to the broader set of human mobility
+tasks. Nie et al. [59] propose a conceptual framework that encompasses a wide range of applications in intelligent
+transportation systems, such as traffic prediction, autonomous driving, and safety analytics. However, their survey
+primarily provides a broad overview of general transportation applications, lacking an in-depth technical analysis.
+Moreover, fundamental aspects of human mobility, such as travel purpose, individual preferences, and persona,
+are largely overlooked, despite their critical importance for understanding and modeling human mobility patterns.
+Some other similar review papers on general traffic and transportation research can be found in [26, 54, 86].
+Taken together, a unified, task-centric overview that links human mobility tasks to their core challenges and to
+LLM roles and system designs is still missing.
+   This survey fills the gap by providing a task-centric synthesis of how LLMs are being adopted in human
+mobility research and what technical constraints shape their usefulness. We classify tasks in human mobility into
+five streams, namely, travel itinerary planning, trajectory generation, mobility simulation, mobility prediction,
+and mobility semantics and understanding. For each stream, we clarify what LLMs are actually used for, how
+they are integrated with other components, and why these roles are beneficial in that setting. More broadly, the
+review asks, across human mobility tasks, what functional role the LLM plays and what evidence supports these
+choices. By providing a general task classification, analyzing the challenge of each task, and discussing how
+LLMs are applied differently to each task, this survey aims to provide practical guidance for follow-up work and
+inspire new research directions in the area of human mobility.
+   The remainder of this paper is organized as follows: Section 2 offers a brief background on LLMs. In Section 3,
+we classify different mobility tasks and review the literature on each of them. In Section 4, we discuss the
+challenges of the tasks and the LLM opportunities in them. Finally, we conclude the work by discussing the
+potential future directions in Section 5.
+
+2   LLM Preliminaries
+Large language models (LLMs) are neural models pretrained on large-scale corpora to predict text, most commonly
+through autoregressive next-token prediction. The dominant architecture is the Transformer [76], whose self-
+attention mechanism enables flexible conditioning on long contexts and supports strong in-context generalization.
+
+Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+                                          LLMs for Human Mobility: Opportunities, Challenges, and Future Directions       •   111:3
+
+
+
+
+                            Fig. 1. An illustration of three common paradigms to use LLMs.
+
+
+Through pretraining at scale, LLMs acquire broad linguistic competence and a mixture of factual and procedural
+knowledge that can be reused for downstream tasks. In practice, LLMs are tailored to specific applications through
+three recurring paradigms. First, prompt-based use leverages the model in-context, often augmented with retrieval-
+augmented generation (RAG) to incorporate external, updatable, and domain-specific information at inference
+time. Second, agentic architectures orchestrate multi-step reasoning with tool use (e.g., search, solvers, simulators)
+and optional memory modules to support planning and iterative decision-making. Third, parameter adaptation
+customizes the model via fine-tuning, including instruction tuning and parameter-efficient variants, to better
+match domain data, task formats, and desired behaviors. These paradigms appear repeatedly in the literature on
+human mobility, where tasks often require semantic interpretation of places and activities, integration of external
+knowledge (e.g., maps, timetables, POIs), and multi-step decision sequences. Fig. 1 illustrates the three common
+paradigms to use LLMs. In general, three paradigms focus on input-level, execution-level and parameter-level
+utilization and improvement of LLMs. For broader background on LLMs, we refer readers to [56].
+
+2.1   Prompt engineering
+Given massive and diverse text corpora, the LLMs with underlying Transformer-like architecture are trained
+to obtain semantic, logic and compositional patterns behind linguistic patterns, containing reasoning or task-
+solving abilities. Especially with the scaling of LLMs, the emergent generalization enables few-shot or even
+zero-shot learning capabilities in tackling different tasks. Different prompt engineering techniques have been
+explored. Except the zero-shot prompting, few-shot prompting [74], chain-of-thought (CoT) prompting [82],
+ReAct prompting [92], Reflexion-based prompting [68], retrieval augmented generation (RAG) [21] and others
+have been leveraged in different applications.
+   The above prompting strategies differ in how they present task structure and intermediate reasoning to
+the model. The few-shot prompting provides several input-output examples to guide LLM generation; CoT
+prompting explicitly encourages the model to generate intermediate reasoning steps, which significantly improve
+performance on complex reasoning tasks; ReAct prompting interacts natural language reasoning traces and
+tool-use actions, enabling LLMs to interact with external environments; Reflexion-based prompting introduces
+
+                                   Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+111:4   •   Jie et al.
+
+
+self-reflection mechanisms to iteratively analyze and correct LLMs’ previous outputs; RAG enrich the prompt
+with retrieved external knowledge, which mitigates hallucination and improves factual accuracy, especially in
+knowledge-intensive tasks. Prompt engineering offers a lightweight and flexible paradigm to adapt frozen LLMs
+to downstream tasks without modifying model parameters. More details of prompt engineering can be found
+in [63]. In human mobility applications, prompt engineering is often used to involve trajectories, check-ins, or
+survey records into contextual natural-language descriptions. Some historical human behaviors or retrieved
+external resources (such as public events, sociodemographic statistics) can also be included to facilitate more
+accurate context learning [9, 48].
+
+2.2     Agentic LLMs
+Agentic LLM architectures move from single-pass generation toward multi-step goal execution. In contrast to
+prompting LLMs to generate texts, agentic LLMs aim to integrate planning, tool use, and autonomous decision-
+making into a unified framework [29, 64, 80, 93, 98]. In this regard, LLMs are designed to act as agents capable of
+iterative reasoning, memory utilization, integration of external resources and adaptive behavior over multiple
+steps toward a goal. Recent research explores multi-agent collaboration and autonomous orchestration, where
+multiple LLM-based agents coordinate to perform complex tasks, often through structured communication
+protocols or planning hierarchies [30, 73, 83].
+   There are some platforms such as AutoGPT, LangChain, and Voyager, which can be used to deploy systems
+of agentic LLMs, for solving complex tasks by invoking external tools (e.g., search engines, code interpreters),
+and evaluating progress toward long-term goals. Agentic LLMs address the limitations of prompt engineering
+by iteratively evaluating outcomes and refining prompts. At the same time, agentic techniques can mitigate
+hallucinations by incorporating critics or self-reflection modules into the decision loop. This agentic paradigm
+aligns naturally with human mobility applications, where decisions (such as planning) should be repeatedly made
+by LLM agent and checked by LLM-based critics to respect real-world constraints [24, 35].
+   Agentic LLMs represent a transition from instruction-based models to autonomous, goal-oriented systems that
+integrate natural language understanding, reasoning, and environmental interaction. While this advancement
+expands their potential in domains like robotics, software engineering, and scientific research, it also introduces
+complex challenges concerning controllability, alignment, and interpretability. A broader discussion of agentic
+LLMs is available in [61].
+
+2.3     Fine-tuning
+Beyond in-context adaptation, LLMs can be customized through parameter adaptation. Supervised fine-tuning
+(SFT) is the most common approach, using labeled datasets to train an LLM in a supervised manner. Standard SFT
+involves updating all model parameters using task-specific losses. Instruction fine-tuning [81] leverages datasets
+containing natural language instructions paired with desired outputs, enhancing the model’s ability to generalize
+across unseen tasks. Multi-task supervised fine-tuning [42] trains the LLM on multiple tasks simultaneously,
+using a weighted combination of task-specific losses. Parameter-efficient fine-tuning such as adapter-based
+fine-tuning, inserts and trains small modules in the pre-trained LLMs while keeping the main parameters frozen.
+   Reinforcement learning (RL) is used to optimize LLMs for objectives that are difficult to specify with explicit
+labels. Reinforcement Learning from Human Feedback (RLHF) has become a common approach, where a reward
+model trained on human feedback guides fine-tuning of the LLM via policy gradient methods such as Proximal
+Policy Optimization (PPO). Generalized Reinforcement Policy Optimization (GRPO), a variant of PPO that
+introduces a more flexible update rule by normalizing policy gradients across reward distributions. Direct
+Preference Optimization (DPO) eliminates the need for an explicit reward model by reformulating the RLHF
+objective as a supervised learning problem based directly on human preference data. This leads to simpler, more
+
+Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+                                          LLMs for Human Mobility: Opportunities, Challenges, and Future Directions       •   111:5
+
+
+
+
+Fig. 2. An Overview of LLMs for Human Mobility, where we summarize the main focus of each human mobility task along
+with the commonly used LLM-based techniques.
+
+
+
+
+stable fine-tuning while maintaining alignment quality. These RL-based techniques complement supervised
+fine-tuning by aligning models with abstract, human-centric goals beyond simple label prediction. In human
+mobility research, fine-tuning can be employed to enhance the capability of LLMs to solve domain-specific tasks,
+such as improving planning decision-making performance and incorporating structured semantic representations
+[65, 94].
+
+3   LLMs for Human Mobility
+LLMs have recently been explored for human mobility because many mobility problems are naturally expressed as
+contextual sequences of activities and decisions. Compared with classical mobility models that operate mainly on
+numeric traces and engineered features, LLMs can directly represent and reason over unstructured descriptions
+of places, purposes, constraints, and preferences. Their pretrained knowledge about everyday activities and
+spatial semantics can serve as a useful prior, and, when combined with retrieval or external tools, LLM-based
+systems can be grounded in maps, timetables, and historical mobility records. These capabilities have motivated
+a growing body of work that uses LLMs either as stand-alone components or as modules within hybrid pipelines
+to support human-centric mobility tasks.
+   In this section, we review LLM-based methods for human mobility and organize the literature by task stream.
+Specifically, we group existing studies into five categories, namely 1) travel itinerary planning, 2) trajectory
+generation, 3) mobility simulation, 4) mobility prediction, and 5) mobility semantics and understanding. For each
+category, our review is focused on how LLMs are used, how they are integrated with other components such as
+retrieval, tools, or domain models, and what task-specific evidence is used to evaluate its benefits. A high-level
+structure of the adoption of LLMs for different human mobility tasks is shown in Fig. 2.
+
+                                   Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+111:6   •   Jie et al.
+
+
+3.1     LLMs for travel itinerary planning
+Travel itinerary planning aims to convert a traveler’s (often underspecified) natural language request into a
+feasible, time-ordered sequence of activities and trips. Recent work explores LLM-based agents for this task,
+where the goal is to satisfy hard constraints (e.g., opening hours, time windows, budgets, travel times, accessibility
+requirements, and booking availability) while improving alignment with soft preferences (e.g., interest in museums,
+cuisine, walking intensity). LLMs are well suited for interpreting underspecified requests and converting them
+into structured requirements. However, generating long-horizon itineraries that remain globally consistent is
+challenging when diverse constraints must be satisfied exactly and real-world facts can change. As a result, many
+systems integrate LLMs with external tools (such as search engines, routing services, and POI APIs) as well as
+verification or optimization modules to enhance reliability.
+   As an early benchmark effort, Xie et al. [84] identify key difficulties for LLM-based travel planning, including
+long-horizon itinerary construction, multi-dimensional hard constraints, and the need for tool use to retrieve
+sufficient real-world information, and they propose TravelPlanner as a benchmark reflecting realistic planning
+scenarios. Follow-up work extends the benchmark according to its limitations. Singh et al. [69] introduce a
+personalized variant TravelPlanner+ that incorporates user models (preferences and personal concepts) and show
+that personalization improves preference satisfaction compared with generic planning. Banerjee et al. [6] propose
+a framework to generate queries which capture personal preferences, sustainability, and city popularity. These
+queries are developed from a knowledge base in [7], and evaluated in different aspects, including groundedness
+with travel filters, alignment with context, alignment with personas, adherence to sustainability filters, diversity
+of generated queries, and overall clarity and quality assessment. Kambhampati et al. [35] argue that reliable
+planning benefits from staged pipelines that refine specifications, reformulate problems, and verify candidate
+plans rather than relying on a single end-to-end generation step. To this end, they propose an LLM-Modulo
+framework in which a group of critics are used to assess the feasibility of hard and soft constraints. The critics
+can be model-based and LLM-based and even human-in-the-loop-based modules. The proposed approach is also
+applied to other planning benchmarks [75]. Gundawar et al. [24] operationalize the LLM-Modulo perspective in
+travel planning and report that critic modules can substantially improve plan quality over common prompting
+baselines, although their evaluation focuses on simplified queries without rich real-world preference signals. Chen
+et al. [12] empirically study commonly used LLMs and prompting/feedback strategies on TravelPlanner-style tasks
+and conclude that naive few-shot prompting and feedback do not reliably close the gap, while fine-tuning with
+feedback can improve pass rates. Gadbail et al. [20] propose validation rules to check the feasibility of itinerary
+generated by LLMs, and corresponding rules to correct the invalid itineraries. They applied the validation and
+correction mechanisms to the sequence of flights by retrieving the information from AeroDataBox API.
+   A second group of work moves beyond prompting-only planning and instead builds hybrid travel planning
+pipelines. Specifically, these pipelines typically use the LLM to translate free-form user requests into structured
+requirements and draft candidate itineraries, and then rely on formal planning or optimization tools to verify
+constraints and adjust the itinerary until it becomes feasible. Chen et al. [11] propose TravelAgent, a system
+that integrates real-time tool usage with recommendation and planning components, and uses memory to
+support continual personalization, reporting stronger human-evaluated rationality, comprehensiveness, and
+personalization across a set of travel scenarios. de la Rosa et al. [14] address oversubscription planning, where
+not all candidate POIs can be visited under time and budget limits, and propose TRIP-PAL, which uses an
+LLM to translate travel and user information into a planner-consumable formalization and then relies on an
+automated planner [28] to compute a utility-maximizing feasible plan. Hao et al. [25] formalize multi-constraint
+travel planning as constrained satisfiability and integrate sound verification tools to check feasibility and rectify
+plans, reporting strong gains over prompting-only agents on benchmark-style tasks. Ju et al. [34] integrate LLM
+translation with mixed-integer linear programming (MILP) to compute itineraries with precise feasibility under
+
+
+Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+                                              LLMs for Human Mobility: Opportunities, Challenges, and Future Directions       •     111:7
+
+
+interdependent constraints. In this work, an LLM is used to transform user requests from natural language into
+symbolic format (i.e., JSON), so that MILP solver can be applied to derive the planning solution.
+   Benchmarks have also evolved beyond the original intercity setting and feasibility-only evaluation. Shao
+et al. [66] propose ChinaTravel, an open-ended benchmark for multi-POI itinerary planning with realistic
+requirements and richer metrics (including preference treatment as soft constraints), and show that planning
+remains challenging on questionnaire-based human queries with ambiguous or undefined concepts. Wang et al.
+[78] introduce TripTailor with a much larger POI base and itinerary collection, and they evaluate plans along
+feasibility, rationality, and personalization dimensions rather than relying only on constraint pass rates. Shao
+et al. [67] further emphasize that technical feasibility alone can produce unsatisfying itineraries. They augment
+benchmark settings with authentic user reviews and POI metadata to evaluate preference fit via LLM-based
+judging. Ni et al. [57] argue that prior benchmarks underemphasize spatiotemporal rationality (e.g., spatial
+coherence, POI attractiveness, temporal adaptability) and propose a spatiotemporal-aware benchmark where
+retrieval-augmented agents benefit from grounding decisions in travel experience traces. Deng et al. [16] point
+out that real users often provide incomplete requirements and propose a decision-making support process
+and multi-agent refinement to elicit missing information and iteratively improve itineraries. Yang et al. [89]
+study wide-horizon planning under long context, long instruction, and long outputs and propose aspect-aware
+decomposition together with a simulation-based evaluation environment to assess consistency when earlier events
+affect later choices. Tang et al. [72] introduce open-domain urban itinerary planning for “citywalk” tourism and
+combine LLM-based preference decomposition and retrieval with spatial optimization to improve coherence and
+practicality. Deng et al. [17] further move toward dynamic, user-centric interaction by incorporating images and
+multimodal grounding, and propose specialized agents for destination assistance, local discovery, and disruption
+handling. Chaudhuri et al. [10] make a benchmark dataset which is more practical than prior datasets. This
+dataset ensures geographic consistency, valid transit connectivity, and contextually accurate event and attraction
+information. In addition, it integrates public transit stops and schedules, and incorporates diverse attraction
+and event categories. This benchmark also proposes five continuous evaluation metrics beyond prior binary
+validation (i.e., whether constraints are met or if one plan is better than the other).
+   Evaluation has started to move beyond only reporting constraint pass rates. Even when an itinerary satisfies
+time and budget constraints, the agent may still behave poorly, for example, by guessing missing details, failing
+to verify critical information, or producing untrustworthy recommendations. Jiang et al. [32] propose APEC-style
+metrics (accuracy, proactivity, efficiency, and credibility) to assess and optimize the quality of agent behavior
+during the planning process. In a complementary direction, Yao et al. [91] study robustness under fraud and
+misinformation in travel planning and introduce safety-oriented metrics that measure whether an agent can
+avoid deceptive options in the final itinerary. Table 1 summarizes representative work on LLM-based travel
+itinerary planning, including the planning setting, constraint types, datasets, and evaluation metrics.
+Table 1. LLMs for travel itinerary planning. The constraint types include hard constraints (e.g. budget); commonsense
+constraints (e.g., minimum nights stay); environment constraints (e.g. no flights); soft constraints (i.e., historical insights
+such as a preference of low-cost attractions). For more details of these constraint types, readers are referred to [11, 84].
+
+Paper    Planning Task          Constraint Types           Role of LLM                Dataset               Evaluation
+[84]     Multi-day inter-city   Hard; Commonsense;         Zero-shot planning         TravelPlanner         Constraint pass rate,
+         travel plan            Environment                                                                 delivery rate
+[69]     Personalized travel    Hard; Commonsense;         Integrating preferences,   TravelPlanner+        Constraint pass/delivery
+         plan                   Environment                zero-shot planning                               rate, preference rate
+
+                                                                                                             Continued on next page
+
+
+
+                                       Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+111:8   •   Jie et al.
+
+
+                                                   Table 1 – continued from previous page
+Paper       Planning Task          Constraint Types              Role of LLM                Dataset               Evaluation
+
+[6]         Travel query           Preference; sustainability;   In-context learning        SynthTRIPs            Groundedness, alignment,
+            generation             destination popularity                                                         diversity
+[35]        Multi-day inter-city   Hard; Commonsense;            Candidate plan generator, TravelPlanner          Constraint pass rate
+            travel plan            Environment                   critic assistant
+[24]        Multi-day inter-city   Hard; Commonsense;            Zero-shot planning,        TravelPlanner         Constraint pass rate,
+            travel plan            Environment                   format conversion                                delivery rate
+[12]        Multi-day inter-city   Hard; Commonsense;            Zero-shot planning         TravelPlanner         Constraint pass rate,
+            travel plan            Environment                                                                    delivery rate
+[20]        Inter-city flight      Hard; Commonsense             Zero-shot planning         AeroDataBox API       Invalid itineraries or
+            planning                                                                                              segments, avg. issues
+[11]        Personalized travel    Hard; Soft; Commonsense       Integrating preferences,   20 travel scenarios   Human evaluation
+            plan                                                 zero-shot planning                               (rationality,
+                                                                                                                  personalization)
+[14]        One-day single-city    Time constraints; action      Problem translation        100 planning tasks    Plan validity/utility,
+            travel plan            applicability                 (format conversion)                              runtime
+[25]        Travel plan of         Hard; Commonsense             Candidate plan             UnsatChristmas        Constraint pass rate,
+            flights/attractions                                  generation                                       delivery rate
+[34]        Multi-day inter-city   Hard; Commonsense             Problem translation        TravelPlanner-like    Pass rate, satisfaction,
+            travel plan                                          (format conversion)        data                  value, efficiency
+[66]        Multi-POI itinerary    Hard; Soft; Environment       Problem translation        ChinaTravel           Constraint pass rate,
+            planning                                             (format conversion)                              delivery rate
+[78]        Personalized travel    Hard; Soft; Commonsense       Zero-shot planning         TripTailor            Feasibility, rationality,
+            planning                                                                                              personalization
+[67]        Personalized travel    Hard; Soft; Commonsense       Integrating preferences,   RealTravel (POI       Constraint pass rate,
+            planning                                             zero-shot planning         metadata)             delivery/preference rate
+[57]        Multi-day inter-city   Spatiotemporal constraints; Prompt-based RAG             TP-RAG                Spatiotemporal metric, POI
+            travel plan            personalized requirements                                                      semantic, query relevance
+[16]        Multi-day inter-city   Hard; Commonsense             Agentic LLM                RETAIL                Pass rate, dialogue quality
+            travel plan
+[89]        One-day inter-city     User preference; POI-related Zero-shot planning          Travel-Sim            Comprehensiveness,
+            travel plan            and spatial constraints                                                        completeness, feasibility
+[72]        One-day citywalk       Itinerary time; POI           Semantic interpretation,   Itineraries made by Fail rate, POI quality, etc.
+            planning               sequence                      itinerary generation       travel agency
+[17]        Multimodal travel      Constraints of mapping        Agentic LLM                Random POIs;          POI detection accuracy
+            planning               system                                                   synthetic queries
+[10]        Multi-day inter-city   Hard; Soft; Commonsense       Zero-shot planning         TripCraft             Temporal scores, spatial
+            travel plan                                                                                           score, persona score
+[32]        Multi-day inter-city   Hard; Commonsense;            Agentic LLM                TravelPlanner         Accuracy, proactivity,
+            travel plan            Environment                                                                    efficiency, credibility
+
+                                                                                                                   Continued on next page
+
+
+
+
+Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+                                               LLMs for Human Mobility: Opportunities, Challenges, and Future Directions       •   111:9
+
+
+                                               Table 1 – continued from previous page
+Paper    Planning Task          Constraint Types            Role of LLM                 Dataset              Evaluation
+
+[91]     Travel planning with   Authenticity-oriented       Agentic LLM                 Real-time web data Safety-oriented metrics
+         fraudulent info.       constraints
+
+
+3.2     LLMs for trajectory generation
+Trajectory (or trip) generation aims to synthesize realistic mobility traces or activity sequences from historical
+observations, in contrast to itinerary planning, which constructs a single feasible plan from an explicit user
+request. The goal of trajectory generation is to generate synthetic trajectories whose distribution matches key
+properties of real mobility data, so that the outputs can be used for downstream tasks such as simulation and
+policy evaluation. However, mobility data is typically derived from user tracking and travel survey, which are
+subject to privacy concerns, participant noncompliance, and high cost. In this setting, LLMs can contribute by
+providing a semantic interface between raw traces and human interpretable structure. In addition, traditional
+models for trip generation only focus on generating a sequence of coordinates (i.e., locations). Instead, LLMs
+can be used to generate plausible natural-language rationales for a person’s movement (e.g., “going to a ramen
+restaurant because I’m hungry”), which can be leveraged by planners that need access to inferred motivations.
+Meanwhile, traditional models often fail in the presence of major events (e.g., pandemics) due to significant
+distribution shifts or limited data in these exceptional situations. In contrast, LLMs can reason through a new,
+rare situation by its zero-shot learning capability.
+   Recent studies have started to use LLM-based agents to generate consecutive multi-day travel diaries that
+mimic individualized activity patterns while producing shareable synthetic data in privacy-sensitive settings. For
+example, Li et al. [40] generate realistic personalized diaries from a large Shenzhen travel survey dataset. The
+proposed MobAgent conditions generation on individual profiles (e.g., age, income, occupation, and home/work
+context) and uses a two-stage pipeline: it first extracts subgroup-specific mobility patterns from profile-grouped
+survey trajectories with an LLM self-evaluation loop, and then generates multi-step daily activity–travel sequences
+through planning and recursive reasoning. The generated outputs are finally grounded to physical locations via
+road-network shortest-path mapping. The evaluation uses distributional similarity metrics (Jensen–Shannon
+divergence) over multiple statistics, including step distance, step interval, spatiotemporal OD–time patterns,
+and the number of daily visited locations, and reports that richer profile conditioning improves realism. Several
+works follow a similar “routine first, POI later” logic, where the LLM mainly ensures that the day-level narrative
+is coherent, and then a separate component grounds the plan in concrete locations. For instance, Ju et al. [33]
+propose a modular, agent-based framework, in which LLMs generate coherent daily routines (activities and
+intentions) and then combine them with either an LLM-based destination recommender or a mechanistic physical
+model to select specific POIs, which is supported by a memory module to maintain consistency over time. Shao
+et al. [65] formulate intention generation using the theory of planned behaviour [1] and decompose it into daily
+preference prompting, anchor routine generation, and dynamic likelihood generation for the next intention.
+Intentions are then mapped to locations using a gravity-model-style mechanism, and the LLM is fine-tuned with
+prompted intentions.
+   Other studies treat the LLM as the main engine for extracting personal patterns and motivations from historical
+data before generating the diary. Wang et al. [77] propose a two-phase framework (LLMob) in which LLMs
+first summarize activity patterns from persona prompts and preprocessed statistics (e.g., commuting distance
+and frequently visited locations) and evaluate the patterns through a self-consistency check against historical
+activities. The second phase captures motivations by combining recent interests/priorities with date-related
+motivations. Their results on a Tokyo activity dataset suggest improved realism on some temporal and routine-
+level measures (e.g., step interval and daily routine distribution), while other spatial metrics remain challenging.
+
+                                        Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+111:10   •   Jie et al.
+
+
+In a related line of work, Liu et al. [48] and Bhandari et al. [9] generate activity chains using few-shot prompting
+with sociodemographic information, followed by post-processing to remove invalid outputs. However, these
+approaches are often limited by weak constraint modeling and by the reliance on coarse personal attributes.
+   A separate thread focuses on model training and constraint satisfaction. Li et al. [37] fine-tune Llama2 to
+generate trajectories that remain similar to historical traces while satisfying visit-based constraints (e.g., specific
+locations within specified time windows), supported by a visit-wise permutation strategy to improve infilling
+before and after prompted anchors. Haydari et al. [27] reformulate trajectory generation as an autoregressive
+sequence generation task (i.e., trajectories are sequences of token), while Zhang et al. [94] study fine-tuning
+and prompt engineering for generating diverse and consistent daily activities. Du et al. [18] propose a CityGPT-
+powered pipeline that decomposes the process into semantic routine extraction, geospatial grounding to POIs,
+and iterative preference alignment to improve continuity, and introduces metrics to quantify hallucination-like
+errors. Ge et al. [22] build an LLM-based agent with perception, memory, planning, reasoning, and actuation
+modules, emphasizing preference fit and feasibility, and evaluate distributional closeness using Kullback–Leibler
+(KL) divergence.
+   We summarize representative LLM-based trajectory generation studies, highlighting the datasets used, the
+generation target (e.g., diary-, POI-, or point-level traces), the scale of evaluation, and the metrics adopted to
+assess realism and consistency in Table 2.
+
+
+
+
+3.3      LLMs for mobility simulation
+Another line of work uses LLMs inside mobility simulation, where many agents’ plans are executed to produce
+resulting movements and network-level outcomes (e.g., congestion and travel times). Unlike trajectory generation,
+the LLM is not used only to output a standalone diary. Instead, it can be part of an interactive loop: (i) the LLM
+proposes an agent’s plan or a plan update, (ii) the simulator executes the plan and returns the resulting conditions,
+and (iii) the LLM may revise the plan when disruptions occur or when feedback indicates that the original plan is
+no longer reasonable.
+   For example, Song et al. [71] integrate LLMs with agent-based modeling (ABM) to simulate mobility behaviors
+in stages: it aggregates individuals into age-based groups, assigns start/end locations based on income and
+occupation, selects occasional locations using attractiveness and distance, and then determines routes using the
+McRAPTOR algorithm [15]. This framework represents a coupling between LLM-driven behavioral components
+and a mechanistic routing module. However, it lacks quantitative evaluation of the generated trajectories, limiting
+assessment of realism beyond plausibility.
+   Other frameworks adopt a hybrid compromise to handle city-scale computational cost and scalability. Liu
+et al. [49] propose a pipeline, in which a non-LLM activity-chain generator first creates each agent’s daily
+plan (e.g., activity type, start/end time, POI), and the SUMO simulator executes these plans to produce realized
+trajectories and system-level outputs. The LLM is used mainly for adaptive replanning as an activity-chain
+modifier for affected agents under disruptions (e.g., road closures, congestion, events), with prompt engineering
+and parallelization to control cost. In the same spirit, Yan et al. [88] focus on the system layer prompt and
+execution efficiency to enable large-population simulation with a standard “Generative Agent” workflow. Liu
+et al. [43] position the LLM as an online decision-maker inside a running simulator, using it for activity planning
+or plan revision and reactive behavior, which then yields agents’ movements and emergent traffic patterns.
+Table 3 summarizes representative LLM-augmented mobility simulation frameworks and contrasts how the LLM
+is coupled to the simulator, the scale considered, and the evaluation protocols.
+
+
+Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+                                                 LLMs for Human Mobility: Opportunities, Challenges, and Future Directions         •   111:11
+
+
+Table 2. LLMs for trajectory generation. We compare the data source, generated output (activity diary, route/link sequence, or
+point-level trajectory), evaluation scale, and reported metrics. Some approaches additionally generate intermediate semantic
+variables such as intentions or motivations before grounding outputs to locations.
+
+Paper    Dataset                  Role of LLM             Generated Output          Scale                         Evaluation
+
+[40]     Travel survey dataset,   Zero-shot generation    Individual travel diary   25481 users; 199380 records; JS divergence (distance,
+         Shenzhen                                                                   2016 Nov.-2017 Jan.          interval, OD-time,
+                                                                                                                 visited locations)
+
+[33]     Public checkin dataset, Zero-shot persona        Individual travel diary   Unknown                       Distributional similarity,
+         Tokyo                   reasoning/generation                                                             consistency metrics
+
+[65]     Tencent/mobile survey In-context                 Individual travel diary   200 7-day trajectories        Statistical, semantic,
+         dataset               learning/CoT               with intentions                                         aggregation evaluation
+
+[77]     Trajectory dataset,      Zero-shot generation    Individual travel diary   100 users; 2019 Jan.-2022     Routine distribution
+         Tokyo                                            with motivations          Dec.                          metrics
+
+[48]     Travel survey dataset,   Prompt-based RAG        Individual travel diary   264000 persons; 180000        JSD-based distribution
+         Los Angeles                                                                records                       similarity
+
+[9]      Travel survey dataset,   Zero-shot/fine-tuned    Individual travel diary   10000 random surveys for      Pattern, trip, activity
+         five areas               generation                                        finetuning                    metrics
+
+[37]     GPS trajectory dataset, Prompt-based RAG         Individual travel diary   182 users; 17621 trajectories; Distribution-similarity
+         Beijing                                          with visit constraints    2007 Apr.- 2012 Aug.           metrics
+
+[27]     GPS trajectories of taxi, Fine-tuned generation Generation of routes       695085 trajectories in Porto; JS divergence (OD, trip
+         Porto and Beijing                               (links)                    956070 in Beijing             length, radius, gravity)
+
+[94]     Person trip survey data, Few-shot generation     Individual travel diary   3 groups of approximately     Spatiotemporal
+         Tokyo                                                                      2500 individuals.             consistency, diversity of
+                                                                                                                  activity patterns
+
+[18]     Tencent/ChinaMobile,     Zero-shot generation    Individual travel diary   100000/1246 users,            JSDs for individual,
+         Beijing                                                                    297363263/4163651             collective, semantic
+                                                                                    trajectory points             evaluation
+
+[22]     Subway and bus card      In-context learning     Sequential generation of 2943732 records; 65537 OD KL divergence of
+         swipe data, Beijing                              trajectory points        pairs; 77421 paths        generated and real
+                                                                                                             distributions
+
+
+
+
+3.4     LLMs for mobility prediction
+LLM-based methods have recently been explored for a range of mobility prediction tasks, spanning largely
+on mode choice prediction, next location prediction and aggregate mobility prediction under disruptions. A
+shared motivation is that mobility datasets often contain information that is either (i) heterogeneous and weakly
+structured (e.g., POI semantics, trip context, textual event descriptions) or (ii) data-scarce in critical regimes (e.g.,
+rare disasters, cross-city transfer, limited labeled choice data). LLMs are attractive in this setting because they
+can translate complex inputs into structured signals, exploit semantic knowledge about places and activities, and
+support few-shot or zero-shot prediction when conventional machine learning models struggle to generalize.
+Table 4 summarizes representative studies on LLM-based mobility prediction, grouped by prediction target (choice
+modeling, next-location ranking, event-aware forecasting, and regional demand prediction), and highlights the
+functional role of the LLM and the evaluation protocols used in each setting.
+
+                                          Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+111:12   •   Jie et al.
+
+
+                                               Table 3. LLMs for mobility simulation.
+
+Paper Simulation               Role of LLM                      Coupling Mechanism                 Scale          Evaluation
+
+[71]     Urban mobility        Reasoning locations in human LLM-based activity/location   94770 agents            Limited quantitative
+         simulation            trajectories                 generation + McRAPTOR routing                         validation
+
+[49]     Urban mobility        Replanning with changing         Traffic simulation (SUMO) + LLM 53000 agents      Runtime for varying
+         simulation            environment                      for activity replanning                           agent numbers
+
+[88]     Urban mobility        Human-like behavioral            Agent behavioral generation +      10000 agents   Simulation time,
+         simulation            generation                       simulator execution                               faithfulness (JSD)
+
+[43]     Online interactive    Activity planning with           Agent activity planning +          70 agents      Statistical analysis
+         traffic simulation    reflection and memory            simulator execution                               and test
+
+
+
+   Specifically, one stream of work focuses on LLMs for mode choice prediction. Xu and Jiao [85] formulate travel
+mode choice prediction, including Drive, Walk, Transit, Bike or Micro-mobility, as an LLM-based classification
+problem, where each trip record is serialized into text and the LLM predicts a mode in a few-shot manner. The key
+contribution is the systematic evaluation of retrieval-augmented generation (RAG) strategies: similar historical
+trips are retrieved from a Facebook AI similarity search (FAISS) vector database and inserted into the prompt to
+ground the decision in empirical precedents, enabling a controlled comparison of retrieval designs within the
+same LLM-based pipeline. A closely related research direction focuses on employing LLMs to predict discrete
+travel choices by conditioning on latent behavioral factors. Liu et al. [46] predict mode choice by introducing
+persona-based conditioning: an expert LLM infers personas that reflect latent preference trade-offs (e.g., cost
+versus comfort), and a learnable loading function maps each traveler to an appropriate persona, improving
+robustness under limited data. Liu et al. [45] also study mode choice prediction and report that naive zero-shot
+prompting is insufficient to reproduce human choice behavior; performance improves when predictions are
+grounded through few-shot reference cases and transferable persona-style information. Beyond prompting,
+Alsaleh and Farooq [3] provide a large-scale evaluation of open-access causal LLMs for mode choice and show
+that parameter-efficient fine-tuning (e.g., LoRA) is capable of yielding stronger classification performance. Finally,
+Badawi et al. [5] investigate training-free mode detection from GPS trips by converting engineered trajectory
+descriptors into structured natural-language descriptions and prompting an LLM to classify the mode, targeting
+scenarios where labeled training data is limited.
+   Another line of work focuses on predicting an individual’s next location. Wang et al. [79] design a direct
+next-location prediction task and prompt an LLM using historical stays and contextual stays to reflect both long-
+term routine dependencies and short-term context, enabling time-aware prediction. Several papers emphasize
+that next-location prediction is difficult to transfer across cities when framed as discrete POI-ID classification.
+Liu et al. [44] address this by reformulating next-location prediction as coordinate regression, predicting the next
+destination’s coordinates and then retrieving top-𝑘 nearby POIs for evaluation. An LLM is used to inject POI
+semantics via natural-language category embeddings and to fuse semantic and spatiotemporal signals before a
+lightweight regression head outputs coordinates. But the out-of-distribution coordinate prediction might induce
+the performance degradation. Feng et al. [19] target zero-shot next-location prediction and treat the LLM more
+explicitly as an agentic reasoner. It combines long/short-term memory summaries, textual location context (e.g.,
+reverse-geocoded descriptions), and collective transition signals (tool-assisted) to output a ranked next-POI list
+in POI/ID space. Li et al. [39] further impose a hierarchical reasoning structure by decomposing the forecasting
+problem into two stages: an activity-level planner predicts the next activity category (e.g., “restaurant”), and then
+a location-level selector chooses a specific POI within that category. Qin et al. [62] further target transferability
+
+Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+                                               LLMs for Human Mobility: Opportunities, Challenges, and Future Directions          •   111:13
+
+
+Table 4. LLMs for mobility prediction. We summarize representative work across prediction targets, reporting the functional
+role of the LLM, the data modality, and the evaluation metrics used in each study.
+
+Paper   Task                             Role of LLM                       Dataset                                Evaluation
+
+[85]    Travel mode choice prediction    RAG + in-context learning         2847 labeled trips                     Accuracy, precision,
+                                                                                                                  recall, F1
+
+[46]    Transport mode choice            Persona-context-conditioned       1192 travels, 9 responses to choice    JSD, F1 score
+        prediction                       predictor                         contexts
+
+[45]    Travel mode choice prediction    Few-shot learning                 9036 responses from 1004 respondents Cross-entropy, F1
+
+[3]     Travel mode choice prediction    Fine-tuning with QLoRA            100 respondents with responses, 3      Accuracy, precision,
+                                                                           datasets                               recall, F1
+
+[5]     Transport mode prediction        Zero-shot predictor               4280 trips (1070 per mode)             Accuracy, precision,
+                                                                                                                  recall
+
+[79]    Next location prediction         Context-conditioned zero-shot     Check-in (FSQ-NYC), GPS trajectory Accuracy, nDCG@k,
+                                         predictor                         (Geolife)                          weighted F1
+
+[44]    Next location prediction         Semantic-enhanced coordinate      Trajectory dataset of                  Hit@1, Hit@5, Hit@10
+                                         regressor                         Xian&Chengdu&Japan
+
+[19]    Next location prediction         Zero-shot predictor               Foursquare checkin data; ISP GPS       Acc@1, Acc@5,
+                                                                           trajectory data                        NDCG@5
+
+[39]    Next location prediction         Two-stage prediction (activity    Foursquare-NYC, Foursquare-TKY,        Acc@1, Acc@5,
+                                         category → POI)                   Gowalla-CA                             Acc@10, Acc@20, MRR
+
+[62]    Individual mobility prediction   In-context learning, CoT,         Check-in (FSQ-NYC), GPS trajectory Accuracy, weighted F1
+                                         fine-tuning                       (Geolife), metro trip (HK-ORI)
+
+[23]    Intent-aware mobility prediction In-context learning, CoT,         Check-in (Gowalla, FourSquare,         Acc@1, Acc@5,
+                                         fine-tuning                       WeePlace, Brightkite)                  Acc@20, MRR
+
+[41]    Mobility prediction under        In-context learning, CoT          NYC taxi/event data                    Demand prediction error
+        public events                                                                                             (e.g., MAE, RMSE)
+
+[97]    Mobility prediction under        In-context learning, CoT          Human mobility data collected by       RMSE, MAE, MAPE
+        rare events                                                        smart devices
+
+[90]    Mobility prediction under        Event embedding extractor         GPS trajectory during public events    RMSE, MAE, MAPE
+        public events
+
+[36]    Intent-aware mobility prediction Agentic LLM, fine-tuning          Mobile application location data       Acc@1, Acc@5,
+                                                                                                                  Acc@10, MRR@5
+
+[58]    Regional demand prediction       Semantic region encoder           Package/food delivery datasets         MAE, RMSE
+
+
+
+
+by proposing MoBLLM, an open-source LLM fine-tuned for generic individual mobility prediction (e.g., next
+location/trip information) across multiple cities and mobility data sources, using instruction tuning to improve
+robustness to different prompt styles and contexts. The key reason LLMs can help here is semantic generalization:
+locations are not only coordinates or IDs, but carry functional meaning (work-like, leisure-like, meal-like), and
+LLMs can exploit textual POI/category information to improve transfer and reduce overfitting to city-specific IDs.
+LLMs can also be used for multiple tasks beyond next location prediction. Gong et al. [23] reformulate LLMs for
+
+                                         Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+111:14   •   Jie et al.
+
+
+three tasks on check-in sequences, including next-location prediction, next-time prediction, and trajectory user
+linking. Their design learns check-in representations and matches them to intention prompts, using the inferred
+intentions together with check-in embeddings as inputs to the LLM for downstream prediction. A central claim
+is that semantic intention modeling enables competitive performance in few-shot settings, reducing dependence
+on large labeled datasets.
+   Beyond individual forecasting, several papers use LLMs to predict aggregate mobility patterns under
+public events or disruptions. Liang et al. [41] predict daily travel demand under public events by combining a
+historical-average component for regular demand with LLM-based reasoning conditioned on event descriptions
+and historical demand context. Chain-of-thought prompting is used to guide reasoning and provide interpretable
+narratives for event-driven deviations. Similarly, Zhong et al. [97] adopt a decomposition strategy: an LLM
+first predicts normal mobility patterns and a second component corrects predictions based on disruptive events
+such as COVID-19. Both studies argue that LLMs can be effective in data-limited or distribution-shift regimes
+(events/emergencies) because they can leverage broad prior knowledge to interpret rare contexts, while also
+acknowledging that pure zero-shot reasoning without grounding is often insufficient for strong predictive
+accuracy. In a causality-driven formulation, Yang et al. [90] propose CausalMob and use an LLM to convert
+unstructured news into structured event descriptors and intention-like scores (e.g., danger, interest, transport
+impact), which then serve as treatment features for causal analysis and prediction of mobility impacts. LLMs
+have their ability to translate unstructured event narratives into structured predictive features and to support
+scenario-based reasoning when historical analogs are scarce. The limitation is that performance depends heavily
+on how event information is grounded and quantified (e.g., extraction quality, scoring stability, and the causal
+model’s assumptions).
+   Please note that, not all papers use LLMs as the final predictor. Some works use LLMs to generate semantic
+signals (e.g., intentions, preferences, region semantics) that improve conventional predictive models. Li et al. [36]
+employ an LLM to infer latent intent annotations from trajectories (e.g., working, errands, leisure) because such
+intent is typically unobserved. Then, the inferred intent distribution is added as an input to a separate next-POI
+prediction model, improving prediction accuracy by making intent explicit. At the regional level, Nie et al. [58]
+leverage an LLM as a generic geospatial encoder to extract semantic region representations from location data,
+construct a semantics-informed graph, and perform inductive demand prediction for new regions by leveraging
+observed regions during training. In these works, the value of LLMs lies in semantic enrichment: they provide
+structured latent variables (intent labels/probabilities or region semantics) that are difficult to obtain directly
+from raw mobility logs, enabling downstream predictors to model behavior more explicitly and achieve stronger
+generalization.
+
+3.5      LLMs for mobility semantics and understanding
+Human mobility semantics and understanding study how to extract meaning from mobility data. Existing mobility
+data contains where and when people travel, many applications require additional semantic information such as
+what people are doing (activity type), why they move (intention), and how locations function (home/work/leisure,
+etc.). Recent work leverages LLMs as semantic engines to infer these missing attributes, to learn semantically
+meaningful representations of trajectories and locations, and to assess whether LLMs can reproduce human
+preference trade-offs in mobility.
+   The first line of work uses LLMs to infer semantic attributes that are not explicitly available in raw mobility
+data. Luo et al. [52] formalize trajectory semantic inference along three outputs (i.e., occupation category, activity
+sequence, and narrative description) and propose TSI-LLM, combining spatiotemporal enhanced formatting
+(STFormat) with context-inclusive prompts to improve semantic interpretation from trajectory chains. Ma et al.
+[53] pursue a related goal from a data-quality perspective: because GPS traces and POI metadata are often
+
+Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+                                               LLMs for Human Mobility: Opportunities, Challenges, and Future Directions       •   111:15
+
+
+Table 5. LLMs for mobility semantics and understanding. We summarize representative work across semantic targets,
+reporting the functional role of the LLM, the downstream task, and the evaluation metrics used in each study.
+
+Paper   Semantic Target                    Role of LLM                   Downstream Task                    Evaluation
+
+[52]    Trajectory semantic inference        Chain-of-Thought reasoning No downstream task                  No quantitative metrics
+        (occupation, activity sequence, etc)
+
+[53]    Prompting POI semantics for        Potential POI category        Trajectory data enrichment, POI    JSD, accuracy, F1 score
+        activity annotation                recommender                   classification
+
+[38]    Identification of multimodal travel Semantic embedding of        Semantic similarity measurement Precision, recall, F1 score
+        patterns                            multimodal travel features   (clustering)
+
+[13]    Semantic representation learning   Semantic encoding,            Next-location prediction, mobility Hit@1, Hit@5, Hit@10
+        of locations                       instruction tuning            recovery, location alignment
+
+[31]    Measurement of trajectory          Trajectory embedding          Destination prediction, distance   Correlation with classical
+        distances                          extractor                     measurement                        distance metrics
+
+[87]    Understanding human value of       Behavioral proxy reasoner for Zero-shot prompting                VOT elasticity,
+        travel time                        ranking alternatives                                             estimation error
+
+[36]    Reasoning of latent mobility       Generation of intent          Mobility prediction                Acc@1, Acc@5, Acc@10,
+        intentions                         distributions                                                    MRR@5
+
+[58]    Regional semantic understanding, Semantic region encoder         Regional demand prediction         MAE, RMSE
+        geospatial semantic encoding
+
+
+
+
+incomplete or ambiguous, an LLM is used to map weak place descriptions into standardized activity semantics
+(with probabilities), which are then used to annotate stay points and support subsequent cross-domain fusion
+and trajectory completion.
+   The second line learns representations that capture semantic similarity beyond hand-crafted features. Li
+et al. [38] convert multimodal trajectories into textual descriptions, derive BERT-based semantic embeddings,
+and apply DBSCAN clustering to identify interpretable multimodal travel patterns. Chen et al. [13] address a
+key bottleneck in LLM-based mobility modeling, i.e., location identifiers are discrete and semantically weak.
+They introduce semantic location tokenization via hierarchical vector quantization, representing each location
+as a short token sequence and instruction-tuning LLMs to better capture mobility semantics. The resulting
+representation supports tasks such as next-location prediction, mobility recovery, and location alignment. Ji and
+Gao [31] evaluate trajectory embeddings derived from GPT-J and show that cosine distances in embedding space
+correlate strongly with classical trajectory distances (e.g., Hausdorff and DTW), while also emphasizing practical
+difficulties when tasks require accurate numerical reasoning or reliable identification of spatial neighbors. Mobility
+understanding also entails assessing whether LLMs reflect established behavioral trade-offs in transport. Yan et al.
+[87] estimate value of travel time (VOT) from LLM responses to stated-preference ranking tasks under different
+contexts (e.g., income and trip purpose) using a rank-ordered logit analysis. Their results show meaningful
+behavioral similarities with human benchmarks at an aggregate level, but also model-dependent differences in
+sensitivity magnitudes and elasticity patterns, motivating careful validation before using LLMs as behavioral
+proxies.
+   Finally, semantic inference is often used as an intermediate layer that strengthens downstream mobility models.
+Li et al. [36] infer intention annotations (e.g., working, errands, leisure) from trajectories and represent them as
+an intent distribution that is added to a next-POI prediction model, improving performance by making behavioral
+
+                                        Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+              111:16   •   Jie et al.
+
+
+              states explicit. At a regional scale, Nie et al. [58] adopt an LLM as a geospatial encoder to extract semantic region
+              representations from unstructured location data and build a semantics-informed graph to support inductive
+              prediction across regions. Table 5 summarizes the related works.
+
+                                         Table 6. Comprehensive Comparison of Mobility Aspects and LLM Integration
+
+Aspect                      Itinerary Planning              Trajectory Generation           Mobility Simulation             Mobility Prediction            Semantics &
+                                                                                                                                                           Understanding
+Primary Objective           Produce one itinerary for       Produce realistic               Simulate system outcomes        Predict a future variable      Extract “meaning” from
+                            one traveler                    diaries/trajectories for a      according to agents’            (next location, mode, ETA,     trajectories and semantic
+                                                            person or population            interaction                     demand, etc.)                  learning
+Output Type                 Time-ordered itinerary          Activity diary                  Realized trajectories with      Predicted label/value (top-𝑘   Semantic labels (activity
+                            (often multi-day)               (what-when-where-how) or        system states over time         location, mode class, ETA,     type, intent, etc.) or
+                                                            trajectory (locations over      (congestion, travel times,      flow, etc.)                    semantic
+                                                            time)                           accessibility)                                                 embeddings/descriptions
+Primary Evaluation          Constraint feasibility +        Realism, diversity,             Network feasibility +           Predictive accuracy +          Semantic plausibility,
+Target                      factual grounding               long-horizon coherence          supply-demand interactions      robustness/transfer            consistency, and agreement
+                                                                                            + feedback dynamics                                            with annotations
+Core Difficulty             Diverse constraints +           Long-horizon realism +          Contextual behavior             Domain shift (new              Semantic
+                            evolving preferences +          heterogeneity + missing         modeling + replanning           cities/POIs), sparse context   thinness/ambiguity,
+                            open-world facts                intention in raw trajectories   under disruptions + scalable    (rare events), class           missing/noisy metadata,
+                                                                                            interactions                    imbalance                      weak supervision
+Typical Traditional         Rule-based itinerary            Activity-based simulators;      ABM/activity-based              Spatiotemporal forecasting     Rule-based labeling,
+Baseline                    planner;                        Markov/sequence models;         demand, traffic assignment      models; discrete choice/ML     probabilistic models,
+                            CP/MILP/heuristics              deep generative models          and microsimulation             classifiers                    representation learning
+                                                                                            (SUMO etc.)                                                    without LLM semantics
+LLM’s Main Role             Intent/constraint extraction    Semantic enrichment +           Agent decision module in a      LLM-derived text               Semantic
+                            + plan drafting/repair + tool   persona-conditioned             closed loop (state/context      embeddings/semantic            inference/annotation
+                            orchestration (with             synthesis (interpretable        → action/replanning;            features; RAG prompting        (purpose, intent, etc.),
+                            verifier/solver checks)         routines, purposes)             simulator execution)            for decisions                  semantic representation and
+                                                                                                                                                           descriptions
+Key Benefit of LLMs         Makes planning usable from      Adds meaning and                Reduces hand-crafted            Improves transferability by    Discovers interpretable
+                            free-form requests; supports    controllability beyond          behavior logic; enables         injecting semantic meaning;    semantics; improves
+                            interactive revision for        coordinate-only generation      contextual adaptation with      improves robustness under      downstream modeling and
+                            improving feasibility                                           network realism                 sparse context                 analysis
+Typical Evaluation          Constraint satisfaction (pass   Multiple realism metrics        System metrics (congestion,     Accuracy/F1/top-𝑘 ,            Agreement with
+                            rate), preference alignment,    (temporal/spatial stats,        accessibility, etc.),           RMSE/MAE (ETA),                labels/ontologies,
+                            factual correctness             transitions), diversity,        behavioral validity/stability   cross-city generalization      consistency and
+                                                            coherence                                                                                      interpretability; behavioral
+                                                                                                                                                           fidelity
+
+
+
+
+              4     Discussion
+              The literature reviewed above shows that the popularity and effectiveness of LLMs across the core tasks of human
+              mobility, including travel itinerary planning, trajectory generation, mobility simulation, mobility prediction,
+              and understanding, stem from their unique ability to bridge the gap between raw numerical data and natural-
+              language-based semantic information. Unlike traditional models that rely solely on numerical attributes (e.g.,
+              coordinates and time windows), LLM-based methods are better suited to processing subjective information that
+              is difficult to quantify, such as intentions, preferences, and habits. In the following, we (i) discuss task-specific
+              challenges and how LLMs are used in each task, and (ii) synthesize unique roles of LLMs across tasks. Table 6
+              provides a comprehensive comparison across different aspects for those five tasks. Fig. 3 provides a visual view
+              of the typical opportunities and roles of LLMs for different human mobility tasks.
+
+              Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+                                          LLMs for Human Mobility: Opportunities, Challenges, and Future Directions       •   111:17
+
+
+
+
+                 Fig. 3. The typical opportunities and roles of LLMs for different human mobility tasks
+
+
+
+
+4.1   Connecting task specific challenges with LLM opportunities
+Travel planning is a challenging human mobility task as it requires coordinating many linked decisions under
+multiple constraints, while also capturing personal preferences that are often implicit. A feasible travel itinerary
+must respect feasibility constraints, e.g., opening hours, travel times, transfer times, reservation times, as well as
+overall limits such as budget and the number of nights. Meanwhile, travelers often articulate their preferences in
+informal and qualitative terms, such as “not too rushed”, “more local food”, or “I prefer visiting museums.” These
+preferences can even change in real time. Additionally, planning is also open-world, which means key information
+(e.g., availability, travel times, disruptions, weather) is distributed across different sources and may change over
+time. This causes: 1) purely rule-based systems require constant manual updates to accommodate new situations
+and are difficult to personalize at scale, and 2) purely predictive/recommendation models, which can rank POIs or
+predict next visits, are limited to translate free-form requests and unstructured texts (such as reviews) into explicit
+constraints. In contrast, LLMs are well suited due to their ability to perform semantic parsing and preference
+inference. They can parse underspecified natural-language requests, elicit missing requirements, and represent
+constraints and soft preferences (e.g., pace, interests, accessibility, vibe) in structured forms such as JSON. Also,
+they can leverage semantically rich but unstructured information (e.g., POI descriptions and real user reviews) to
+infer implicit tastes and produce candidate plans aligned with latent preferences, as emphasized by preference-
+driven LLM-solver systems built on review-augmented benchmarks. LLMs can also be used for interactive
+specification and revision, meaning the model can ask targeted follow-up questions, propose a draft plan, and
+then edit the plan when the user changes preferences or when conflicts appear. To achieve reliability, LLMs
+can be integrated into hybrid systems where the LLM handles natural language understanding and preference
+
+                                    Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+111:18   •   Jie et al.
+
+
+modeling, while verifiers and planners/solvers (e.g., SMT, CP, or MILP) validate feasibility and drive iterative
+repair when constraints conflict.
+   Trajectory generation is challenging because human mobility is sequential and context-dependent, and many
+travel decisions are driven by implicit purposes that raw data (e.g., GPS locations) do not reveal. Traditional
+approaches, such as rule-based activity simulators and data-driven generative models, can reproduce parts of
+observed mobility statistics. However, they often struggle to generate long-horizon traces that remain semantically
+consistent (e.g., maintaining plausible activity purposes and routines) and to generalize to new contexts where
+mobility patterns change (e.g., due to policy-driven mobility restrictions). LLM-based approaches are attractive
+alternatives due to their ability to perform semantic enrichment or intent inference over mobility data. By
+enriching locations with their semantic meaning (e.g., POI categories, reviews and other textual descriptions), an
+LLM may infer potential human intents and generate interpretable and plausible daily schedules. In addition,
+LLMs can be conditioned on persona and scenario descriptions (e.g., job type, preference, policy shocks) to
+produce controllable behavior hypotheses that are useful for simulation and stress-testing, although such outputs
+still require grounding and validation to ensure realism and avoid unjustified common-sense assumptions.
+   Mobility simulation typically models how many agents travel through a transport network and how their choices
+collectively create system-level outcomes such as congestion, travel times, and accessibility. Traditional ABM and
+activity-based simulation needs many explicit behavioral models (for activity scheduling, destination choice, mode
+choice, departure time choice, replanning rules). Building and calibrating these is time-consuming and usually
+depends on massive survey data and strong assumptions. As a result, LLMs are introduced as decision-making
+modules, which can 1) integrate heterogeneous inputs, such as numbers (e.g., travel times/congestion/costs),
+texts (e.g., incident descriptions/policy notes), and turn them into a structured decision; 2) revise plans to be more
+coherent across linked choices (e.g., if a closure happens, an LLM may adjust departure time and reorder/drop
+activities from a relatively global view); and 3) generate behavior conditioned on persona and scenario descriptions
+without hand-coding a large set of special cases. In an interactive manner, the LLM contributes to flexible context-
+based decision-making and the simulator still enforces systematic feasibility and produces feedback to LLM for
+decision update.
+   Mobility predictions, such as next location prediction, travel mode choice prediction, and arrival time estimation,
+rely on spatial-temporal information, but performance and transferability often depend on richer contexts than
+mere coordinates and time steps. This is because human movement is inherently driven by implicit motivations,
+intentions, and preferences that numerical data alone cannot fully capture. Traditional approaches can achieve
+strong accuracy within a fixed city and dataset, yet they commonly face generalization limitations because
+the learned embeddings are tied to city-specific features without considering semantic attributes of places and
+trips that could be generalizable across cities. Instead, LLMs provide semantic representations from descriptions
+associated with mobility entities (such as POI names, categories, and reviews) that encode POI functionality and
+relevant activity. Subsequently, the predictor can leverage these transferable semantic representations instead of
+merely memorizing ID-level transitions.
+   Mobility understanding involves uncovering semantic information behind raw movements (such as human
+intentions, travel habits). This task is challenging since mobility data is typically semantically thin: trajectories
+encode where and when humans perform certain activities, but what analysts care about is more semantic
+information, such as activity type, trip purpose, intention, POI functionality, lifestyle context, which are latent
+and often unobserved. Meanwhile, the mapping from travel patterns to semantic meaning is many-to-many: the
+same movement can correspond to different purposes (a stop near an office could be for work, meeting, delivery,
+etc), and the same purpose can appear in many patterns, e.g., following individual habits and external constraints.
+Data noise, sparsity, incompletion (such as missing POI metadata), and cross-city differences make this task
+much harder. LLMs are used for mobility understanding because they can act as a text-conditioned semantic
+inference module. In this regard, an LLM is primarily doing inference and representation extraction, by which it
+
+Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+                                         LLMs for Human Mobility: Opportunities, Challenges, and Future Directions       •   111:19
+
+
+tries to recover missing data (e.g., attributes, labels) or learn embeddings that convey semantic meaning. As an
+intermediate layer, the output of LLM can subsequently be used for prediction, generation, or simulation.
+
+4.2    Task specific roles of LLMs in human mobility
+Across tasks, LLMs are not replacing mobility models in a single uniform way. However, their role differs by task.
+For travel planning, the primary benefit of LLMs is their ability to act as a symbolic translator that bridges the gap
+between unstructured human desires and hard mathematical constraints. For diary/trajectory generation, the goal
+is not a single feasible plan, but realistic and diverse synthetic mobility behavior over long horizons. Here LLMs
+are attractive because they can incorporate semantic and persona-level conditioning that is hard to encode in con-
+ventional generators. For mobility simulation, the LLM is mainly an agent decision module inside an environment.
+It takes the simulator’s state (and possibly unstructured scenario inputs) and proposes actions or (re)planning
+decisions. The simulator executes them and returns feedback, enabling context-dependent adaptation and richer
+agent logic, while the simulator remains the source of truth for feasibility and supply-demand interactions. For
+mobility prediction, LLMs mainly work on converting textual information associated with mobility entities, such
+as POI names, categories, and descriptions, into LLM-derived text embeddings (e.g., POI semantic embeddings)
+that encode POI semantics in a transferable way. These embeddings can be fused with spatiotemporal features,
+so the predictor relies less on memorizing ID transitions and more on functionally meaningful similarity across
+places. For mobility understanding, LLMs are used to infer and represent the “what/why” behind mobility traces.
+This includes annotating trajectories with activity and intention labels, inferring functional roles of locations,
+learning their semantic representations that support clustering and interpretability, and building benchmarks
+that test whether models can answer semantic questions about trajectories.
+
+5     Open Challenges and Future Directions
+After connecting task-specific challenges to the ways LLMs are used, this section summarizes LLMs limitations
+that repeatedly exist across tasks, and outlines a future research agenda.
+
+   Feasibility with real travel times and constraints. A recurring limitation is that LLMs often produce itineraries
+or mobility traces that appear reasonable on the surface, but once real-world constraints are checked, the output
+becomes infeasible. In travel itinerary planning, common failures include visiting places outside opening hours,
+exceeding the stated budget, violating time windows, or assuming unrealistically short travel times between
+locations. Recent benchmarks therefore evaluate these violations directly by measuring how often a generated
+itinerary satisfies all hard constraints [11, 12]. Similar feasibility problems appear in trajectory generation and
+mobility simulation. An LLM agent may describe a seemingly plausible sequence of activities (e.g., from home to
+work to shopping), yet the implied movements can still be impossible: the trajectory may require “teleporting”
+across long distances, pack too many activities into too short time, or select actions that cannot be executed
+on a transport network once travel times and capacity effects are considered. A common solution is a hybrid
+design in which the LLM proposes plans while external modules compute travel times, verify constraints, and
+repair violations. Even though effective, this shifts the core research question from “can the LLM plan” to “can
+the system guarantee feasibility and, at the same time preserving intent.” This leads to two open issues. First,
+solver and verifier-in-the-loop designs increase system complexity and latency, especially in interactive settings
+with frequent user revisions. Second, repairs should be preference-preserving which means fixing infeasibility
+should not silently replace the user’s priorities with a qualitatively different plan.
+
+  Dynamics and interaction effects. Most current evaluations assume a snapshot world, where travel times, prices,
+and availability are fixed during planning. In practice, mobility decisions are inherently dynamic where hotels sell
+out, ticket prices change, disruptions occur, preferences change over time and multiple users compete for the same
+
+                                   Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+111:20   •   Jie et al.
+
+
+limited capacity. Such dynamics become more challenging in multi-user settings because competition for scarce
+resources (rooms, tickets, peak-hour capacity) and network feedback (congestion and crowding) make outcomes
+depend on other travelers’ actions rather than on a fixed background state. Even in mobility simulation, many
+LLM-agent setups still model travelers in isolation, which makes it difficult to reproduce interaction-driven macro
+outcomes (e.g., crowding, congestion, and demand shifting) that ABMs are designed to capture. Recent work
+therefore argues that realism at the aggregate level requires moving beyond single-agent behavior toward explicit
+multi-agent interaction [77]. Addressing the snapshot-world limitation requires evaluation protocols and models
+that incorporate time-varying information and capacity constraints, e.g., dynamic evaluation protocols that
+incorporate time-varying updates (e.g., availability, schedule changes, disruptions) and explicit capacity/booking
+rules. Agents can be scored by their replanning quality, e.g., whether they can adapt with minimal unnecessary
+changes while preserving user priorities. Addressing the interaction limitation requires explicit mechanisms for
+multi-user effects, such as congestion/crowding feedback and coupled decisions under shared constraints (e.g.,
+households, group travel, or social coordination).
+   Semantic and spatiotemporal representation gap. LLMs are strong at extracting and reasoning over semantic
+context (e.g., POI descriptions, activity purposes, and narrative constraints), but they are not naturally reliable
+at representing quantitative spatiotemporal structure. As a result, in mobility prediction, LLMs are rarely used
+as standalone predictors. Most work instead rely on retrieval, intent inference, hierarchical structures, and
+downstream statistical or learning-based models to capture the underlying spatiotemporal relationships [41, 79].
+Many approaches also reformulate trajectories or numerical attributes in texts, which can discard geometric
+information and increase sensitivity to prompt design, reducing robustness across datasets and scenarios [39, 85].
+A similar limitation appears in mobility understanding: semantic embeddings can improve interpretability but
+still fail to encode key spatiotemporal relationships such as distance, proximity, and movement continuity [38].
+Future work should therefore combine semantic representations with explicit spatial structure (coordinates,
+networks, and graphs) and evaluate both semantic plausibility and spatiotemporal consistency. When LLMs are
+used to infer behavioral quantities (e.g., preferences or value of travel time), outputs should be calibrated and
+validated against empirical benchmarks rather than treated as substitutes by default.
+   Evaluation comparability, validation, and reproducibility. Across tasks, a central challenge is to ensure that
+reported improvements are comparable and robust, rather than driven by a particular choice of metrics or
+experimental settings. Current evaluation metrics are fragmented, which makes it hard to compare methods
+and easy to overlook unintended trade-offs. In trajectory generation, studies often report different subsets of
+realism metrics as shown in Table 2. As a result, a method may appear better on one dimension while quietly
+getting worse on another, such as matching routine regularity more closely but producing less realistic spatial
+dispersion or step-distance patterns. Beyond comparability, validation and robustness raise additional difficulties.
+In mobility simulation, behavior that looks plausible at the individual level does not necessarily reproduce
+correct aggregate outcomes once network interactions and feedback are taken into account. In addition, reported
+results can vary with prompts, model versions, and sampling settings, raising reproducibility concerns. Recent
+work highlights that behavioral alignment is multi-dimensional and calls for validation datasets and tests that
+evaluate both distributional realism and decision consistency under controlled perturbations [47]. For mobility
+understanding, QA-style benchmarks further suggest that factual retrieval can be relatively strong while semantic
+reasoning and long-horizon explanation remain difficult [4]. Overall, stronger community standards are needed,
+including unified metric suites, controlled ablations, robustness checks, and transparent reporting of sensitivity
+to prompting and decoding.
+  Scalability and computational cost. LLM-based approaches to human mobility can be costly at city scale,
+especially in simulation where each decision step may require an LLM inference call. This limits practical
+
+Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+                                              LLMs for Human Mobility: Opportunities, Challenges, and Future Directions      •   111:21
+
+
+deployment and makes large-scale calibration and uncertainty quantification difficult. Reducing the number
+of LLM calls without sacrificing behavioral fidelity remains an open research and engineering challenge. A
+promising near-term direction is hybrid modeling: use LLM agents primarily for high-level decisions that are
+hard to formalize, and delegate structured components, such as routing, network loading, and mode/route choice
+(when appropriate), to established transportation models.
+   Privacy risks. Synthetic mobility data is often presented as a privacy-preserving alternative to sharing raw
+trajectories, but high data usefulness typically requires high fidelity, which can still enable privacy attacks. This
+concern is amplified in mobility because trajectories are highly unique, making rare or distinctive movement
+patterns especially easy to associate with individuals. Privacy therefore should be treated as an evaluated property,
+rather than an assumed benefit. Future work should design privacy and usefulness related measures.
+   In summary, we expect future progress to come less from increasingly complex prompting and more from
+building systems whose outputs can be verified and assessed in a transparent way. One direction is to couple LLMs
+with explicit checking components (e.g., routing tools and constraint checkers) so that hard requirements such as
+opening hours, time windows, budgets, and travel time feasibility are verified automatically. When violations
+occur, revisions should preserve the user’s key priorities or preferences rather than produce a qualitatively
+different plan. A second direction is to develop benchmarks that reflect real planning as an iterative process,
+where new information arrives over time (e.g., disruptions, delays, changing prices, sold-out options) and agents
+are evaluated by how well they update plans with minimal unnecessary changes. Such benchmarks could later
+be extended to include competition among multiple users for limited capacity. A third direction is to adopt
+shared evaluation protocols with a common set of metrics covering feasibility, spatiotemporal realism, robustness
+to small input or prompt changes, and privacy risk versus data usefulness, so that the results across studies
+are directly comparable. Finally, enabling city-scale deployment will require computational efficiency oriented
+designs that reduce the number of LLM calls (e.g., caching previously computed results, limiting calls to decision
+points that truly require language reasoning, or distilling a large model into a smaller one) while maintaining
+behavioral realism.
+
+6   Conclusion
+This survey reviews recent progress in applying large language models to human mobility research. Although a
+growing body of work exists in this area, we focus on five main directions: LLMs for travel itinerary planning,
+LLMs for trajectory generation, LLMs for mobility simulation, LLM for mobility prediction, and LLM for mobility
+semantics and understanding. According to the comprehensive literature review, we summarize and discuss
+LLM opportunities and roles in human mobility tasks. The challenges faced by current methods are analyzed,
+thereafter highlighting several promising future research directions. We hope this survey can inspire further
+studies to address these challenges and advance LLM-based approaches in human mobility.
+
+References
+ [1] Icek Ajzen. 1991. The theory of planned behavior. Organizational behavior and human decision processes 50, 2 (1991), 179–211.
+ [2] Laura Alessandretti, Ulf Aslak, and Sune Lehmann. 2020. The scales of human mobility. Nature 587, 7834 (2020), 402–407.
+ [3] Tareq Alsaleh and Bilal Farooq. 2025. Towards Locally Deployable Fine-Tuned Causal Large Language Models for Mode Choice
+     Behaviour. arXiv preprint arXiv:2507.21432 (2025).
+ [4] Hikaru Asano, Hiroki Ouchi, Akira Kasuga, and Ryo Yonetani. 2025. MobQA: A Benchmark Dataset for Semantic Understanding of
+     Human Mobility Data through Question Answering. arXiv preprint arXiv:2508.11163 (2025).
+ [5] Amir Badawi, Ana-Maria Raimond, Arnaud Le Guilcher, and Karine Zeitouni. 2025. Harnessing Large Language Models for Predicting
+     Mobility Modes. In 2025 26th IEEE International Conference on Mobile Data Management (MDM). IEEE, 222–227.
+ [6] Ashmi Banerjee, Adithi Satish, Fitri Nur Aisyah, Wolfgang Wörndl, and Yashar Deldjoo. 2025. SynthTRIPs: A Knowledge-Grounded
+     Framework for Benchmark Data Generation for Personalized Tourism Recommenders. In Proceedings of the 48th International ACM
+     SIGIR Conference on Research and Development in Information Retrieval. 3743–3752.
+
+
+                                       Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+111:22   •   Jie et al.
+
+
+ [7] Ashmi Banerjee, Adithi Satish, and Wolfgang Wörndl. 2024. Enhancing tourism recommender systems for sustainable city trips using
+     retrieval-augmented generation. In International Workshop on Recommender Systems for Sustainability and Social Good. Springer, 19–34.
+ [8] Hugo Barbosa, Marc Barthelemy, Gourab Ghoshal, Charlotte R James, Maxime Lenormand, Thomas Louail, Ronaldo Menezes, José J
+     Ramasco, Filippo Simini, and Marcello Tomasini. 2018. Human mobility: Models and applications. Physics Reports 734 (2018), 1–74.
+ [9] Prabin Bhandari, Antonios Anastasopoulos, and Dieter Pfoser. 2024. Urban mobility assessment using llms. In Proceedings of the 32nd
+     ACM International Conference on Advances in Geographic Information Systems. 67–79.
+[10] Soumyabrata Chaudhuri, Pranav Purkar, Ritwik Raghav, Shubhojit Mallick, Manish Gupta, Abhik Jana, and Shreya Ghosh. 2025.
+     Tripcraft: A benchmark for spatio-temporally fine grained travel planning. In Proceedings of the 63rd Annual Meeting of the Association
+     for Computational Linguistics (Volume 1: Long Papers). 17035–17064.
+[11] Aili Chen, Xuyang Ge, Ziquan Fu, Yanghua Xiao, and Jiangjie Chen. 2024. Travelagent: An ai assistant for personalized travel planning.
+     arXiv preprint arXiv:2409.08069 (2024).
+[12] Yanan Chen, Ali Pesaranghader, Tanmana Sadhu, and Dong Hoon Yi. 2024. Can We Rely on LLM Agents to Draft Long-Horizon Plans?
+     Let’s Take TravelPlanner as an Example. arXiv preprint arXiv:2408.06318 (2024).
+[13] Yile Chen, Yicheng Tao, Yue Jiang, Shuai Liu, Han Yu, and Gao Cong. 2025. Enhancing Large Language Models for Mobility Analytics
+     with Semantic Location Tokenization. In Proceedings of the 31st ACM SIGKDD Conference on Knowledge Discovery and Data Mining V. 2.
+     262–273.
+[14] Tomas de la Rosa, Sriram Gopalakrishnan, Alberto Pozanco, Zhen Zeng, and Daniel Borrajo. 2024. TRIP-PAL: Travel planning with
+     guarantees by combining large language models and automated planners. arXiv preprint arXiv:2406.10196 (2024).
+[15] Daniel Delling, Thomas Pajor, and Renato F Werneck. 2015. Round-based public transit routing. Transportation Science 49, 3 (2015),
+     591–604.
+[16] Bin Deng, Yizhe Feng, Zeming Liu, Qing Wei, Xiangrong Zhu, Shuai Chen, Yuanfang Guo, and Yunhong Wang. 2025. Retail: Towards
+     real-world travel planning for large language models. In Proceedings of the 2025 Conference on Empirical Methods in Natural Language
+     Processing. 14881–14913.
+[17] Jieren Deng, Aleksandar Cvetkovic, Pak Kiu Chung, Dragomir Yankov, and Chiqun Zhang. 2025. The User-Centric Geo-Experience: An
+     LLM-Powered Framework for Enhanced Planning, Navigation, and Dynamic Adaptation. arXiv preprint arXiv:2507.06993 (2025).
+[18] Yuwei Du, Jie Feng, Jian Yuan, and Yong Li. 2025. CAMS: A CityGPT-Powered Agentic Framework for Urban Human Mobility Simulation.
+     arXiv preprint arXiv:2506.13599 (2025).
+[19] Jie Feng, Yuwei Du, Jie Zhao, and Yong Li. 2025. Agentmove: A large language model based agentic framework for zero-shot next
+     location prediction. In Proceedings of the 2025 Conference of the Nations of the Americas Chapter of the Association for Computational
+     Linguistics: Human Language Technologies (Volume 1: Long Papers). 1322–1338.
+[20] Shravan Gadbail, Masumi Desai, and Kamalakar Karlapalem. 2025. Iti-Validator: A guardrail framework for validating and correcting
+     LLM-generated itineraries. In Proceedings of the 33rd ACM International Conference on Advances in Geographic Information Systems.
+     1110–1113.
+[21] Yunfan Gao, Yun Xiong, Xinyu Gao, Kangxiang Jia, Jinliu Pan, Yuxi Bi, Yixin Dai, Jiawei Sun, Haofen Wang, and Haofen Wang. 2023.
+     Retrieval-augmented generation for large language models: A survey. arXiv preprint arXiv:2312.10997 2, 1 (2023).
+[22] Shichao Ge, Peijun Ye, Renrui Zhang, Min Zhou, Hairong Dong, and Fei-Yue Wang. 2025. LLM-Driven Cognitive Modeling for
+     Personalized Travel Generation. IEEE Transactions on Computational Social Systems (2025).
+[23] Letian Gong, Yan Lin, Xinyue Zhang, Yiwen Lu, Xuedi Han, Yichen Liu, Shengnan Guo, Youfang Lin, and Huaiyu Wan. 2024. Mobility-llm:
+     Learning visiting intentions and travel preference from human mobility data with large language models. Advances in Neural Information
+     Processing Systems 37 (2024), 36185–36217.
+[24] Atharva Gundawar, Mudit Verma, Lin Guan, Karthik Valmeekam, Siddhant Bhambri, and Subbarao Kambhampati. 2024. Robust planning
+     with llm-modulo framework: Case study in travel planning. arXiv preprint arXiv:2405.20625 (2024).
+[25] Yilun Hao, Yongchao Chen, Yang Zhang, and Chuchu Fan. 2025. Large Language Models Can Solve Real-World Planning Rigorously with
+     Formal Verification Tools. In Proceedings of the 2025 Conference of the Nations of the Americas Chapter of the Association for Computational
+     Linguistics: Human Language Technologies (Volume 1: Long Papers). 3434–3483.
+[26] Mahbub Hassan, Md Emtiaz Kabir, Muzammil Jusoh, Hong Ki An, Michael Negnevitsky, and Chengjiang Li. 2025. Large Language
+     Models in transportation: A comprehensive bibliometric analysis of emerging trends, challenges and future research. IEEE Access (2025).
+[27] Ammar Haydari, Dongjie Chen, Zhengfeng Lai, Michael Zhang, and Chen-Nee Chuah. 2025. Mobilitygpt: Enhanced human mobility
+     modeling with a gpt model. IEEE Transactions on Intelligent Transportation Systems 27, 1 (2025), 1681–1694.
+[28] Malte Helmert. 2006. New complexity results for classical planning benchmarks. In Proceedings of the Sixteenth International Conference
+     on International Conference on Automated Planning and Scheduling. 52–61.
+[29] Minh Hoang Nguyen, Van Dai Do, Dung Nguyen, Thin Nguyen, and Hung Le. 2025. CausalPlan: Empowering Efficient LLM Multi-Agent
+     Collaboration Through Causality-Driven Planning. arXiv e-prints (2025), arXiv–2508.
+[30] Sirui Hong, Mingchen Zhuge, Jonathan Chen, Xiawu Zheng, Yuheng Cheng, Jinlin Wang, Ceyao Zhang, Zili Wang, Steven Ka Shing Yau,
+     Zijuan Lin, et al. 2023. MetaGPT: Meta programming for a multi-agent collaborative framework. In The Twelfth International Conference
+
+Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+                                                 LLMs for Human Mobility: Opportunities, Challenges, and Future Directions       •   111:23
+
+
+     on Learning Representations.
+[31] Yuhan Ji and Song Gao. 2024. Evaluating the Effectiveness of Large Language Models in Representing and Understanding Movement
+     Trajectories. arXiv preprint arXiv:2409.00335 (2024).
+[32] Song Jiang, Da JU, Andrew Cohen, Sasha Mitts, Aaron Foss, Justine T Kao, Xian Li, and Yuandong Tian. 2024. Towards full delegation:
+     Designing ideal agentic behaviors for travel planning. arXiv preprint arXiv:2411.13904 (2024).
+[33] Chenlu Ju, Jiaxin Liu, Shobhit Sinha, Hao Xue, and Flora Salim. 2025. Trajllm: A modular llm-enhanced agent-based framework for
+     realistic human trajectory simulation. In Companion Proceedings of the ACM on Web Conference 2025. 2847–2850.
+[34] Da Ju, Song Jiang, Andrew Cohen, Aaron Foss, Sasha Mitts, Arman Zharmagambetov, Brandon Amos, Xian Li, Justine Kao, Maryam
+     Fazel-Zarandi, et al. 2024. To the Globe (TTG): Towards Language-Driven Guaranteed Travel Planning. In Proceedings of the 2024
+     Conference on Empirical Methods in Natural Language Processing: System Demonstrations. 240–249.
+[35] Subbarao Kambhampati, Karthik Valmeekam, Lin Guan, Mudit Verma, Kaya Stechly, Siddhant Bhambri, Lucas Saldyt, and Anil Murthy.
+     2024. Llms can’t plan, but can help planning in llm-modulo frameworks. arXiv preprint arXiv:2402.01817 (2024).
+[36] Songwei Li, Jie Feng, Jiawei Chi, Xinyuan Hu, Xiaomeng Zhao, and Fengli Xu. 2024. Limp: Large language model enhanced intent-aware
+     mobility prediction. arXiv preprint arXiv:2408.12832 (2024).
+[37] Siyu Li, Toan Tran, Haowen Lin, John Krumm, Cyrus Shahabi, Lingyi Zhao, Khurram Shafique, and Li Xiong. 2025. Geo-Llama:
+     Leveraging LLMs for Human Mobility Trajectory Generation with Constraints. In 2025 26th IEEE International Conference on Mobile
+     Data Management (MDM). IEEE, 20–31.
+[38] Wenxiang Li, Longyuan Ding, Yuliang Zhang, and Ziyuan Pu. 2025. Understanding multimodal travel patterns based on semantic
+     embeddings of human mobility trajectories. Journal of Transport Geography 124 (2025), 104169.
+[39] Wenyao Li, Ran Zhang, Pengyang Wang, Yuanchun Zhou, and Pengfei Wang. 2025. Zero-Shot Human Mobility Forecasting via Large
+     Language Model with Hierarchical Reasoning. arXiv preprint arXiv:2509.16578 (2025).
+[40] Xuchuan Li, Fei Huang, Jianrong Lv, Zhixiong Xiao, Guolong Li, and Yang Yue. 2024. Be more real: Travel diary generation using llm
+     agents and individual profiles. arXiv preprint arXiv:2407.18932 (2024).
+[41] Yuebing Liang, Yichao Liu, Xiaohan Wang, and Zhan Zhao. 2024. Exploring large language models for human mobility prediction under
+     public events. Computers, Environment and Urban Systems 112 (2024), 102153.
+[42] Bingchang Liu, Chaoyu Chen, Zi Gong, Cong Liao, Huan Wang, Zhichao Lei, Ming Liang, Dajun Chen, Min Shen, Hailian Zhou, et al.
+     2024. Mftcoder: Boosting code llms with multitask fine-tuning. In Proceedings of the 30th ACM SIGKDD Conference on Knowledge
+     Discovery and Data Mining. 5430–5441.
+[43] Qi Liu, Can Li, and Wanjing Ma. 2026. GATSim: Urban mobility simulation with generative agents. Transportation Research Part C:
+     Emerging Technologies 186 (2026), 105576.
+[44] Shuai Liu, Ning Cao, Yile Chen, Yue Jiang, and Gao Cong. 2024. nextlocllm: next location prediction using LLMs. arXiv preprint
+     arXiv:2410.09129 (2024).
+[45] Tianming Liu, Manzi Li, and Yafeng Yin. 2024. Can large language models capture human travel behavior? evidence and insights on
+     mode choice. Evidence and Insights on Mode Choice (August 26, 2024) (2024).
+[46] Tianming Liu, Manzi Li, and Yafeng Yin. 2025. Aligning LLM with human travel choices: a persona-based embedding learning approach.
+     arXiv preprint arXiv:2505.19003 (2025).
+[47] Tianming Liu, Jirong Yang, and Yafeng Yin. 2025. Toward llm-agent-based modeling of transportation systems: A conceptual framework.
+     Artificial Intelligence for Transportation 1 (2025), 100001.
+[48] Yifan Liu, Xishun Liao, Haoxuan Ma, Brian Yueshuai He, Chris Stanford, and Jiaqi Ma. 2024. Human Mobility Modeling with Household
+     Coordination Activities under Limited Information via Retrieval-Augmented LLMs. arXiv preprint arXiv:2409.17495 (2024).
+[49] Yifan Liu, Xishun Liao, Haoxuan Ma, Jonathan Liu, Rohan Jadhav, and Jiaqi Ma. 2025. MobiVerse: Scaling Urban Mobility Simulation
+     with Hybrid Lightweight Domain-Specific Generator and Large Language Models. arXiv preprint arXiv:2506.21784 (2025).
+[50] Qingqing Long, Shuai Liu, Ning Cao, Zhicheng Ren, Wei Ju, Chen Fang, Zhihong Zhu, Hengshu Zhu, and Yuanchun Zhou. 2025. A
+     survey of large language models for traffic forecasting: Methods and applications. Authorea Preprints (2025).
+[51] Massimiliano Luca, Gianni Barlacchi, Bruno Lepri, and Luca Pappalardo. 2021. A survey on deep learning for human mobility. ACM
+     Computing Surveys (CSUR) 55, 1 (2021), 1–44.
+[52] Yuxiao Luo, Zhongcai Cao, Xin Jin, Kang Liu, and Ling Yin. 2024. Deciphering human mobility: Inferring semantics of trajectories with
+     large language models. In 2024 25th IEEE International Conference on Mobile Data Management (MDM). IEEE, 289–294.
+[53] Haoxuan Ma, Xishun Liao, Yifan Liu, Qinhua Jiang, Chris Stanford, Shanqing Cao, and Jiaqi Ma. 2025. Learning universal human
+     mobility patterns with a foundation model for cross-domain data fusion. Transportation Research Part C: Emerging Technologies 180
+     (2025), 105311.
+[54] Nadia Maksoud, Hamad AlJassmi, Luqman Ali, and Abdul Rahman Masoud. 2025. Applications of large language models and generative
+     AI in transportation: A systematic review and bibliometric analysis. Transportation Research Interdisciplinary Perspectives 34 (2025),
+     101699.
+
+
+
+                                          Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+111:24   •   Jie et al.
+
+
+[55] Christian N Mayemba, D’Jeff K Nkashama, Jean Marie Tshimula, Maximilien V Dialufuma, Jean Tshibangu Muabila, Mbuyi Mukendi
+     Didier, Hugues Kanda, René Manassé Galekwa, Heber Dibwe Fita, Serge Mundele, et al. 2024. A short survey of human mobility
+     prediction in epidemic modeling from transformers to llms. arXiv preprint arXiv:2404.16921 (2024).
+[56] Humza Naveed, Asad Ullah Khan, Shi Qiu, Muhammad Saqib, Saeed Anwar, Muhammad Usman, Naveed Akhtar, Nick Barnes, and
+     Ajmal Mian. 2025. A comprehensive overview of large language models. ACM Transactions on Intelligent Systems and Technology 16, 5
+     (2025), 1–72.
+[57] Hang Ni, Fan Liu, Xinyu Ma, Lixin Su, Shuaiqiang Wang, Dawei Yin, Hui Xiong, and Hao Liu. 2025. TP-RAG: benchmarking retrieval-
+     augmented large language model agents for spatiotemporal-aware travel planning. In Proceedings of the 2025 Conference on Empirical
+     Methods in Natural Language Processing. 12403–12429.
+[58] Tong Nie, Junlin He, Yuewen Mei, Guoyang Qin, Guilong Li, Jian Sun, and Wei Ma. 2025. Joint estimation and prediction of city-wide
+     delivery demand: A large language model empowered graph-based learning approach. Transportation Research Part E: Logistics and
+     Transportation Review 197 (2025), 104075.
+[59] Tong Nie, Jian Sun, and Wei Ma. 2025. Exploring the roles of large language models in reshaping transportation systems: A survey,
+     framework, and roadmap. Artificial Intelligence for Transportation 1 (2025), 100003.
+[60] Luca Pappalardo, Ed Manley, Vedran Sekara, and Laura Alessandretti. 2023. Future directions in human mobility science. Nature
+     computational science 3, 7 (2023), 588–600.
+[61] Aske Plaat, Max van Duijn, Niki van Stein, Mike Preuss, Peter van der Putten, and Kees Joost Batenburg. 2025. Agentic large language
+     models, a survey. arXiv preprint arXiv:2503.23037 (2025).
+[62] Zhenlin Qin, Leizhen Wang, Yancheng Ling, Francisco Camara Pereira, and Zhenliang Ma. 2026. A foundational individual mobility
+     prediction model based on open-source large language models. Transportation Research Part C: Emerging Technologies 185 (2026), 105562.
+[63] Pranab Sahoo, Ayush Kumar Singh, Sriparna Saha, Vinija Jain, Samrat Mondal, and Aman Chadha. 2024. A systematic survey of prompt
+     engineering in large language models: Techniques and applications. arXiv preprint arXiv:2402.07927 (2024).
+[64] Timo Schick, Jane Dwivedi-Yu, Roberto Dessì, Roberta Raileanu, Maria Lomeli, Eric Hambro, Luke Zettlemoyer, Nicola Cancedda, and
+     Thomas Scialom. 2023. Toolformer: Language models can teach themselves to use tools. Advances in Neural Information Processing
+     Systems 36 (2023), 68539–68551.
+[65] Chenyang Shao, Fengli Xu, Bingbing Fan, Jingtao Ding, Yuan Yuan, Meng Wang, and Yong Li. 2024. Chain-of-planned-behaviour
+     workflow elicits few-shot mobility generation in llms. arXiv preprint arXiv:2402.09836 (2024).
+[66] Jie-Jing Shao, Xiao-Wen Yang, Bo-Wen Zhang, Baizhi Chen, Wen-Da Wei, Lan-Zhe Guo, and Yu-feng Li. 2024. ChinaTravel: A Real-World
+     Benchmark for Language Agents in Chinese Travel Planning. arXiv e-prints (2024), arXiv–2412.
+[67] Zijian Shao, Jiancan Wu, Weijian Chen, and Xiang Wang. 2025. Personal Travel Solver: A Preference-Driven LLM-Solver System for
+     Travel Planning. In Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers).
+     27622–27642.
+[68] Noah Shinn, Federico Cassano, Ashwin Gopinath, Karthik Narasimhan, and Shunyu Yao. 2023. Reflexion: Language agents with verbal
+     reinforcement learning. Advances in Neural Information Processing Systems 36 (2023), 8634–8652.
+[69] Harmanpreet Singh, Nikhil Verma, Yixiao Wang, Manasa Bharadwaj, Homa Fashandi, Kevin Ferreira, and Chul Lee. 2024. Personal large
+     language model agents: A case study on tailored travel planning. In Proceedings of the 2024 Conference on Empirical Methods in Natural
+     Language Processing: Industry Track. 486–514.
+[70] Gürkan Solmaz and Damla Turgut. 2019. A survey of human mobility models. IEEE Access 7 (2019), 125711–125731.
+[71] Yu-Lun Song, Chung-En Tsern, Che-Cheng Wu, Yu-Ming Chang, Syuan-Bo Huang, Wei-Chu Chen, Michael Chia-Liang Lin, and Yu-Ta
+     Lin. 2025. Incorporating LLMs for Large-Scale Urban Complex Mobility Simulation. arXiv preprint arXiv:2505.21880 (2025).
+[72] Yihong Tang, Zhaokai Wang, Ao Qu, Yihao Yan, Zhaofeng Wu, Dingyi Zhuang, Jushi Kai, Kebing Hou, Xiaotong Guo, Jinhua Zhao, et al.
+     2024. ItiNera: Integrating Spatial Optimization with Large Language Models for Open-domain Urban Itinerary Planning. In Proceedings
+     of the 2024 Conference on Empirical Methods in Natural Language Processing: Industry Track. 1413–1432.
+[73] Wei Tao, Yucheng Zhou, Yanlin Wang, Wenqiang Zhang, Hongyu Zhang, and Yu Cheng. 2024. Magis: Llm-based multi-agent framework
+     for github issue resolution. Advances in Neural Information Processing Systems 37 (2024), 51963–51993.
+[74] Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier Martinet, Marie-Anne Lachaux, Timothée Lacroix, Baptiste Rozière, Naman
+     Goyal, Eric Hambro, Faisal Azhar, et al. 2023. Llama: Open and efficient foundation language models. arXiv preprint arXiv:2302.13971
+     (2023).
+[75] Karthik Valmeekam, Matthew Marquez, Alberto Olmo, Sarath Sreedharan, and Subbarao Kambhampati. 2023. Planbench: An extensible
+     benchmark for evaluating large language models on planning and reasoning about change. Advances in Neural Information Processing
+     Systems 36 (2023), 38975–38987.
+[76] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. 2017.
+     Attention is all you need. Advances in neural information processing systems 30 (2017).
+[77] Jiawei Wang, Renhe Jiang, Chuang Yang, Zengqing Wu, Makoto Onizuka, Ryosuke Shibasaki, Noboru Koshizuka, and Chuan Xiao. 2024.
+     Large language models as urban residents: An llm agent framework for personal mobility generation. Advances in Neural Information
+
+Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+                                                 LLMs for Human Mobility: Opportunities, Challenges, and Future Directions        •   111:25
+
+
+     Processing Systems 37 (2024), 124547–124574.
+[78] Kaimin Wang, Yuanzhe Shen, Changze Lv, Xiaoqing Zheng, and Xuan-Jing Huang. 2025. Triptailor: A real-world benchmark for
+     personalized travel planning. In Findings of the Association for Computational Linguistics: ACL 2025. 9705–9723.
+[79] Xinglei Wang, Meng Fang, Zichao Zeng, and Tao Cheng. 2023. Where would i go next? large language models as human mobility
+     predictors. arXiv preprint arXiv:2308.15197 (2023).
+[80] Taylor Webb, Shanka Subhra Mondal, and Ida Momennejad. 2023. Improving planning with large language models: A modular agentic
+     architecture. arXiv preprint arXiv:2310.00194 (2023).
+[81] Jason Wei, Maarten Bosma, Vincent Y Zhao, Kelvin Guu, Adams Wei Yu, Brian Lester, Nan Du, Andrew M Dai, and Quoc V Le. 2021.
+     Finetuned language models are zero-shot learners. arXiv preprint arXiv:2109.01652 (2021).
+[82] Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Fei Xia, Ed Chi, Quoc V Le, Denny Zhou, et al. 2022. Chain-of-thought
+     prompting elicits reasoning in large language models. Advances in neural information processing systems 35 (2022), 24824–24837.
+[83] Qingyun Wu, Gagan Bansal, Jieyu Zhang, Yiran Wu, Beibin Li, Erkang Zhu, Li Jiang, Xiaoyun Zhang, Shaokun Zhang, Jiale Liu, et al.
+     2024. Autogen: Enabling next-gen LLM applications via multi-agent conversations. In First Conference on Language Modeling.
+[84] Jian Xie, Kai Zhang, Jiangjie Chen, Tinghui Zhu, Renze Lou, Yuandong Tian, Yanghua Xiao, and Yu Su. 2024. TravelPlanner: a benchmark
+     for real-world planning with language agents. In Proceedings of the 41st International Conference on Machine Learning. 54590–54613.
+[85] Yiming Xu and Junfeng Jiao. 2025. Evaluating Retrieval-Augmented Generation Strategies for Large Language Models in Travel Mode
+     Choice Prediction. arXiv preprint arXiv:2508.17527 (2025).
+[86] Yimo Yan, Yejia Liao, Guanhao Xu, Ruili Yao, Huiying Fan, Jingran Sun, Xia Wang, Jonathan Sprinkle, Ziyan An, Meiyi Ma, et al. 2025.
+     Large language models for traffic and transportation research: Methodologies, state of the art, and future opportunities. arXiv preprint
+     arXiv:2503.21330 (2025).
+[87] Yingnan Yan, Tianming Liu, and Yafeng Yin. 2026. Valuing time in silicon: Can large language models replicate human value of travel
+     time. Travel Behaviour and Society 44 (2026), 101245.
+[88] Yuwei Yan, Qingbin Zeng, Zhiheng Zheng, Jingzhe Yuan, Jie Feng, Jun Zhang, Fengli Xu, and Yong Li. 2024. Opencity: A scalable
+     platform to simulate urban activities with massive llm agents. arXiv preprint arXiv:2410.21286 (2024).
+[89] Dongjie Yang, Chengqiang Lu, Qimeng Wang, Xinbei Ma, Yan Gao, Yao Hu, and Hai Zhao. 2025. Plan Your Travel and Travel with Your
+     Plan: Wide-Horizon Planning and Evaluation via LLM. arXiv preprint arXiv:2506.12421 (2025).
+[90] Xiaojie Yang, Hangli Ge, Jiawei Wang, Zipei Fan, Renhe Jiang, Ryosuke Shibasaki, and Noboru Koshizuka. 2025. Causalmob: Causal
+     human mobility prediction with llms-derived human intentions toward public events. In Proceedings of the 31st ACM SIGKDD Conference
+     on Knowledge Discovery and Data Mining V. 1. 1773–1784.
+[91] Junchi Yao, Jianhua Xu, Tianyu Xin, Ziyi Wang, Shenzhe Zhu, Shu Yang, and Di Wang. 2025. Is your llm-based multi-agent a reliable
+     real-world planner? exploring fraud detection in travel planning. arXiv preprint arXiv:2505.16557 (2025).
+[92] Shunyu Yao, Jeffrey Zhao, Dian Yu, Nan Du, Izhak Shafran, Karthik R Narasimhan, and Yuan Cao. 2022. React: Synergizing reasoning
+     and acting in language models. In The eleventh international conference on learning representations.
+[93] Qingbin Zeng, Qinglong Yang, Shunan Dong, Heming Du, Liang Zheng, Fengli Xu, and Yong Li. 2024. Perceive, reflect, and plan:
+     Designing llm agent for goal-directed city navigation without instructions. arXiv preprint arXiv:2408.04168 (2024).
+[94] Yurong Zhang, Kunyi Zhang, Yanbo Pang, and Yoshihide Sekimoto. 2024. Agentic large language models for generating large-scale
+     urban daily activity patterns. In 2024 IEEE International Conference on Big Data (BigData). IEEE, 6815–6822.
+[95] Zijian Zhang, Hao Miao, Yuxuan Liang, Yan Zhao, Xiao Han, Pengyue Jia, Bin Yang, and Christian S Jensen. 2025. Web-Centric
+     Human Mobility Analytics: Methods, Applications, and Future Directions in the LLM Era. In Companion Proceedings of the ACM on Web
+     Conference 2025. 81–84.
+[96] Zijian Zhang, Yujie Sun, Zepu Wang, Yuqi Nie, Xiaobo Ma, Ruolin Li, Peng Sun, and Xuegang Ban. 2024. Large language models for
+     mobility analysis in transportation systems: A survey on forecasting tasks. Transportation Research Record (2024), 03611981251367699.
+[97] Xiaofeng Zhong, Yinfeng Xiang, Fang Yi, Chao Li, and Qinmin Yang. 2024. Hmp-llm: Human mobility prediction based on pre-trained
+     large language models. In 2024 IEEE 4th International Conference on Digital Twins and Parallel Intelligence (DTPI). IEEE, 687–692.
+[98] Yuqi Zhu, Shuofei Qiao, Yixin Ou, Shumin Deng, Shiwei Lyu, Yue Shen, Lei Liang, Jinjie Gu, Huajun Chen, and Ningyu Zhang. 2025.
+     KnowAgent: Knowledge-Augmented Planning for LLM-Based Agents. In Findings of the Association for Computational Linguistics:
+     NAACL 2025. 3709–3732.
+
+
+
+
+                                          Proc. ACM Meas. Anal. Comput. Syst., Vol. 37, No. 4, Article 111. Publication date: August 2018.
+

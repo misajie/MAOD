@@ -1,0 +1,760 @@
+                                    Article                                                                                                  https://doi.org/10.1038/s41467-025-56495-5
+
+
+                                    Human mobility is well described by
+                                    closed-form gravity-like models learned
+                                    automatically from data
+                                                                                                                     1
+                                    Received: 14 December 2023                          Oriol Cabanas-Tirapu          , Lluís Danús1,2, Esteban Moro          3,4
+                                                                                                                                                                 ,
+                                                                                        Marta Sales-Pardo 1           & Roger Guimerà 1,5
+                                    Accepted: 21 January 2025
+
+
+                                                                                        Modeling human mobility is critical to address questions in urban planning,
+                                        Check for updates                               sustainability, public health, and economic development. However, our
+                  1234567890():,;
+1234567890():,;
+
+
+
+
+                                                                                        understanding and ability to model ﬂows between urban areas are still
+                                                                                        incomplete. At one end of the modeling spectrum we have gravity models,
+                                                                                        which are easy to interpret but provide modestly accurate predictions of ﬂows.
+                                                                                        At the other end, we have machine learning models, with tens of features and
+                                                                                        thousands of parameters, which predict mobility more accurately than gravity
+                                                                                        models but do not provide clear insights on human behavior. Here, we show
+                                                                                        that simple machine-learned, closed-form models of mobility can predict
+                                                                                        mobility ﬂows as accurately as complex machine learning models, and extra-
+                                                                                        polate better. Moreover, these models are simple and gravity-like, and can be
+                                                                                        interpreted similarly to standard gravity models. These models work for dif-
+                                                                                        ferent datasets and at different scales, suggesting that they may capture the
+                                                                                        fundamental universal features of human mobility.
+
+
+                                    Accurate models of population mobility within and between muni-                    Despite these considerations, our understanding of the mobility
+                                    cipalities are critical to address questions in urban planning and            ﬂows within and between urban areas is still incomplete. One of the
+                                    transportation engineering. Additionally, since municipalities are the        earliest and most fruitful attempts to model mobility ﬂows between
+                                    main ground on which societies and cultures develop today, such               municipalities is the so-called gravity model1. This model assumes that
+                                    mobility models are also instrumental in addressing global chal-              mobility ﬂows depend solely on the attractiveness or opportunities of
+                                    lenges in sustainability, public health, and economic development.            the origin and destination municipalities (for which population is
+                                    Two main factors have driven recent interest in modeling human                typically used as a proxy) and the geographical distance between
+                                    mobility patterns1–5. First, accurate models of human mobility could          them, in a fashion that is mathematically similar to Newton’s law of
+                                    help identify transportation needs6, allocate services and amenities          gravitation. In its different incarnations and reﬁned versions4,10,11, the
+                                    (shopping, health, parks) more efﬁciently7, or even understand and            gravity model provides a simple phenomenological description of a
+                                    eventually alleviate problems like segregation8, or epidemic                  very complex phenomenon. Because of this, while gravity models are
+                                    spreading9. But, at the same time, models of human mobility can help          not without their limitations, they are very often used in urban design,
+                                    identify the main behavioral components driving people to make                transportation, or even commercial applications. Recently, machine
+                                    large displacements to, for example, buy a new product, ﬁnd a new             learning and deep learning algorithms have been proposed, extending
+                                    house, or use physical activity spaces. Better behavioral models can          the ideas underlying gravity models; they incorporate many other
+                                    help us implement more efﬁcient policies to change people’s beha-             features besides the populations of the origin and destination muni-
+                                    vior, rather than urban environments, in favor of more sustainable            cipalities and their distance12–14. Although those sophisticated machine
+                                    attitudes.                                                                    learning tools are more accurate at predicting ﬂows between urban
+
+
+                                    1
+                                     Department of Chemical Engineering, Universitat Rovira i Virgili, Tarragona, Catalonia, Spain. 2Annenberg School for Communication, University of Penn-
+                                    sylvania, Philadelphia, PA, USA. 3Media Lab, Massachusetts Institute of Technology, Cambridge, MA, USA. 4Network Science Institute, Northeastern Uni-
+                                    versity, Boston, MA, USA. 5ICREA, Barcelona, Catalonia, Spain.      e-mail: marta.sales@urv.cat; roger.guimera@urv.cat
+
+
+                                    Nature Communications | (2025)16:1336                                                                                                                  1
+Article                                                                                                                   https://doi.org/10.1038/s41467-025-56495-5
+
+
+areas, they lack interpretability and analytical tractability, and are hard             gravity models, and as predictive as (non-interpretable) machine
+to adapt to new contexts.                                                               learning models such as the deep gravity model12. To automatically
+     Given the reasonable success of simple gravity models at                           learn such closed-form models from data, we use the so-called Baye-
+explaining human mobility ﬂows, here we investigate the fundamental                     sian machine scientist (BMS)16. Given a dataset D, the BMS samples
+question of whether we really need models that are much more                            closed-form mathematical models from the posterior distribution
+complex than the gravity law to delve deeper into the essence of urban                  p(M∣D), which gives the probability that a given model M is the true
+mobility. Unlike other behavioral models, gravity mobility models are                   generating model given the data (Methods). The BMS is guaranteed to
+phenomenological. Because of their lack of precise theoretical                          asymptotically identify the true generating model, if one exists.
+underpinnings, their predictive ability depends on the exact functional                 Additionally, when the data are truly generated from a closed-form
+speciﬁcation of the dependency of the mobility ﬂows on the model                        model, the BMS has been shown to make quasi-optimal predictions for
+features; that is, the mathematical dependency on origin and desti-                     unobserved data18.
+nation populations and distance. Here, we leverage recent develop-                           We consider as our main dataset the set of ﬂows Tod between
+ments in Bayesian symbolic regression to obtain closed-form,                            origin o and destination d municipalities in six states in the USA (New
+interpretable models15 of mobility from data in a principled and                        York, Massachusetts, California, Florida, Washington, and Texas; see
+automatic fashion16–18.                                                                 Data). The BMS is fed with D, a set of 1000 ﬂows within each state, and
+     We systematically compare the performance at predicting mobi-                      samples closed-form models from p(M∣D) using Markov chain Monte
+lity ﬂows of simple gravity models, complex machine learning and                        Carlo16 (MCMC; Methods and Fig. S8). Rather than sampling different
+deep-learning methods, and closed-form, interpretable models                            models for each state, the same models are used for all states (see
+obtained through Bayesian symbolic regression (Fig. 1). We ﬁnd that                     Methods and ref. 17), which amounts to assuming that mobility pat-
+the Bayesian symbolic regression approach yields simple models that                     terns arise from general mechanisms that are not state-dependent. In
+are as accurate as the best machine learning approaches, and extra-                     the spirit of gravity models, however, each state is allowed to have
+polate better to out-of-sample regions. Our approach is able to learn                   different parameter values. Model sampling yields an ensemble of
+accurate models that, like gravity models, solely take into account the                 hundreds of different state-independent, closed-form models for the
+origin and destination populations and the geographical distance                        ﬂows Tod such as, for example,
+between them. Importantly, the learned models are gravity-like in their
+                                                                                                                        β !ξ                     "                          !γ #
+mathematical dependencies on populations and distance. We also                                             B md + C m o + D                                  B md mo + Cmd + D
+                                                                                        log T od = A 1 +                             or   log T od = log A            α            +1
+show that closed-form gravity-like models with non-population fea-                                                d od                                              d od
+tures are similarly predictive. Furthermore, exploration of the rela-                                                                                                                   ð1Þ
+tionship between the contribution of the populations of municipalities
+(or other non-population features) and their relative distance reveals                  where mo/d is the population of the origin/destination municipalities,
+common patterns in all the datasets, which suggests a close to uni-                     dod is the distance between them, and A, B, C, D, β, and ξ are model
+versal relationship between mobility ﬂows and these variables.                          parameters. These models are able to make predictions of test ﬂows
+                                                                                        (not seen by the BMS during training, and with origins and destinations
+Results                                                                                 also not seen during training) that follow real values over several
+A Bayesian machine scientist learns closed-form mathematical                            orders of magnitude (Figs. 1 and 2M–R). In what follows, we analyze in
+models from mobility data                                                               more depth this ensemble of models and its predictive abilities, vis-a-
+We aim to determine whether it is possible to model mobility ﬂows by                    vis gravity models and machine learning models such as the deep
+means of closed-form mathematical models that are interpretable like                    gravity model. Later, we test the ability of the BMS approach to
+
+
+
+
+                                                                                   mo, POIo
+
+
+
+
+                                                                     dod
+
+
+
+
+                                                                           md, POId
+
+
+                                              Tod
+
+                                   1          400         160k
+
+
+Fig. 1 | Modeling approaches for mobility ﬂows between test municipalities in           a total of 39 features from origin and destination. C Flows predicted by the closed-
+Texas, USA. A Real mobility ﬂows between municipalities (Tod) in the test set in        form, median predictive model (Fig. 6B) identiﬁed by the Bayesian machine sci-
+Texas, US (Methods). For each ﬂow, we consider origin o and destination d features,     entist (BMS; see text). This model only uses the population of origin and destina-
+such as population mo/d, aggregate statistics about points of interest (POI), and the   tion, as well as the distance between them.
+distance between them. B Flows predicted by the deep gravity model12, which uses
+
+
+
+Nature Communications | (2025)16:1336                                                                                                                                                    2
+Article                                                                                                              https://doi.org/10.1038/s41467-025-56495-5
+
+
+
+
+Fig. 2 | Model predictions of ﬂows between municipalities. Each panel shows, in        Bayesian machine scientist, and (S–X) a gravity model in its power-law version.
+logarithmic scale, the scatter plot of predicted ﬂows between municipalities versus    Supplementary Fig. S1 shows scatter plots for the full set of models we consider (see
+the corresponding real ﬂows, for different states in the US (columns). Plots show      Methods for a complete description of the models and their parameters). Different
+results for test data for different models (rows): A–F the Deep Gravity model, (G–L)   models capture ﬂows at different scales.
+a Random Forest regressor, (M–R) the most plausible model sampled by the
+
+
+produce accurate models at different length scales (namely, to model                   state with the fewest municipalities; Methods). By building the
+ﬂows between ﬁxed-size tiles12, as opposed to municipalities); and of                  training and test sets in this way12, all the information about the
+the models identiﬁed for the original six states to make out-of-sample                 municipalities in the test set, their characteristics, and the distances
+predictions on six different states (Georgia, Illinois, Michigan, North                between them is completely new to the trained algorithm. Addi-
+Carolina, Ohio, and Pennsylvania).                                                     tionally, since the geographic location of municipalities is not avail-
+                                                                                       able to any of the algorithms, potential similarities between close
+Different models capture ﬂows at different scales                                      locations in the train and test datasets are not patterns that can be
+In order to compare the ability of modeling approaches to describe                     learned by any of the models.
+mobility data, one needs a model selection criterion. In probabilistic                      We compare the closed-form mobility models identiﬁed by the
+terms, selecting the best model amounts to selecting the most plau-                    BMS to two alternative approaches. First, we consider gravity models,
+sible model, that is, the model that has the highest probability p(M∣D)                in which mobility ﬂows are directly proportional to the product of
+of being the true generating model given the observed data; or,                        masses (that is, populations) at the origin and destination, and inver-
+equivalently, the model with the shortest description length (Eqs.                     sely proportional to the distance between them. These approaches
+(3)–(5)). However, this criterion is not always applicable in practice,                include traditional gravity models1, as well as the closely related
+because often it is not possible to compute the description length of a                radiation model4. Second, we consider machine learning approaches
+model, as it happens for deep learning and most other machine                          that, besides considering population and distance between munici-
+learning models.                                                                       palities, also consider additional characteristics of municipalities, such
+     Alternatively, one can measure performance at certain pre-                        as the density of shops, entertainment venues, or educational facilities
+dictive tasks19, which is the approach typically taken in mobility                     (Methods). Speciﬁcally, we consider a random forest regression
+modeling studies and that we take here. Speciﬁcally, for each of the                   model20 and the deep gravity model12.
+six training states (New York, Massachusetts, California, Florida,                          From the ensemble of closed-form models sampled by the BMS,
+Washington, and Texas), we follow ref. 12 and split municipalities into                we analyze (Methods): (i) the most plausible (minimum description
+two sets. Flows between municipalities in the ﬁrst set comprise the                    length) model found by the BMS; (ii) the median of the ensemble of
+training set, and ﬂows between municipalities in the second set                        models sampled by the BMS (which is the optimal predictor); and (iii)
+comprise the test set (see Tables 1 and 2). To make sure that all states               the single model in the ensemble of sampled models whose predic-
+carry a comparable weight in the training data D, we select the same                   tions are closest to the ensemble median, which we call the median
+number of ﬂows from each state (1000 ﬂows, as we are limited by the                    predictive model.
+
+
+Nature Communications | (2025)16:1336                                                                                                                                     3
+Article                                                                                                                                 https://doi.org/10.1038/s41467-025-56495-5
+
+
+Table 1 | Train dataset
+ State                           Entries             Municipalities                    Flow                                Distance (Km)                       Population
+                                                                                       Min           Max                   Min             Max                 Min              Max
+ New York                        1000                217                               26            122,991               1.83            489.80              185              8.80 × 106
+ Massachusetts                   1000                75                                19            6,6946                2.34            205.51              1029             6.76 × 105
+ California                      1000                260                               14            91,267                2.12            1078.21             237              1.01 × 106
+ Florida                         1000                223                               7             78,316                2.54            607.50              251              9.50 × 105
+ Washington                      1000                107                               20            71,796                2.17            467.16              20               2.29 × 105
+ Texas                           1000                177                               21            192,660               1.84            975.16              173              2.30 × 106
+A number of points and municipalities in the train set for each state was obtained from a random sample of 1000 points of the original train fold. We also detail the lowest and largest ﬂow, distance,
+and municipality population.
+
+
+
+
+Table 2 | Test dataset
+ State                         Entries              Municipalities                Flow                                    Distance (Km)                           Population
+                                                                                  Min              Max                    Min              Max                    Min                Max
+ New York                      5952                 249                           20               35,063                 0.77             531.39                 361                2.12 × 105
+ Massachusetts                 1180                 75                            9                55,499                 2.16             267.24                 1,517              2.07 × 105
+ California                    11,727               319                           2                41,6696                1.09             1,084.34               129                3.9 × 106
+ Florida                       7092                 245                           3                79,624                 1.14             875.82                 78                 4.42 × 105
+ Washington                    2083                 109                           12               54,245                 1.48             431.53                 487                7.37 × 105
+ Texas                         2782                 192                           3                112,865                2.46             1,196.33               106                1.43 × 106
+Number of points and municipalities in the test set for each state. We also detail the lowest and largest ﬂow, distance, and municipality population.
+
+
+
+
+     In Fig. 2, we show the predicted ﬂows versus the real ﬂows in the                               (especially for non-relative quantities such as the absolute error), we
+test set (see Supplementary Fig. S1 for results for additional models).                              always show the whole distribution of error values (as a boxplot), and
+Whereas all models are predictive, we ﬁnd that different models are                                  use the median value to compare models (Fig. S3, Supplementary
+differently capable of describing mobility ﬂows of different orders of                               Table S6); the lower the median, the better the performance of the
+magnitude. For instance, gravity-like models (Fig. 2S–X and Supple-                                  model. Note that these metrics highlight different aspects of the pre-
+mentary Figs. S1 and S2) are typically good at capturing the behavior of                             diction. Absolute errors are correlated with the magnitude of the ﬂow
+large ﬂows, but not of small ﬂows. Indeed, for small ﬂows (less than                                 we are trying to predict so that errors are typically larger for larger
+around 100 commuters) these approaches tend to underestimate                                         ﬂows. Because of this, and similar to the CPC, average absolute errors
+ﬂows, in some cases by several orders of magnitude, and even predict                                 are very sensitive to the errors in predicting large ﬂows but not to
+ﬂows smaller than 1 person (Supplementary Fig. S2). This is also the                                 errors in small ﬂows. For the same reason, median values of the
+case for the deep gravity model, which again under-predicts small                                    absolute error typically reﬂect errors in performance for typical ﬂow
+ﬂows (Figs. 1 and 2A–F). By contrast, neither the random forest nor the                              values and do not reﬂect the ability of a model to predict values in the
+BMS suffers from this caveat, and both capture the whole range of                                    whole range of ﬂows.
+ﬂows more consistently and without large systematic deviations                                            The absolute relative error and the absolute log-ratio do take into
+(Figs. 1 and 2G–R).                                                                                  account the effect of the magnitude of the ﬂow, and therefore are
+                                                                                                     more informative of the global behavior of a model when the range of
+Simple closed-form models are as accurate as the best machine-                                       ﬂows spans several orders of magnitude (Fig. S3M–X). An issue with
+learning models on training states                                                                   the relative error is that while it penalizes over-prediction, it does not
+Next, we quantify the performance of the models at the task of pre-                                  penalize under-prediction; in the extreme case in which the predicted
+dicting unobserved ﬂows. To that end, and considering the qualitative                                ﬂow equals zero and the real ﬂow is larger than zero, the relative error
+results in the previous section, we compute several complementary                                    is equal to one. As a result, distributions for relative errors in gravity-
+performance metrics. First, we consider the common part of com-                                      like models and the deep gravity model, in which small ﬂows are under-
+muters (CPC; see Methods), which is a usual choice in the mobility                                   predicted, are centered around 1 (Supplementary Figs. S2, S3M–R). By
+literature12. The CPC measures the overlap between predicted and                                     contrast, the absolute log-ratio has the property that over- and under-
+observed ﬂows, and can take values from 0 to 1; the larger the CPC, the                              prediction are equally penalized (in a logarithmic scale), that is, pre-
+better the predictions. Despite its popularity, this metric favors models                            dicting the real ﬂow multiplied or divided by the same factor results in
+that predict the larger ﬂows well, but overlooks errors in small ﬂows                                same absolute log-ratio. This metric, therefore, captures the ability of a
+(Fig. S3A–F). Since mobility ﬂows typically span several orders of                                   model to predict ﬂows in any range of values (Supplementary
+magnitude (Fig. 2), models with the larger CPC are not necessarily the                               Fig. S3S–X).
+best models for the whole range of ﬂows.                                                                  Using these metrics, we compare the different modeling
+      To have metrics of performance that cover the whole range of                                   approaches (Fig. 3 and Supplementary Fig. S1). The ﬁrst conclusion
+ﬂows, we consider, in addition, and complementary to CPC, the                                        from this comparison is that gravity models, including the radiation
+absolute error, the absolute relative error, and the absolute log ratio                              model, are never the best performers; for all states and metrics con-
+(Methods, Fig. 3, Supplementary Fig. S3). For each of these metrics,                                 sidered, there is always at least one other model that performs better.
+and to avoid the disproportionate inﬂuence of singular large errors                                  This is not surprising, since these models are simple and highly
+
+
+Nature Communications | (2025)16:1336                                                                                                                                                               4
+Article                                                                                                            https://doi.org/10.1038/s41467-025-56495-5
+
+
+
+
+Fig. 3 | Model performance at predicting test ﬂows between municipalities in        I–L Summary of performance over test ﬂows in the six training states. The per-
+training states. A–H For each model prediction for two representative states        formance ratio is deﬁned with respect to the performance of the gravity model with
+(Florida and Washington; see Fig. S3 for the remaining states), we assess model     power law decaying dependence on the distance (Gravity pow); values larger than 1
+performance using four different metrics: A, E Common part of commuters;            correspond, for all metrics (including CPC), to performance above the Gravity pow
+B, F Absolute error; C, G Absolute relative error; D, H Absolute log-ratio. The     model, whereas values smaller than 1 indicate worse performance. Error bars
+common part of commuters (CPC) is a global metric. Thus, we have a single value     indicate 95% conﬁdence intervals for the means over states. (See Supplementary
+for each metric. For the other three metrics, we show the median, 50% conﬁdence     Table S6 for numerical values for all individual states, as well as summary statistics.)
+interval (box), and 95% conﬁdence interval (whiskers). Triangles (◂) indicate the   Overall, all models perform similarly in terms of CPC, whereas BMS models and
+best-performing model for each metric (largest CPC or lowest median). See           random forests (and deep gravity for absolute error) perform signiﬁcantly better in
+Methods and Text for the deﬁnition and discussion of the different metrics.         the other statistics.
+
+
+
+
+stylized, and they have already been shown to make less accurate                    destination population, and origin-destination distance), we conclude
+predictions than deep gravity models12.                                             that the symbolic regression approach using the BMS yields parsimo-
+      Perhaps more surprisingly, we ﬁnd that closed-form mathematical               nious models of human mobility ﬂows between municipalities. Closed-
+models obtained by the BMS perform, overall, comparably to random                   form models obtained by the BMS also compare well to the alter-
+forest models and better than deep gravity models. Indeed, the most                 natives in terms of the fairness of their predictions21 (Supplementary
+plausible model (BMS Plausible) performs better than deep gravity for               Fig. S5). In particular, we ﬁnd that the random forest and the models
+21 of the 24 comparisons we can make (four metrics on each of the six               identiﬁed by the BMS are, overall, the most consistent models across
+states), whereas it performs better than random forests in 13/24                    states in terms of the fairness of their predictions.
+comparisons and worse in the remaining 11/24 (Fig. S3). On average,
+over the six states, BMS models perform indistinguishably from ran-                 Closed-form models also describe ﬂows at shorter scales
+dom forests on all quality metrics, and better than deep gravity models             So far, we have analyzed within-state ﬂows between municipalities, of
+in terms of relative error and log ratio (Fig. 3I–L). Remarkably, deep              any size and at any range of distances. However, it may be that the
+gravity models are only best performers in terms of CPC, and even they              geographical, economic, and demographic characteristics of smaller
+are not signiﬁcantly better than BMS models or random forests, a                    areas become relevant when modeling ﬂows at shorter distances (for
+result that is consistent with previous ﬁndings13.                                  example, within neighborhoods or adjacent towns in large metropo-
+      When considering how each model performs for ﬂows in speciﬁc                  litan areas). To elucidate to what extent different modeling approa-
+ranges (Fig. 4 and Supplementary Fig. S4), we ﬁnd that BMS models,                  ches can accommodate into such short-distance ﬂows, we adopt the
+similar to random forest models, are particularly good at modeling                  framework used in ref. 12—we divide the state of New York in small tiles
+ﬂows in the range that is the most common in the data.                              of 25 × 25 km2, and consider the ﬂows between census tracts within
+      Taking into account that both random forest and deep gravity                  each tile12. We use 50% of the tiles for training the different models, and
+models use many more features for their predictions (39 features in                 then test the ﬂows between the remaining 50% of the tiles. For this
+total, in contrast to the three features used by gravity models and the             experiment, we ﬁnd that regardless of the metric used, closed-form
+closed-form models identiﬁed by the BMS, namely, origin and                         models identiﬁed by the BMS are always more accurate than machine
+
+
+Nature Communications | (2025)16:1336                                                                                                                                     5
+Article                                                                                                             https://doi.org/10.1038/s41467-025-56495-5
+
+
+
+
+Fig. 4 | Performance for different ﬂow ranges. The observed ﬂows between               error; C, absolute relative error; D absolute log ratio. The best-performing models
+municipalities span six orders of magnitude and are distributed, over the six states   (random forests and those identiﬁed by the BMS) tend to ﬁt the data particularly
+in our main dataset, as shown by the histogram. We measure the performance of          well (higher CPC and lower error) when ﬂows have the most common magnitudes.
+the different models at predicting ﬂows within each bin of ﬂows: A, CPC; B, absolute
+
+
+
+learning and gravity models (Fig. 5). Our results thus indicate that                   predictive model, that is, the closed-form model whose predictions for
+simple closed-form models that just consider populations of munici-                    unobserved data are closest to the median prediction of the whole
+palities/census tracts and the distances between them provide better                   ensemble of sampled models (Methods). Formally, there are marked
+descriptions of mobility ﬂows than complex models that take many                       mathematical differences between both models. In particular, the
+more features into account, and have many more parameters, also for                    most plausible model is an exponential model for the ﬂows, while the
+ﬂows at short distances. This result is consistent with previous work                  median predictive model is a power-law model for the ﬂows. However,
+suggesting than, also at these scales, adding many features to mobility                the two models have relevant properties in common. First, both
+models barely improves prediction14.                                                   models are also gravity-like models, like the majority of models sam-
+                                                                                       pled by the BMS. Second, origin and destination do not necessarily
+The identiﬁed closed-form models are gravity-like and                                  play a symmetric role, which allows the model to accommodate non-
+generalize well                                                                        symmetric ﬂows in contrast to typical gravity models which do not
+Our analysis indicates that the BMS is able to ﬁnd closed-form math-                   allow for this possibility. Indeed, an inspection of the parameters
+ematical models that solely consider the populations of the origin and                 shows that in some states, such as New York or Texas, ﬂows are much
+destination and the geographic distance between them; and that these                   more symmetric than in others, such as Florida and Massachusetts.
+models provide predictions of mobility ﬂows that are as accurate as                    Third, the relative contribution of the mass product with respect to the
+the most accurate machine learning models. Here, we investigate                        geographical distance is quite consistent—in both models, we ﬁnd a
+whether, besides being predictive, these closed-form models are also                   mathematically equivalent dependency on the ratio (mdmo)/de, where
+interpretable and insightful, and if they generalize well to other                     e = 1/β in the most plausible model (Fig. 6A), and e = α in the median
+contexts.                                                                              predictive model (Fig. 6B). We ﬁnd that, for a given state, α close to 1/β
+      We start by noting, once more, that the BMS samples hundreds of                  suggesting that this relationship is to a large extent model-
+models and that, overall, they all perform well, which shows that there                independent (Fig. 6C). Furthermore, we ﬁnd that the state-to-state
+are many different models that can describe the data. Such a set of                    variability is relatively small since all exponents fall within a close
+models is sometimes called a Rashomon set15. Then, the relevant                        range, which suggests that reasonable models for mobility ﬂows are
+question is whether these models share any common deﬁning prop-                        gravity-like models with speciﬁc constraints in the relationship
+erties that could explain why they describe mobility ﬂows accurately.                  between the contributions of the mass product and the geographical
+To elucidate this question, we consider a collection of 105 models                     distance.
+sampled by the BMS (see Supplementary Information). We notice that                          To conclude our analysis of the most plausible and median
+many of these models contain gravity-like terms, that is, terms that                   predictive models, we study to what extent they generalize to out-of-
+depend on a product of the origin and destination populations (per-                    sample scenarios (Fig. 6D, E). To that end, we use mobility ﬂows
+haps shifted by a certain amount), and inversely on a growing function                 between municipalities in six new states: Georgia, Illinois, Michigan,
+of the geographic distance between origin and destination. To quan-                    North Carolina, Ohio, and Pennsylvania. For each new state, we again
+tify this observation, and based on this deﬁnition of gravity-like terms,              split municipalities in train and test set, and use the train set to ﬁt
+we manually classiﬁed the 105 models into three groups: those having                   model parameters and the test set to measure the models’ general-
+only gravity-like terms, those having gravity-like terms and some other                ization ability. As we show in Fig. 6E, the original models are as
+(multiplying or additive) terms, and those not having any gravity-like                 accurate in the new states as in the original states, conﬁrming that
+terms. We ﬁnd that 17% of the sampled models are purely gravity-like                   both models generalize well (see Supplementary Fig. S6 for model
+and 70% contain gravity-like terms as well as other terms; only 13% do                 parameters in the new states). We also compare the generalization
+not contain any gravity-like terms at all. This is remarkable because the              performance of the BMS models to that of the gravity and random
+BMS has not received any input about the particular shape that models                  forest models (Fig. 6D). We ﬁnd that, at this generalization task, BMS
+should take, which suggests that the regularities in the data are well-                models perform signiﬁcantly better than random forests for three
+described by this general class of models and justiﬁes the historical use              out of four quality metrics, and indistinguishably in the fourth. It is
+of gravity models.                                                                     worth noting that because random forests are non-parametric, in this
+      Next, we analyze in more detail two particularly relevant closed-                case, we cannot reﬁt the parameters of the models to the new states;
+form models identiﬁed by the BMS (Fig. 6): (i) the most plausible                      rather, we predict each ﬂow in the new states by averaging over the
+model, that is, the model that has the highest probability p(M∣D) given                predictions of the six original random forest models. Doing the same
+the data (or, equivalently, the shortest description length LðM, DÞ)                   with BMS models instead of reﬁtting model parameters for the new
+among all those sampled by the BMS (Methods); (ii) the median                          states, still leads to ﬂow predictions in the new states that are
+
+
+Nature Communications | (2025)16:1336                                                                                                                                   6
+Article                                                                                                          https://doi.org/10.1038/s41467-025-56495-5
+
+
+
+
+Fig. 5 | Model performance at predicting ﬂows at small distances. We consider        B Absolute error; C Absolute relative error; D Absolute log-ratio. In each panel,
+the data used by Simini et al.12 about mobility ﬂows between census tracts within    triangles (◂) indicate the best-performing model according to the corresponding
+small geographical (25 × 25 km2) regions in NY state. We evaluate predictions over   metric; BMS models are the best-performing in all metrics. See Methods and text,
+test data using the same metrics as in Fig. 3: A Common part of commuters;           for a complete description of the metrics, the models, and the data.
+
+
+
+
+signiﬁcantly more accurate than those of random forest models                        predictive power. Recently, deep learning models have been proposed
+(supplementary Fig. S7).                                                             as an alternative; whereas these models are consistently and sig-
+                                                                                     niﬁcantly more predictive than gravity models, they are not inter-
+Gravity-like models with non-population features are also highly                     pretable and provide little insight into human behavior. Here, we have
+predictive                                                                           shown that automated equation discovery approaches lead to parsi-
+In the preceding sections, we have shown that gravity-like models                    monious closed-form models that combine the most desirable aspects
+based only on population and distance are as predictive as complex                   of both approaches—the simplicity of gravity models and predictive
+machine learning models with population and non-population fea-                      power as high as the most accurate machine learning models and even
+tures, and extrapolate better. However, previous research suggests                   higher when it comes to generalizing.
+that, in general, non-population features add predictive power to                         We argue that two factors contribute to the success of the BMS at
+models12, which is consistent with our current understanding of the                  identifying parsimonious models. First, the probabilistic approach
+diverse factors that drive human mobility.                                           underlying the BMS deals quasi-optimally with sparse and noisy data18.
+     To clarify this apparent paradox, we end by investigating closed-               Mobility datasets are available nowadays, and more will be available in
+form models with population and non-population features (Fig. 7). We                 the future22, but the number of municipalities in a state or even a
+start by noting that, at the level of municipalities and in contrast to              country is limited, so the resulting training sets are constrained by
+smaller scales, all features are highly correlated (Fig. 7A–C), which                deﬁnition. This is in contrast with LLMs or other areas where deep
+explains why population and distance, alone, already yield highly                    learning excels, and where the size of training sets can grow virtually
+predictive models. In any case, we feed the BMS with the 39 features                 without limits. Second, automated equation discovery works best
+used by deep gravity and random forest models, to obtain new closed-                 when the data can be described by relatively simple models. This
+form models with those features. We ﬁnd that most of the features are                seems to be the case in the context of mobility. Indeed, the models we
+rarely used in the sampled expressions, but a few are (in particular, the            identiﬁed are gravity-like in that they are increasing functions of a
+number of food points at the destination, and the main road lines at                 certain product of populations of origin and destination, and
+origin and destination).                                                             decreasing functions of the distance between them. While the ratio
+     The most plausible model identiﬁed by the BMS is, in this case,                 between the population and the distance terms is, in principle, model
+                                                                                     and data-dependent, in the datasets we explore the ratio is roughly
+              2                                      3γ
+                                                            R
+                    c2 c3 + c2 F d + M d c4 + M o + Ro exp c5 o                      constant and dataset-independent.
+   log T od = 4c1 +                          α
+                                                                5             ð2Þ         Individual mobility depends critically on the urban environment,
+                                           d                                         personal preferences, commuting patterns, and accessibility to
+                                                                                     transportation and amenities. Thus, modeling mobility at an indivi-
+where Fd is the number of food points at the destination, Mo/d is the                dual or small spatial scale might require more complicated models
+length of main road lines at the origin and destination, respectively,               that account for routes, the purpose of the trip, points of interest, or
+and Ro is the number of retail points at the origin. We ﬁnd that this                even the demographic traits of individuals12,21,23. However, our results
+model is often slightly more predictive than the population-only                     show that by aggregating mobility at a larger spatial scale, the
+gravity-like models discussed in the previous sections, although the                 movements of millions of people can be described parsimoniously by
+differences are not statistically signiﬁcant. This is true for the six               simple fully explainable models that do not depend on the micro-
+original states (Fig. 7C–F) as well as for the six new states not seen by            scopic characteristics of the origin, destination, or route taken. This
+the BMS (Fig. 7G–J). Last but not least, we note that this model is also             is because the randomness and variability inherent in individual
+gravity-like in that it contains a term with the product of an origin-only           behaviors tend to cancel out when looked at collectively, revealing
+factor and a destination-only factor, divided by an increasing function              underlying trends and movements that are driven by the shared
+of the distance. Thus, formally, this model is similar to population-only            needs of large populations, and the structure of the built environ-
+models in previous sections.                                                         ment. Our results show, therefore, that the aggregated ﬂows in
+                                                                                     human mobility can be seen as an emergent and universal property of
+Discussion                                                                           the complex system of individual movements. More broadly, our
+Understanding human mobility is critical to address questions in urban               results showcase the potential of using machine scientists16,24,25 to
+planning and transportation, as well as global challenges in sustain-                automate the process of ﬁnding similar phenomenological closed-
+ability, public health, and economic development. Traditionally,                     form models from data; and to use these models to gain insight into
+mobility ﬂows have been modeled using simple gravity models, which                   the relevant variables and mechanisms to describe other complex
+are conceptually simple and easy to interpret, but have limited                      phenomena.
+
+
+Nature Communications | (2025)16:1336                                                                                                                               7
+Article                                                                                                             https://doi.org/10.1038/s41467-025-56495-5
+
+
+        A                                                                                                              C
+
+
+                                 A       B (/10 9)    C (/10⁴)    D (/10⁸)        α           γ
+       New York               86.96        289          1.02        1.03        1.72        0.97
+       Massachusetts          68.08        8.50         5.28        27.8        1.17        1.78
+       California             105.7        27.3         2.43        5.90        1.60        2.02
+       Florida                58.14        99.2         2.07        4.29        1.49        1.33
+       Washington             89.07        33.7         2.47        6.10        1.26        1.41
+       Texas                  75.94        278          1.85        3.43        1.80        1.16
+
+
+
+        B                                                                                                              D
+
+                                 A       B(/10 6 )    C (/10²)    D (/10⁴)        ξ           β
+       New York               4.27          441         1.76        1.51        0.26        0.54
+       Massachusetts          6.79         9.15         144         11.0        0.28        0.69
+       California             21.43        20.2         92.0        34.8        0.50        0.61
+       Florida                2.66         6.87         231         2.26        0.33        0.73
+       Washington             3.68         17.9         64.2        4.09        0.24        0.69
+       Texas                  4.10         1240        0.612        1.79        0.30        0.50
+
+
+
+        E
+
+
+
+
+Fig. 6 | Closed-form models for mobility ﬂows. We ran the Bayesian machine             points are obtained from the median predictive model. D Relative improvement of
+scientist (BMS) with a training set of 1000 points and three features: origin and      each model and metric for the out-of-sample states. We average the relative
+destination populations and the distance between them. We used 5 independent           improvement across the out-of-sample-states. As in Fig. 3I–L, higher values of the
+Markov chains of 12,000 Monte Carlo steps each. A Minimum description length           performance ratio are always better (also for CPC). BMS models perform sig-
+model (Methods) for the logarithm of the data, where d is the inter-municipality       niﬁcantly better than all other algorithms in three out of four metrics. E We ﬁt the
+distance, mo is the origin population, and md is the destination population. In the    BMS Plausible and BMS Predictive model parameters for the out-of-sample states.
+table, we show the ﬁtting parameters for each state of the training data. B Median     We compute the metric using the observed values from the test set and the pre-
+predictive model (Methods) for the logarithm of the data. As before, d is the inter-   dicted values of the model using the corresponding set of ﬁtted parameters for
+municipality distance, mo is the origin population, and md is the destination          each state. Filled bars show the training states and empty bars show the out-of-
+population. In the table, we show the ﬁtting parameters for each state of the          sample states. Performance in out-of-sample states is similar to training states,
+training data. C Ratio between the distance exponent and the population exponent.      conﬁrming that BMS models generalize well.
+Round-ﬁlled points are obtained from the most plausible model, and empty square
+
+
+
+
+Nature Communications | (2025)16:1336                                                                                                                                    8
+Article                                                                                        https://doi.org/10.1038/s41467-025-56495-5
+
+
+
+
+Methods                                                                daily movement of millions of mobile phone devices in the US (see ref.
+Mobility data between municipalities in the US                         26 for a full description of the data). The dataset contains the geo-
+We collected weekly ﬂows between United States census tracts for a     graphical identiﬁer (GEO ID) for both origin and destination census
+week in January 2019 (2019/01/07 to 2019/01/13) and a week in March    tracts as well as their corresponding geographical coordinates, the
+2019 (2019/03/04 to 2019/03/9)26. The data consist of anonymous        estimated number of visitors detected by SafeGraph, and the esti-
+mobile data trajectories extracted from location-based service apps,   mated population ﬂows inferred from the number of visitors. The
+regardless of the transportation method, and corresponding to the      datasets are available at GeoDS.
+
+
+Nature Communications | (2025)16:1336                                                                                                      9
+Article                                                                                                                   https://doi.org/10.1038/s41467-025-56495-5
+
+Fig. 7 | Closed-form models with non-population features. A Spearman’s rank                (including CPC), to performance above the gravity power-law model, whereas
+correlation among all pairs of features (distance, 19 origin features, and 19 desti-       values smaller than 1 indicate worse performance. Error bars indicate 95% con-
+nation features), for all pairs of municipalities in the training states: New York,        ﬁdence intervals for the means over states. The model labeled BMS 39 Feat corre-
+Massachusetts, California, Florida, Washington, and Texas. B, C Population of the          sponds to the most plausible model obtained by the BMS when trained with non-
+destination versus: B number of food points at the destination; C main road lines at       population features (Eq. (2)). H–K Same as D–G, but for out-of-sample states. The
+the destination. In both cases, the straight line represents a linear relationship; this   testing procedure is as in Fig. 6. In general, the BMS 39 Feat model performs slightly
+is not a ﬁt, and it is provided as a guide to the eye. D–G Performance ratio of models     better than the most plausible population-only model, but the differences are not
+with respect to the gravity power-law model for the training states. As in Fig. 3, the     statistically signiﬁcant.
+performance ratio is deﬁned so that values larger than 1 correspond, for all metrics
+
+
+
+     The dataset was validated against ACS commuting ﬂows and other                        the Deep Gravity model for each individual trip and also the same
+datasets in the original publication by Kang et al., where it was found                    dataset, we run the program and save, for each trip, the corresponding
+that there is a remarkable agreement (correlation above 90%) between                       tile, the real value, the prediction and the variables. We store the train
+the dataset and other administrative and commercial datasets26.                            and test sets for the comparison with other methods.
+SafeGraph data has also been validated and found to describe quite
+accurately ﬂows and visits in the USA27. All of these validations are                      Bayesian machine scientist
+necessary because of the importance and challenges of getting reliable                     The BMS is a Bayesian approach to symbolic regression that estimates
+mobility data22,28,29.                                                                     the plausibility of a closed-form mathematical model M given the
+                                                                                           observed data D as the posterior probability p(M∣D). Without loss of
+Data processing. In order to obtain the ﬂows between municipalities                        generality, this posterior can be written16
+from the data using census tract data, we ﬁrst match municipalities
+(cities, towns and villages) with their corresponding census tracts.                                                               exp½LðM, DÞ
+                                                                                                                       pðMjDÞ =                  ,                              ð3Þ
+Then, the total ﬂow between two municipalities A and B is calculated as                                                                 Z
+the aggregate of ﬂows between the set of census tracts municipality A
+is comprised of and the set municipality B is comprised of.                                where LðM, DÞ isthe description
+                                                                                                                           length30 of the model (and the data),
+                                                                                                   P
+      Speciﬁcally, we consider mobility datasets within six states in the                  and Z = M 0 exp LðM 0 , DÞ = pðDÞ is the evidence. Here, we assume
+US: New York, Massachusetts, California, Florida, Washington, and                          that the mobility ﬂows are generated by the models M as
+Texas for the training process. For validation, we also consider the
+following out-of-sample states: Georgia, Illinois, Michigan, North Car-                                            log T od = Mðmo , md , d od ; θÞ + ϵ ,
+olina, Ohio, and Pennsylvania (See Supplementary Tables S1–S3). For
+each state, our data consist of the origin-destination municipality                        where θ are model parameters, and ϵ is an unbiased, Gaussian obser-
+names, the ﬂow, the distance, and the origin-destination populations                       vational noise. Note that we model the logarithm of the ﬂows rather
+and POI categories. We only consider municipalities with a non-zero                        than the ﬂows themselves because, with ﬂows spanning ﬁve orders of
+population and pairs of municipalities with non-zero ﬂow; we do not                        magnitude, the assumption of additive noise only makes sense for the
+consider ﬂows within the same municipality (see Supplementary                              logarithm. In this case, and within standard approximations16,31, the
+Table S4 for details).                                                                     description length can be approximated as
+
+Information about municipalities and census tracts. We obtained                                                                  BðM, DÞ
+                                                                                                                    LðM, DÞ =             log pðMÞ ,                           ð4Þ
+shapeﬁles containing the geographical coordinates of the polygons                                                                  2
+delimiting census tracts and municipalities from United States Census
+Bureau. We also retrieved population data of each municipality using                       where B(M, D) is the Bayesian information criterion31 (which is
+the GEO ID Data Commons.                                                                   straightforward to calculate from the data), and p(M) is a suitable prior
+     Finally, using a local copy of Open Street Map (OSM) with                             distribution. Here, exactly as in ref. 16, we set p(m) to be the maximum
+Overpass API, we retrieved information about Points of Interest (POI)                      entropy distribution over models compatible with the frequencies of
+in each census tract (see Supplemantary Information and supple-                            each elementary function observed in an empirical corpus of mathe-
+mentary Table S5). We selected 18 categories of OSM elements that                          matical expressions. Note, in particular, that this prior does not give
+represent geographical, demographic and socio-economic features of                         any preference to gravity-like models.
+the different municipalities.                                                                   In this work, our goal is to simultaneously model ﬂows from six
+                                                                                           different states in the US (that is, six different datasets). To this end, we
+Construction of train and test datasets. To speed up the training                          use a multi-dataset approach17 which consists in ﬁnding a unique
+process, we train the models with the same random sample of 1000                           closed-form model for multiple datasets. For each dataset, we allow
+points of the training fold except for the Deep Gravity model for which                    model parameters to take different values17. For a single dataset
+we have to use a lager number of data points for training.                                 D = {(yi, xi)}, where {yi} is the set of observations and {xi} is the set of
+                                                                                           feature values associated to each observation, the description length
+Economic classiﬁcation of municipalities. We retrieve the median                           of a closed-form model M and the data is given by Eq. (4). In the
+income per capita of each municipality and state as of 2020 from Data                      case in which our data comprises K independent datasets
+Commons. Then, we classify each municipality with the label rich if the                    D = fDk , k = 1 . . . , Kg = fðy1i , x1i Þg, . . . , fðyKi , xKi Þg that we want to model
+median income of the municipality is above the median income of the                        using a single model M, the description length is17
+state, or poor if the median income per capita of the municipality is
+below the median income of the state.                                                                                        1X
+                                                                                                                LðM, DÞ =        BðM, Dk Þ  log pðMÞ :                         ð5Þ
+                                                                                                                             2 k
+                                                                12
+Mobility data at small scales from Simini et al.
+The code available for the Deep Gravity model provides data at the                         The BMS represents closed-form models as labeled trees and uses
+level of census tracts for the New York State area. Mobility ﬂows are                      Markov chain Monte Carlo (MCMC) to explore the space of closed-
+obtained from the same dataset. In order to obtain the predictions of                      form mathematical models by sampling from the posterior
+
+
+Nature Communications | (2025)16:1336                                                                                                                                           10
+Article                                                                                                    https://doi.org/10.1038/s41467-025-56495-5
+
+
+distribution pðMjDÞ / expðLÞ. In this work, we consider models for             than between small geographic regions resulting from tessellation.
+ﬂows with: i) three independent variables (populations at origin and            The major difference with the original model is that municipalities are
+destination and geographical distance) and up to six parameters and II)         now the smallest geographic unit, allowing us to compare with the
+39 independent variables and up to 39 parameters.                               models evaluated in this study. In all other aspects (features used, pre-
+     The ensemble of sampled models allows to make predictions on               processing of data, an model training) the model remains the same
+the test set using three different approaches:                                  (see Supplementary Text for details, including all parameter values and
+ 1. The most plausible model. This is the model with the shortest               speciﬁc changes in the original code). The modiﬁed version of the code
+     description length that the BMS is able to ﬁnd.                            can be consulted and downloaded from Symbolic_mobility_BMS/
+ 2. The ensemble of models. Ensemble predictions are the optimal                DeepGravity.
+     predictions since they correspond to fully integrating over
+     model space. We estimate this integral by averaging over the               Metrics
+     predictions made by each one for the models we sample. Spe-                Common part of commuters (CPC). It is a widely used metric to
+     ciﬁcally, we perform ﬁve independent realizations of 12,000                analyze the performance of mobility models that is deﬁned as
+     MCMC steps (see supplementary Fig. S8 for typical traces of the
+                                                                                                                      P                  *
+                                                                                                                       ij minðT ij , T ij Þ
+     MCMC sampling). We then collect a model every 100 steps                                                      2
+     within the last 2000 steps of the Markov chain to obtain an                                         CPC =         P              *
+                                                                                                                                                          ð8Þ
+                                                                                                                          ij T ij + T ij
+     ensemble of 100 models.
+ 3. The median predictive model. This is the model within the                   where Tij is the predicted value of the ﬂow from i to j and T *ij is the
+     ensemble whose predictions are closest to the predictions of the           observed ﬂow. The maximum value of the CPC is 1 if there is a
+     ensemble as a whole.                                                       complete agreement between the real data and predictions and it
+                                                                                decreases to 0 if all predictions for any ﬂow are equal to zero. Note
+Benchmark models                                                                that the CPC is biased toward models that make accurate predic-
+Gravity model. We consider the gravity model in its simplest form1 in           tions for large ﬂows, since smaller ﬂows have marginal contribu-
+which the observed ﬂow Tij between municipalities (i, j) is a function of       tions to the sums. This is especially critical in mobility data
+the populations mi and mj of the municipalities and the distance dij            where ﬂows can span several orders of magnitude (see
+between them                                                                    Tables 1 and 2).
+
+                                             mi mj                              Absolute error. It measures the distance between the real and pre-
+                                  T ij = C             :                  ð6Þ
+                                             f ðd ij Þ                          dicted data
+
+Here C is a scaling parameter and f(d) is a function of the distance.                                         E ij = jT ij  T *ij j :                    ð9Þ
+Speciﬁcally, we consider two possible choices for f(d): i) a power-law
+fpow(d) = dα; and ii) an exponential-law f exp ðdÞ = expðαdÞ. In both cases,    Note that absolute error scales with the size of the ﬂows, so that the
+the parameter α is obtained by ﬁtting the model to the data in the              average absolute error is biased towards the errors of average ﬂows.
+training set. Because ﬂows span several orders of magnitude, and for            For this reason, we represent the whole distribution.
+the same reasons outlined above for BMS models, we ﬁnd that training
+the model on the logarithm of the ﬂows, rather than the ﬂows                    Relative error. It measures the difference between real and predicted
+themselves, leads to more predictive models. Therefore, all results             ﬂows relative to the observed value of the ﬂow:
+reported here for gravity models correspond to this approach.
+                                                                                                                      T ij  T *ij
+Radiation model. We consider the original formulation of model4, in                                           ϵij =                       :              ð10Þ
+                                                                                                                          T *ij
+which ﬂow Tij is modeled as the the total outﬂow of an origin muni-
+cipality Ti times the probability of going from i to j. This probability        Note that, while over-predicting ﬂows is penalized by the relative error,
+depends on the populations of the origin (mi) and destination(mj), as           under-predicting ﬂows is not, since predicting a zero value for a non-
+well as the populations of the municipalities within a radius dij from the      zero ﬂow results in ϵij = 1. Because this can bias average relative errors,
+municipality at the origin:                                                     we plot the whole distribution.
+
+                                                    mi mj                       Absolute log-ratio. It measures the difference in the logarithms of
+                 T ij = T i pi!j = T i                                ,   ð7Þ
+                                         ðmi + sij Þ ðmi + mj + sij Þ           predicted and real ﬂows:
+
+where sij = ∑k≠i,jmk( ∀ k dik < dij).                                                                                             T ij
+     Recent works introduce modiﬁcations to this model for ﬁnite-size                                         LRij = log                  :               ð11Þ
+                                                                                                                                  T *ij
+systems and in order to avoid border effects4,32–35 (See Supplementary
+Fig. S9). However, we ﬁnd that these models do not outperform the               Note that for a perfect prediction this metric is equal to zero. Impor-
+original formulation.                                                           tantly this metric penalizes both over- and under-predictions equally.
+                                                                                For instance, a prediction of a ﬂow twice as large T ij = 2T *ij has
+Random forest. We implement a random forest regressor36 with                    LRij = log 2, and a prediction T ij = T *ij =2 has LRij = log 2 as well.
+1000 estimators. As input data we use a total of 39 features for each
+origin-destination pair which include: distance, population at origin           Proportional demographic parity. The goal of this metric is to
+and destination, and 36 geographical and socio-economic features of             quantify the fairness of a model when predicting ﬂows between dif-
+the origin and destination areas (see Data and Supplementary                    ferent demographic or socio-economic groups fg 2 Gg. To do so, it
+Table S5).                                                                      quantiﬁes to what extent the errors of the predictions for ﬂows across
+                                                                                pairs of groups ff ij  ðg i , g j Þ 2 G2  G × Gg are equally distributed for
+Deep Gravity. Taking as a baseline the algorithm developed in ref. 12,          all pairs of (different) groups. Consider that l is the median error of all
+we modiﬁed the model to predict ﬂows between municipalities rather              ﬂows, and τ is a percentile window around the median (0 ≤ τ ≤ 100). For
+
+
+Nature Communications | (2025)16:1336                                                                                                                      11
+Article                                                                                                 https://doi.org/10.1038/s41467-025-56495-5
+
+
+a pair of ﬂow groups (f1, f2), PDP estimate the difference between their      11. Chen, Y. The distance-decay function of geographical gravity
+error distributions as                                                            model: power law or exponential law? Chaos Solit Fract. 77,
+                                                                                  174–189 (2015).
+                        τ         τ          τ         τ                    12. Simini, F., Barlacchi, G., Luca, M. & Pappalardo, L. A Deep Gravity
+     PDPf 1 , f 2 = P l  ≤ l ≤ l + f 1  P l  ≤ l ≤ l + f 2          ð12Þ
+                         2         2           2         2                        model for mobility ﬂows generation. Nat. Commun. 12, 6576 (2021).
+                                                                              13. Pourebrahim, N., Sultana, S., Niakanlahiji, A. & Thill, J.-C. Trip dis-
+where P( ⋅ ∣fi) is the probability that a prediction of a ﬂow in ﬂow group        tribution modeling with twitter data. Comput. Environ. Urban Syst.
+fi has an error l such that l  2τ ≤ l ≤ l + 2τ .                                 77, 101354 (2019).
+     To get an overall estimate, then PDP uses a weighted average21           14. Spadon, G., Carvalho, A. C. P. L. Fd, Rodrigues-Jr, J. F. & Alves, L. G.
+                                 X                                                A. Reconstructing commuters network using machine learning and
+                     PDP =                     wf , h PDPf , h   ,                urban indicators. Sci. Rep. 9, 11801 (2019).
+                                                                       ð13Þ
+                             f , h2G2 , f ≠h                                  15. Rudin, C. Stop explaining black box machine learning models for
+                                                                                  high stakes decisions and use interpretable models instead. Nat.
+                          P
+where the weight wf , h = k2G2 N k =ðN f + N h Þ enhances the relative con-       Mach. Intell. 1, 206–215 (2019).
+tribution of small groups of ﬂows. Note that our approach to measure          16. Guimerà, R. et al. A Bayesian machine scientist to aid in the solution
+PDP is a generalization of that used in ref. 21, where, instead of per-           of challenging scientiﬁc problems. Sci. Adv. 6, eaav6971 (2020).
+centile windows, the authors consider τ to be a standard deviation            17. Reichardt, I., Pallarès, J., Sales-Pardo, M. & Guimerà, R. Bayesian
+around the mean. However, because error distributions are not Gaus-               machine scientist to compare data collapses for the Nikuradse
+sian in general (see the explanation for the different error metrics), we         dataset. Phys. Rev. Lett. 124, 084503 (2020).
+use a more general deﬁnition applicable to any distribution.                  18. Fajardo-Fontiveros, O. et al. Fundamental limits to learning closed-
+     In our analysis, we consider two groups of municipalities:                   form mathematical models from data. Nat. Commun. 14, 1043 (2023).
+above (rich) and below (poor) the median income per capita                    19. Vallès-Català, T., Peixoto, T. P., Sales-Pardo, M. & Guimerà, R.
+(see     Data).   Therefore     we      have      four   different     ﬂow        Consistencies and inconsistencies between model selection and
+groups G2 = fpoor ! poor, rich ! poor, poor ! rich, rich ! richg.                 link prediction in networks. Phys. Rev. E 97, 062316 (2018).
+                                                                              20. Ho, T. K. Random decision forests. In: Proceedings of 3rd interna-
+Data availability                                                                 tional conference on document analysis and recognition. vol. 1,
+All data are available as described in the Methods section. The source            278–282 (IEEE, 1995).
+dataset is available at GeoDS and is part of the publication Kang et al.26.   21. Liu, Z., Huang, L., Fan, C. & Mostafavi, A. Fairmobi-net: a fairness-
+The datasets used to train the models and for the evaluation of the               aware deep learning model for urban mobility ﬂow generation.
+Deep Gravity model are available at Github37.                                     https://arxiv.org/abs/2307.11214 (2023).
+                                                                              22. Yabe, T. et al. Enhancing human mobility research with open and
+Code availability                                                                 standardized datasets. Nat. Comput. Sci. 4, 469–472 (2024).
+The code for the BMS is available from https://bitbucket.org/rguimera/        23. Feng, J. et al. DeepMove: predicting human mobility with atten-
+machine-scientist. The BMS implementation to obtain mobility models               tional recurrent networks. In: Proceedings of the 2018 World Wide
+and the Deep Gravity version is available at Github37.                            Web Conference on World Wide Web - WWW ’18 1459–1468, https://
+                                                                                  doi.org/10.1145/3178876.3186058 (2018).
+References                                                                    24. Džeroski, S. & Todorovski, L. (eds.) Computational discovery of
+1.  Zipf, G. K. The p1 p2/d hypothesis: on the intercity movement of              scientiﬁc knowledge. Lecture Notes in Artiﬁcial Intelligence
+    persons. Am. Sociol. Rev. 11, 677–686 (1946).                                 (Springer, 2007).
+2. Erlander, S. & Stewart, N. F. The gravity model in transportation          25. Evans, J. & Rzhetsky, A. Machine science. Science 329, 399–400
+    analysis: theory and extensions, vol. 3 (VSP, 1990).                          (2010).
+3. Guimerà, R., Mossa, S., Turtschi, A. & Amaral, L. A. N. The worldwide      26. Kang, Y., Gao, S., Liang, Y., Li, M. & Kruse, J. Multiscale dynamic
+    air transportation network: anomalous centrality, community                   human mobility ﬂow dataset in the U.S. during the COVID-19 epi-
+    structure, and cities’ global roles. Proc. Natl. Acad. Sci. USA 102,          demic. Sci. Data 1–13 (2020).
+    7794–7799 (2005).                                                         27. Li, Z., Ning, H., Jing, F. & Lessani, M. N. Understanding the bias of
+4. Simini, F., González, M. C., Maritan, A. & Barabási, A.-L. A universal         mobile location data across spatial scales and over time: a com-
+    model for mobility and migration patterns. Nature 484, 96–100 (2012).         prehensive analysis of SafeGraph data in the United States. PLOS
+5. Schläpfer, M. et al. The universal visitation law of human mobility.           One 19, e0294430 (2024).
+    Nature 593, 522–527 (2021).                                               28. Gallotti, R., Maniscalco, D., Barthelemy, M. & De Domenico, M.
+6. Yuan, H. & Li, G. A survey of trafﬁc prediction: from spatio-                  Distorted insights from human mobility data. Commun. Phys. 7,
+    temporal data to intelligent transportation. Data Sci. Eng. 6,                421 (2024).
+    63–85 (2021).                                                             29. Barreras, F. & Watts, D. J. The exciting potential and daunting
+7. Haynes, K. E. & Fotheringham, A. S. GraviTY AND SPATIAL INTER-                 challenge of using GPS human-mobility data for epidemic model-
+    ACTION MODEls. No. 07 in Wholbk (Regional Research Institute,                 ing. Nat. Comput. Sci. 4, 398–411 (2024).
+    West Virginia University, 1985).                                          30. Grünwald, P. D. The minimum description length principle, vol. 1,
+8. Moro, E., Calacci, D., Dong, X. & Pentland, A. Mobility patterns are           (The MIT Press, 2007).
+    associated with experienced income segregation in large us cities.        31. Schwarz, G. Estimating the dimension of a model. Ann. Stat. 6, 461 –
+    Nat. Commun. 12, 4633 (2021).                                                 464 (1978).
+9. Balcan, D. et al. Modeling the spatial spread of infectious diseases:      32. Masucci, A. P., Serras, J., Johansson, A. & Batty, M. Gravity versus
+    the global epidemic and mobility computational model. J. Comput.              radiation models: on the importance of scale and heterogeneity in
+    Sci. 1, 132–145 (2010).                                                       commuting ﬂows. Phys. Rev. E 88, 022812 (2013).
+10. Pappalardo, L., Rinzivillo, S. & Simini, F. Human mobility modelling:     33. Yang, Y., Herrera, C., Eagle, N. & González, M. C. Limits of predict-
+    exploration and preferential return meet the gravity model. Proce-            ability in commuting ﬂows in the absence of data for calibration.
+    dia Comput. Sci. 83, 934–939 (2016).                                          Sci. Rep. 4, 5662 (2014).
+
+
+
+Nature Communications | (2025)16:1336                                                                                                                  12
+Article                                                                                             https://doi.org/10.1038/s41467-025-56495-5
+
+
+34. Lenormand, M., Huet, S., Gargiulo, F. & Deffuant, G. A universal      Correspondence and requests for materials should be addressed to
+    model of commuting networks. PLOS One 7, 1–7 (2012).                  Marta Sales-Pardo or Roger Guimerà.
+35. Lenormand, M., Bassolas, A. & Ramasco, J. J. Systematic compar-
+    ison of trip distribution laws and models. J. Transp. Geogr. 51,      Peer review information Nature Communications thanks the anon-
+    158–169 (2016).                                                       ymous reviewers for their contribution to the peer review of this work. A
+36. Pedregosa, F. et al. Scikit-learn: machine learning in Python. J.     peer review ﬁle is available.
+    Mach. Learn. Res. 12, 2825–2830 (2011).
+37. Cabanas-Tirapu, O., Danús, L., Moro, E., Sales-Pardo, M. & Guimerà,   Reprints and permissions information is available at
+    R. Github repository: Symbolic_mobility_bms, https://doi.org/10.      http://www.nature.com/reprints
+    5281/zenodo.14501438 (2024).
+                                                                          Publisher’s note Springer Nature remains neutral with regard to jur-
+Acknowledgements                                                          isdictional claims in published maps and institutional afﬁliations.
+We thank L. Pappalardo and M. Luca for help with the Deep Gravity
+algorithm, and M. Luca for comments and suggestions on the manu-          Open Access This article is licensed under a Creative Commons
+script. This research was supported by projects PID2019-106811GB-C32      Attribution-NonCommercial-NoDerivatives 4.0 International License,
+(E.M), PID2019-106811GB-C31 and PID2022-142600NB-I00 (M.SP. and           which permits any non-commercial use, sharing, distribution and
+R.G.), and FPI grant PRE2020-095552 (O.CT.) from MCIN/AEI/10.13039/       reproduction in any medium or format, as long as you give appropriate
+501100011033, and by the Government of Catalonia (2021SGR-633)            credit to the original author(s) and the source, provide a link to the
+(M.SP. and R.G.). E.M. acknowledges support from the U.S. National        Creative Commons licence, and indicate if you modiﬁed the licensed
+Science Foundation under Grants 2218748 and 2420945.                      material. You do not have permission under this licence to share adapted
+                                                                          material derived from this article or parts of it. The images or other third
+Author contributions                                                      party material in this article are included in the article’s Creative
+O.C.-T. collected data. O.C.-T. and L.D. wrote code and performed         Commons licence, unless indicated otherwise in a credit line to the
+experiments. O.C., L.D., E.M., M.S.-P., and R.G. designed the research,   material. If material is not included in the article’s Creative Commons
+analyzed results, discussed results, and wrote the paper.                 licence and your intended use is not permitted by statutory regulation or
+                                                                          exceeds the permitted use, you will need to obtain permission directly
+Competing interests                                                       from the copyright holder. To view a copy of this licence, visit http://
+The authors declare no competing interests.                               creativecommons.org/licenses/by-nc-nd/4.0/.
+
+Additional information                                                    © The Author(s) 2025
+Supplementary information The online version contains
+supplementary material available at
+https://doi.org/10.1038/s41467-025-56495-5.
+
+
+
+
+Nature Communications | (2025)16:1336                                                                                                              13
+

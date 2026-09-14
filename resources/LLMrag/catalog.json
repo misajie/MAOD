@@ -1,0 +1,17 @@
+{
+  "description": "Index of content inventories. Not a task map.",
+  "catalogs": {
+    "osm": "catalogs/osm.md",
+    "worldpop": "catalogs/worldpop.md",
+    "nhts": "catalogs/nhts.md",
+    "lodes": "catalogs/lodes.md",
+    "ctpp": "catalogs/ctpp.md",
+    "pums": "catalogs/pums.md"
+  },
+  "catalog_to_tasks": "catalog_to_tasks.md",
+  "inventories": {
+    "osm_map_features": "inventories/osm_map_features.csv",
+    "nhts_variables": "inventories/nhts_variables.csv",
+    "nhts_codes": "inventories/nhts_codes.csv"
+  }
+}

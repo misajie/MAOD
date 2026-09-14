@@ -1,0 +1,52 @@
+seed: 1234
+task: >-
+  Predict within-region origin-destination movement matrices on the public
+  Deep Gravity New York GeoDS example, conditioned on observed internal origin
+  outflows. Discover geographic distinctions and OD relations that explain
+  validation errors. The supplied flows are general movement, not asserted
+  to be employment commuting. This run uses the publicly supplied aggregated
+  geographic features; raw OSM will be added as a separate input source.
+env_file: .env.example
+rag_root: resources/LLMrag
+output_dir: runs/new_york_main
+data:
+  format: deepgravity
+  source: resources/deepgravity
+  prepared: data/processed/new_york
+  validation_fraction: 0.2
+  osm_path: null
+training:
+  device: cuda
+  hidden_sizes: [256, 256, 256, 256, 256, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128]
+  dropout: 0.0
+  epochs: 20
+  batch_size: 64
+  sample_destinations: 512
+  learning_rate: 0.000005
+  momentum: 0.9
+  loss: count_weighted
+  gradient_clip: 5.0
+  cpu_threads: 8
+search:
+  enabled: true
+  rounds: 2
+  candidates_per_round: 2
+  candidate_epochs: 5
+  min_improvement: 0.0
+llm:
+  api_key_env: DEEPSEEK_API_KEY
+  base_url_env: DEEPSEEK_BASE_URL
+  model_env: DEEPSEEK_MODEL
+  temperature: 0.2
+  max_tokens: 12000
+  timeout_seconds: 240
+  retrieval_k: 14
+  extra_body:
+    thinking:
+      type: disabled
+  embeddings:
+    enabled: true
+    api_key_env: QWEN_API_KEY
+    base_url_env: QWEN_BASE_URL
+    model_env: QWEN_EMBEDDING_MODEL
+    batch_size: 10

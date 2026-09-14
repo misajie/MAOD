@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+.env
+.env.*
+data/
+runs/
+*.partial
+resources/deepgravity/
+resources/NeuroGravity/

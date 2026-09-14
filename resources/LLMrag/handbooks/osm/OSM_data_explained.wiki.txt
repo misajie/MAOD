@@ -1,0 +1,74 @@
+{{Languages}}
+{{Beginners Guide Header}}
+
+== Editing Overview  ==
+
+Here is how OSM data editing works.
+
+* Optionally, you go outdoors and collect information within [[Scope|OSM's scope]].
+* You edit the OSM data using an editor. Once you are happy with your changes, you upload them to the OSM servers in what's known as a "changeset".
+* Various consumers (services, companies, navigation apps, users, researchers, etc.) download the data from the OSM servers and use it.
+* Many consumers convert the raw data into tile maps. This is known as rendering.
+
+== Understanding OSM Data ==
+
+=== The elements ===
+
+Let's talk about the structure of the OSM data. The data is made of elements.
+
+*{{IconNode}} '''[[Node]]s''' are dots used to mark locations. Nodes can be separate or can be connected.
+*{{IconWay}} '''[[Way]]s''' are a connected line of nodes. Used to create roads, paths, rivers, and so on.
+**'''[[way#Open way (open polyline)|Open way]]s''' include most roads, streams and railway lines, because these start in one place and finish in another.
+**'''[[Closed way]]s''' are ways that form a closed loop. Usually form areas.
+**'''[[Area]]s''' are closed ways which are also filled. An area is usually implied when making a closed way.
+*{{IconRelation}} '''[[Relation]]''' can be used to create more complex shapes, or to represent elements that are related but not physically connected.
+
+All these elements can carry tags.
+
+=== Tags ===
+{{main|tags}}
+An element can have [[tags]]. A tag is a <code>key=value</code> pair describing what the element is. For instance, mapping a mobile phone store can be done by creating a [[node]], and adding the following tags: <code>[[tag:shop=mobile_phone|shop=mobile_phone]]</code>. <code>[[Name|name=John Smith's phone centre]]</code>. Here are some more examples:
+* A parking lot can be a [[closed way]] tagged with <code>[[Tag:amenity=parking|amenity=parking]]</code>
+* A building can be a [[closed way]] tagged with <code>[[Key:building|building=yes]]</code>
+* A residential road can be a [[way]] tagged with <code>[[Key:highway|highway=residential]]</code>.
+* A McDonald's branch can be a [[node]] tagged with <code>[[Tag:amenity%3Dfast_food|amenity=fast_food]]</code>, <code>[[Key:brand|brand=McDonald's]]</code>, <code>[[Name|name=McDonald's]]</code>
+
+Some editors, including JOSM and ID, have "presets". The user clicks a button and fills a form, and the editor applies the proper tags to the element automatically. This can be far easier for beginners than working with raw tags, but it doesn't cover all existing tags. Please note that as beginner, you don't have to dig too deep into precise tagging schemes thanks to presets, but knowing a bit about tags is very helpful. Feel free to skim through the rest of this section if you're in a hurry.
+
+Most tag keys and values have their own dedicated page on this Wiki that explains how to use them. Search for what you're trying to map using the search bar and you may find the appropriate tag. If you fail to find it, feel free to ask others for help. Some tags can be used for nodes, ways, and relations. Others can only be used on nodes or ways. A tag's page usually explains this. Also, please note that some countries have local tagging conventions. Consult your country's Wiki page.
+
+Tagging rules and conventions change with time. These conventions are decided by the community through common usage, voting, and discussion at [https://lists.openstreetmap.org/pipermail/tagging/ talk:tagging]. Here is a list of important tag keys that you should be aware of.  Most editors have helpful presets that will help you get started easily, without knowing tags in depth. But knowing the basics certainly helps.
+
+Note that many keys, like <code>[[Key:building]]</code> or <code>[[Key:amenity]]</code> will make OSM automatically assume a [[closed way]] when it should be an [[area]]. It is relatively uncommon to create an area explicitly (using an [[Tag:area=yes|area=yes]] tag on a closed way).
+
+==== Important tag keys ====
+{{main|Top-level tag}}
+*[[Key:highway]] - For tagging highways, roads, paths, footways, cycleways, bus stops, etc.
+*[[Key:place]] - Used for tagging countries, cities, towns, villages, etc.
+*[[Key:amenity]] - Used for tagging useful amenities like restaurants, drinking water spots, parking lots, etc.
+*[[Key:shop]] - Used for tagging shops that you buy products from.
+*[[Key:building]] - Used for tagging buildings.
+*[[Key:landuse]] - Used for tagging land being used by humans.
+*[[Key:natural]] - Used for tagging natural land like woods.
+
+== Learn the basics of an editor ==
+{{main|Editors}}
+{{main|Comparison of editors}}
+
+Adding, removing, and editing OSM elements requires an editor. There are many editors. You should start with one of the three major editors. Before continuing this guide, please choose an editor, and at least learn the usage basics. Information about each editor can be found by clicking on it. The iD editor and Potlatch 2 have built-in usage guides. [[JOSM]] has a beginner guide  '''[[JOSM/Guide|here]]'''.
+
+{{:editors}}
+
+There are also smartphone editing-capable apps like [[OsmAnd]], [[Maps.Me]] and [[Vespucci]]. These allow you to survey and edit the map on the spot, but they are less convenient and less flexible than a desktop editor and won't be discussed in this guide.
+
+Now that you know the basics of how to use an editor, it's time to learn some mapping and data collection techniques.
+
+
+----
+<div style="line-height: 150%; text-align: right;"><span style="float: left;">'''« Previous: [[Join the community]]'''</span> &nbsp;'''Next: [[Pick your mapping technique]] »'''
+</div>
+
+__NOTOC__
+__NOEDITSECTION__
+
+[[Category:Beginners' guide]]

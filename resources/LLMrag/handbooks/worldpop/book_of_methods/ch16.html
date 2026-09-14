@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+<head>
+
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>14 Geostatistical Bottom-Up Modelling | WorldPop Book of Methods</title>
+  <meta name="description" content="An open book of WorldPop methods to produce gridded population estimates." />
+  <meta name="generator" content="bookdown 0.45 and GitBook 2.6.7" />
+
+  <meta property="og:title" content="14 Geostatistical Bottom-Up Modelling | WorldPop Book of Methods" />
+  <meta property="og:type" content="book" />
+  <meta property="og:image" content="/dat/wp_logo.png" />
+  <meta property="og:description" content="An open book of WorldPop methods to produce gridded population estimates." />
+  <meta name="github-repo" content="wpgp/bookworm" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="14 Geostatistical Bottom-Up Modelling | WorldPop Book of Methods" />
+  
+  <meta name="twitter:description" content="An open book of WorldPop methods to produce gridded population estimates." />
+  <meta name="twitter:image" content="/dat/wp_logo.png" />
+
+<meta name="author" content="WorldPop, University of Southampton" />
+
+
+
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  
+  
+<link rel="prev" href="bottom-up-geostatistical-population-modelling.html"/>
+<link rel="next" href="ch17.html"/>
+<script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
+<link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-table.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-bookdown.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-highlight.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-search.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-fontsettings.css" rel="stylesheet" />
+<link href="libs/gitbook-2.6.7/css/plugin-clipboard.css" rel="stylesheet" />
+
+
+
+
+
+
+
+
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
+<script src="libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="libs/lightable-0.0.1/lightable.css" rel="stylesheet" />
+<link href="libs/htmltools-fill-0.5.8.1/fill.css" rel="stylesheet" />
+<script src="libs/htmlwidgets-1.6.4/htmlwidgets.js"></script>
+<script src="libs/plotly-binding-4.11.0/plotly.js"></script>
+<script src="libs/typedarray-0.1/typedarray.min.js"></script>
+<link href="libs/crosstalk-1.2.2/css/crosstalk.min.css" rel="stylesheet" />
+<script src="libs/crosstalk-1.2.2/js/crosstalk.min.js"></script>
+<link href="libs/plotly-htmlwidgets-css-2.11.1/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="libs/plotly-main-2.11.1/plotly-latest.min.js"></script>
+
+
+<style type="text/css">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+<style type="text/css">
+  
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+</style>
+<style type="text/css">
+/* Used with Pandoc 2.11+ new --citeproc when CSL is used */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+<link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+
+<body>
+
+
+
+  <div class="book without-animation with-summary font-size-2 font-family-1" data-basepath=".">
+
+    <div class="book-summary">
+      <nav role="navigation">
+
+<ul class="summary">
+<li class="chapter" data-level="" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i>Welcome</a></li>
+<li class="chapter" data-level="" data-path="preface.html"><a href="preface.html"><i class="fa fa-check"></i>Preface</a>
+<ul>
+<li class="chapter" data-level="" data-path="preface.html"><a href="preface.html#acknowledgements"><i class="fa fa-check"></i>Acknowledgements</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="contributing-authors.html"><a href="contributing-authors.html"><i class="fa fa-check"></i>Contributing Authors</a></li>
+<li class="chapter" data-level="" data-path="introduction.html"><a href="introduction.html"><i class="fa fa-check"></i><i style="font-size: 110%; padding:1.5em 0 0 0; font-weight:bold;">Introduction</i></a></li>
+<li class="chapter" data-level="1" data-path="gridded-population-estimates.html"><a href="gridded-population-estimates.html"><i class="fa fa-check"></i><b>1</b> Gridded Population Estimates</a>
+<ul>
+<li class="chapter" data-level="1.1" data-path="gridded-population-estimates.html"><a href="gridded-population-estimates.html#top-down"><i class="fa fa-check"></i><b>1.1</b> Top-down</a></li>
+<li class="chapter" data-level="1.2" data-path="gridded-population-estimates.html"><a href="gridded-population-estimates.html#bottom-up"><i class="fa fa-check"></i><b>1.2</b> Bottom-up</a></li>
+<li class="chapter" data-level="1.3" data-path="gridded-population-estimates.html"><a href="gridded-population-estimates.html#peanut-butter"><i class="fa fa-check"></i><b>1.3</b> Peanut Butter</a></li>
+<li class="chapter" data-level="1.4" data-path="gridded-population-estimates.html"><a href="gridded-population-estimates.html#comparison-of-data"><i class="fa fa-check"></i><b>1.4</b> Comparison of Data</a></li>
+<li class="chapter" data-level="" data-path="gridded-population-estimates.html"><a href="gridded-population-estimates.html#contribution"><i class="fa fa-check"></i>Contribution</a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="data-access.html"><a href="data-access.html"><i class="fa fa-check"></i><b>2</b> Data Access</a>
+<ul>
+<li class="chapter" data-level="2.1" data-path="data-access.html"><a href="data-access.html#websites"><i class="fa fa-check"></i><b>2.1</b> Websites</a></li>
+<li class="chapter" data-level="2.2" data-path="data-access.html"><a href="data-access.html#web-applications"><i class="fa fa-check"></i><b>2.2</b> Web Applications</a></li>
+<li class="chapter" data-level="2.3" data-path="data-access.html"><a href="data-access.html#ftp-server"><i class="fa fa-check"></i><b>2.3</b> FTP Server</a></li>
+<li class="chapter" data-level="2.4" data-path="data-access.html"><a href="data-access.html#gis-plugins"><i class="fa fa-check"></i><b>2.4</b> GIS Plugins</a></li>
+<li class="chapter" data-level="2.5" data-path="data-access.html"><a href="data-access.html#r-packages"><i class="fa fa-check"></i><b>2.5</b> R Packages</a></li>
+<li class="chapter" data-level="2.6" data-path="data-access.html"><a href="data-access.html#python-packages"><i class="fa fa-check"></i><b>2.6</b> Python Packages</a></li>
+<li class="chapter" data-level="2.7" data-path="data-access.html"><a href="data-access.html#rest-api"><i class="fa fa-check"></i><b>2.7</b> REST API</a></li>
+<li class="chapter" data-level="" data-path="data-access.html"><a href="data-access.html#contribution-1"><i class="fa fa-check"></i>Contribution</a></li>
+</ul></li>
+<li class="chapter" data-level="3" data-path="research-applications.html"><a href="research-applications.html"><i class="fa fa-check"></i><b>3</b> Research Applications</a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="research-applications.html"><a href="research-applications.html#introduction-1"><i class="fa fa-check"></i><b>3.1</b> Introduction</a></li>
+<li class="chapter" data-level="3.2" data-path="research-applications.html"><a href="research-applications.html#population-modelling-to-support-census"><i class="fa fa-check"></i><b>3.2</b> Population modelling to support census</a></li>
+<li class="chapter" data-level="3.3" data-path="research-applications.html"><a href="research-applications.html#population-modelling-to-support-vaccination-programmes"><i class="fa fa-check"></i><b>3.3</b> Population modelling to support vaccination programmes</a></li>
+<li class="chapter" data-level="" data-path="research-applications.html"><a href="research-applications.html#contribution-2"><i class="fa fa-check"></i>Contribution</a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="ch4.html"><a href="ch4.html"><i class="fa fa-check"></i><b>4</b> Settlement Data and Geospatial Covariates</a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="ch4.html"><a href="ch4.html#settlement-data"><i class="fa fa-check"></i><b>4.1</b> Settlement Data</a></li>
+<li class="chapter" data-level="4.2" data-path="ch4.html"><a href="ch4.html#key-settlement-data-sources"><i class="fa fa-check"></i><b>4.2</b> Key Settlement Data Sources</a></li>
+<li class="chapter" data-level="4.3" data-path="ch4.html"><a href="ch4.html#use-of-settlement-data-in-population-modelling"><i class="fa fa-check"></i><b>4.3</b> Use of Settlement Data in Population Modelling</a></li>
+<li class="chapter" data-level="4.4" data-path="ch4.html"><a href="ch4.html#geospatial-covariates"><i class="fa fa-check"></i><b>4.4</b> Geospatial Covariates</a></li>
+<li class="chapter" data-level="" data-path="ch4.html"><a href="ch4.html#contribution-3"><i class="fa fa-check"></i>Contribution</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="bottom-up-population-mapping-method.html"><a href="bottom-up-population-mapping-method.html"><i class="fa fa-check"></i><i style="font-size: 110%; padding:1.5em 0 0 0; font-weight:bold;">Bottom-Up Population Mapping Method</i></a></li>
+<li class="chapter" data-level="5" data-path="ch5.html"><a href="ch5.html"><i class="fa fa-check"></i><b>5</b> Bottom-up Models</a>
+<ul>
+<li class="chapter" data-level="5.1" data-path="ch5.html"><a href="ch5.html#input-data"><i class="fa fa-check"></i><b>5.1</b> Input Data</a>
+<ul>
+<li class="chapter" data-level="5.1.1" data-path="ch5.html"><a href="ch5.html#population-data"><i class="fa fa-check"></i><b>5.1.1</b> Population Data</a></li>
+<li class="chapter" data-level="5.1.2" data-path="ch5.html"><a href="ch5.html#Settlement_Map"><i class="fa fa-check"></i><b>5.1.2</b> Settlement Map</a></li>
+<li class="chapter" data-level="5.1.3" data-path="ch5.html"><a href="ch5.html#geospatial-covariates-1"><i class="fa fa-check"></i><b>5.1.3</b> Geospatial Covariates</a></li>
+<li class="chapter" data-level="5.1.4" data-path="ch5.html"><a href="ch5.html#administrative-boundaries"><i class="fa fa-check"></i><b>5.1.4</b> Administrative Boundaries</a></li>
+</ul></li>
+<li class="chapter" data-level="5.2" data-path="ch5.html"><a href="ch5.html#statistical-models"><i class="fa fa-check"></i><b>5.2</b> Statistical Models</a>
+<ul>
+<li class="chapter" data-level="5.2.1" data-path="ch5.html"><a href="ch5.html#software"><i class="fa fa-check"></i><b>5.2.1</b> Software</a></li>
+<li class="chapter" data-level="5.2.2" data-path="ch5.html"><a href="ch5.html#simple-model-to-start"><i class="fa fa-check"></i><b>5.2.2</b> Simple Model to Start</a></li>
+<li class="chapter" data-level="5.2.3" data-path="ch5.html"><a href="ch5.html#bayesian-priors"><i class="fa fa-check"></i><b>5.2.3</b> Bayesian Priors</a></li>
+<li class="chapter" data-level="5.2.4" data-path="ch5.html"><a href="ch5.html#hierarchical-core-model"><i class="fa fa-check"></i><b>5.2.4</b> Hierarchical Core Model</a></li>
+<li class="chapter" data-level="5.2.5" data-path="ch5.html"><a href="ch5.html#age-sex-structure"><i class="fa fa-check"></i><b>5.2.5</b> Age-sex Structure</a></li>
+<li class="chapter" data-level="5.2.6" data-path="ch5.html"><a href="ch5.html#random-intercept"><i class="fa fa-check"></i><b>5.2.6</b> Random Intercept</a></li>
+<li class="chapter" data-level="5.2.7" data-path="ch5.html"><a href="ch5.html#hierarchical-variance"><i class="fa fa-check"></i><b>5.2.7</b> Hierarchical Variance</a></li>
+<li class="chapter" data-level="5.2.8" data-path="ch5.html"><a href="ch5.html#weighted-likelihood"><i class="fa fa-check"></i><b>5.2.8</b> Weighted-likelihood</a></li>
+<li class="chapter" data-level="5.2.9" data-path="ch5.html"><a href="ch5.html#geostatistical-models"><i class="fa fa-check"></i><b>5.2.9</b> Geostatistical Models</a></li>
+</ul></li>
+<li class="chapter" data-level="5.3" data-path="ch5.html"><a href="ch5.html#conclusion"><i class="fa fa-check"></i><b>5.3</b> Conclusion</a></li>
+<li class="chapter" data-level="" data-path="ch5.html"><a href="ch5.html#contribution-4"><i class="fa fa-check"></i>Contribution</a></li>
+</ul></li>
+<li class="chapter" data-level="6" data-path="ch7.html"><a href="ch7.html"><i class="fa fa-check"></i><b>6</b> Hierarchical Bottom-Up Modelling Tutorial</a>
+<ul>
+<li class="chapter" data-level="6.1" data-path="ch7.html"><a href="ch7.html#introduction-2"><i class="fa fa-check"></i><b>6.1</b> Introduction</a></li>
+<li class="chapter" data-level="6.2" data-path="ch7.html"><a href="ch7.html#part-i-how-to-think-about-population-as-a-bayesian"><i class="fa fa-check"></i><b>6.2</b> Part I: How to think about population as a Bayesian</a>
+<ul>
+<li class="chapter" data-level="6.2.1" data-path="ch7.html"><a href="ch7.html#set-up"><i class="fa fa-check"></i><b>6.2.1</b> Set-up</a></li>
+<li class="chapter" data-level="6.2.2" data-path="ch7.html"><a href="ch7.html#from-a-frequentist-to-a-bayesian-mindset"><i class="fa fa-check"></i><b>6.2.2</b> From a frequentist to a Bayesian mindset</a></li>
+<li class="chapter" data-level="6.2.3" data-path="ch7.html"><a href="ch7.html#how-to-choose-priors"><i class="fa fa-check"></i><b>6.2.3</b> How to choose priors</a></li>
+<li class="chapter" data-level="6.2.4" data-path="ch7.html"><a href="ch7.html#simulating-data"><i class="fa fa-check"></i><b>6.2.4</b> Simulating data</a></li>
+<li class="chapter" data-level="6.2.5" data-path="ch7.html"><a href="ch7.html#modelling-the-data"><i class="fa fa-check"></i><b>6.2.5</b> Modelling the data</a></li>
+<li class="chapter" data-level="6.2.6" data-path="ch7.html"><a href="ch7.html#implementing-the-model-in-stan"><i class="fa fa-check"></i><b>6.2.6</b> Implementing the model in <code>stan</code></a></li>
+<li class="chapter" data-level="6.2.7" data-path="ch7.html"><a href="ch7.html#preparing-the-data-for-stan"><i class="fa fa-check"></i><b>6.2.7</b> Preparing the data for stan</a></li>
+<li class="chapter" data-level="6.2.8" data-path="ch7.html"><a href="ch7.html#running-the-model"><i class="fa fa-check"></i><b>6.2.8</b> Running the model</a></li>
+<li class="chapter" data-level="6.2.9" data-path="ch7.html"><a href="ch7.html#checking-the-mcmc-simulations"><i class="fa fa-check"></i><b>6.2.9</b> Checking the MCMC simulations</a></li>
+<li class="chapter" data-level="6.2.10" data-path="ch7.html"><a href="ch7.html#evaluating-the-estimated-parameters"><i class="fa fa-check"></i><b>6.2.10</b> Evaluating the estimated parameters</a></li>
+<li class="chapter" data-level="6.2.11" data-path="ch7.html"><a href="ch7.html#lets-try-with-real-data"><i class="fa fa-check"></i><b>6.2.11</b> Let’s try with real data</a></li>
+<li class="chapter" data-level="6.2.12" data-path="ch7.html"><a href="ch7.html#the-data"><i class="fa fa-check"></i><b>6.2.12</b> The data</a></li>
+<li class="chapter" data-level="6.2.13" data-path="ch7.html"><a href="ch7.html#response-variable-the-population-count"><i class="fa fa-check"></i><b>6.2.13</b> Response variable: the population count</a></li>
+<li class="chapter" data-level="6.2.14" data-path="ch7.html"><a href="ch7.html#modelling-population-count-a-poisson-distribution"><i class="fa fa-check"></i><b>6.2.14</b> Modelling Population count: a Poisson distribution</a></li>
+<li class="chapter" data-level="6.2.15" data-path="ch7.html"><a href="ch7.html#implementing-the-model"><i class="fa fa-check"></i><b>6.2.15</b> Implementing the model</a></li>
+<li class="chapter" data-level="6.2.16" data-path="ch7.html"><a href="ch7.html#estimating-the-model"><i class="fa fa-check"></i><b>6.2.16</b> Estimating the model</a></li>
+<li class="chapter" data-level="6.2.17" data-path="ch7.html"><a href="ch7.html#evaluating-the-model-goodness-of-fit"><i class="fa fa-check"></i><b>6.2.17</b> Evaluating the model goodness-of-fit</a></li>
+<li class="chapter" data-level="6.2.18" data-path="ch7.html"><a href="ch7.html#estimated-parameters"><i class="fa fa-check"></i><b>6.2.18</b> Estimated parameters</a></li>
+<li class="chapter" data-level="6.2.19" data-path="ch7.html"><a href="ch7.html#predicted-population-count"><i class="fa fa-check"></i><b>6.2.19</b> Predicted population count</a></li>
+<li class="chapter" data-level="6.2.20" data-path="ch7.html"><a href="ch7.html#modelling-population-count-a-poisson-lognormal-model"><i class="fa fa-check"></i><b>6.2.20</b> Modelling Population count: a Poisson Lognormal model</a></li>
+<li class="chapter" data-level="6.2.21" data-path="ch7.html"><a href="ch7.html#writing-the-model"><i class="fa fa-check"></i><b>6.2.21</b> Writing the model</a></li>
+<li class="chapter" data-level="6.2.22" data-path="ch7.html"><a href="ch7.html#defining-the-priors"><i class="fa fa-check"></i><b>6.2.22</b> Defining the priors</a></li>
+<li class="chapter" data-level="6.2.23" data-path="ch7.html"><a href="ch7.html#implementing-the-model-1"><i class="fa fa-check"></i><b>6.2.23</b> Implementing the model</a></li>
+</ul></li>
+<li class="chapter" data-level="6.3" data-path="ch7.html"><a href="ch7.html#part-ii-how-to-model-large-scale-spatial-variation"><i class="fa fa-check"></i><b>6.3</b> Part II: How to model large-scale spatial variation</a>
+<ul>
+<li class="chapter" data-level="6.3.1" data-path="ch7.html"><a href="ch7.html#goals"><i class="fa fa-check"></i><b>6.3.1</b> Goals</a></li>
+<li class="chapter" data-level="6.3.2" data-path="ch7.html"><a href="ch7.html#supporting-readings"><i class="fa fa-check"></i><b>6.3.2</b> Supporting readings</a></li>
+<li class="chapter" data-level="6.3.3" data-path="ch7.html"><a href="ch7.html#extra-packages"><i class="fa fa-check"></i><b>6.3.3</b> Extra packages</a></li>
+<li class="chapter" data-level="6.3.4" data-path="ch7.html"><a href="ch7.html#hierarchical-structure-in-the-data"><i class="fa fa-check"></i><b>6.3.4</b> Hierarchical structure in the data</a></li>
+<li class="chapter" data-level="6.3.5" data-path="ch7.html"><a href="ch7.html#full-picture-of-the-data-grouping"><i class="fa fa-check"></i><b>6.3.5</b> Full picture of the data grouping</a></li>
+<li class="chapter" data-level="6.3.6" data-path="ch7.html"><a href="ch7.html#hierarchical-structure-in-the-model"><i class="fa fa-check"></i><b>6.3.6</b> Hierarchical structure in the model</a></li>
+<li class="chapter" data-level="6.3.7" data-path="ch7.html"><a href="ch7.html#a-hierarchical-intercept-by-settlement-type"><i class="fa fa-check"></i><b>6.3.7</b> A hierarchical intercept by settlement type</a></li>
+<li class="chapter" data-level="6.3.8" data-path="ch7.html"><a href="ch7.html#no-pooling"><i class="fa fa-check"></i><b>6.3.8</b> No-pooling</a></li>
+<li class="chapter" data-level="6.3.9" data-path="ch7.html"><a href="ch7.html#partial-pooling"><i class="fa fa-check"></i><b>6.3.9</b> Partial pooling</a></li>
+</ul></li>
+<li class="chapter" data-level="6.4" data-path="ch7.html"><a href="ch7.html#part-iii-how-to-model-small-scale-spatial-variation"><i class="fa fa-check"></i><b>6.4</b> Part III: How to model small-scale spatial variation</a>
+<ul>
+<li class="chapter" data-level="6.4.1" data-path="ch7.html"><a href="ch7.html#goals-1"><i class="fa fa-check"></i><b>6.4.1</b> Goals</a></li>
+<li class="chapter" data-level="6.4.2" data-path="ch7.html"><a href="ch7.html#supporting-readings-1"><i class="fa fa-check"></i><b>6.4.2</b> Supporting readings</a></li>
+<li class="chapter" data-level="6.4.3" data-path="ch7.html"><a href="ch7.html#formal-modelling"><i class="fa fa-check"></i><b>6.4.3</b> Formal modelling</a></li>
+<li class="chapter" data-level="6.4.4" data-path="ch7.html"><a href="ch7.html#review-of-the-covariates-used-in-worldpop"><i class="fa fa-check"></i><b>6.4.4</b> Review of the covariates used in WorldPop</a></li>
+<li class="chapter" data-level="6.4.5" data-path="ch7.html"><a href="ch7.html#covariates-engineering"><i class="fa fa-check"></i><b>6.4.5</b> Covariates engineering</a>
+<ul>
+<li class="chapter" data-level="6.4.5.1" data-path="ch7.html"><a href="ch7.html#a-note-on-covariate-selection"><i class="fa fa-check"></i><b>6.4.5.1</b> A note on covariate selection</a></li>
+</ul></li>
+<li class="chapter" data-level="6.4.6" data-path="ch7.html"><a href="ch7.html#including-covariates-in-the-model"><i class="fa fa-check"></i><b>6.4.6</b> Including covariates in the model</a></li>
+<li class="chapter" data-level="6.4.7" data-path="ch7.html"><a href="ch7.html#overview-of-the-covariates-in-nigeria-v1.2"><i class="fa fa-check"></i><b>6.4.7</b> Overview of the covariates in Nigeria, v1.2</a></li>
+<li class="chapter" data-level="6.4.8" data-path="ch7.html"><a href="ch7.html#preparing-the-data"><i class="fa fa-check"></i><b>6.4.8</b> Preparing the data</a></li>
+<li class="chapter" data-level="6.4.9" data-path="ch7.html"><a href="ch7.html#implementing-the-model-2"><i class="fa fa-check"></i><b>6.4.9</b> Implementing the model</a></li>
+<li class="chapter" data-level="6.4.10" data-path="ch7.html"><a href="ch7.html#a-note-on-initialisation"><i class="fa fa-check"></i><b>6.4.10</b> A note on initialisation</a></li>
+<li class="chapter" data-level="6.4.11" data-path="ch7.html"><a href="ch7.html#comparing-prediction-with-previous-model"><i class="fa fa-check"></i><b>6.4.11</b> Comparing prediction with previous model</a></li>
+<li class="chapter" data-level="6.4.12" data-path="ch7.html"><a href="ch7.html#grouping-and-covariates-effect-a-random-slope-model"><i class="fa fa-check"></i><b>6.4.12</b> Grouping and covariates effect: a random slope model</a></li>
+</ul></li>
+<li class="chapter" data-level="6.5" data-path="ch7.html"><a href="ch7.html#part-iv-model-diagnostics-and-predictions"><i class="fa fa-check"></i><b>6.5</b> Part IV: Model diagnostics and predictions</a>
+<ul>
+<li class="chapter" data-level="6.5.1" data-path="ch7.html"><a href="ch7.html#goals-2"><i class="fa fa-check"></i><b>6.5.1</b> Goals</a></li>
+<li class="chapter" data-level="6.5.2" data-path="ch7.html"><a href="ch7.html#supporting-readings-2"><i class="fa fa-check"></i><b>6.5.2</b> Supporting readings</a></li>
+<li class="chapter" data-level="6.5.3" data-path="ch7.html"><a href="ch7.html#extra-packages-1"><i class="fa fa-check"></i><b>6.5.3</b> Extra packages</a></li>
+<li class="chapter" data-level="6.5.4" data-path="ch7.html"><a href="ch7.html#advanced-model-diagnostics"><i class="fa fa-check"></i><b>6.5.4</b> Advanced model diagnostics</a></li>
+<li class="chapter" data-level="6.5.5" data-path="ch7.html"><a href="ch7.html#assessing-convergence"><i class="fa fa-check"></i><b>6.5.5</b> Assessing convergence</a></li>
+<li class="chapter" data-level="6.5.6" data-path="ch7.html"><a href="ch7.html#checking-predicted-posterior"><i class="fa fa-check"></i><b>6.5.6</b> Checking predicted posterior</a></li>
+<li class="chapter" data-level="6.5.7" data-path="ch7.html"><a href="ch7.html#cross-validation-of-model-predictions"><i class="fa fa-check"></i><b>6.5.7</b> Cross-validation of model predictions</a></li>
+<li class="chapter" data-level="6.5.8" data-path="ch7.html"><a href="ch7.html#gridded-population-prediction"><i class="fa fa-check"></i><b>6.5.8</b> Gridded population prediction</a></li>
+<li class="chapter" data-level="6.5.9" data-path="ch7.html"><a href="ch7.html#preparing-data-for-prediction"><i class="fa fa-check"></i><b>6.5.9</b> Preparing data for prediction</a></li>
+<li class="chapter" data-level="6.5.10" data-path="ch7.html"><a href="ch7.html#extracting-estimated-parameters"><i class="fa fa-check"></i><b>6.5.10</b> Extracting estimated parameters</a></li>
+<li class="chapter" data-level="6.5.11" data-path="ch7.html"><a href="ch7.html#predicting-population-count-for-every-grid-cell"><i class="fa fa-check"></i><b>6.5.11</b> Predicting population count for every grid cell</a></li>
+<li class="chapter" data-level="6.5.12" data-path="ch7.html"><a href="ch7.html#predicting-distributions"><i class="fa fa-check"></i><b>6.5.12</b> Predicting distributions</a></li>
+<li class="chapter" data-level="6.5.13" data-path="ch7.html"><a href="ch7.html#gridded-population"><i class="fa fa-check"></i><b>6.5.13</b> Gridded population</a></li>
+<li class="chapter" data-level="6.5.14" data-path="ch7.html"><a href="ch7.html#gridded-uncertainty"><i class="fa fa-check"></i><b>6.5.14</b> Gridded uncertainty</a></li>
+<li class="chapter" data-level="6.5.15" data-path="ch7.html"><a href="ch7.html#aggregating-prediction"><i class="fa fa-check"></i><b>6.5.15</b> Aggregating prediction</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="ch7.html"><a href="ch7.html#contribution-5"><i class="fa fa-check"></i>Contribution</a></li>
+<li class="chapter" data-level="" data-path="ch7.html"><a href="ch7.html#suggested-citation"><i class="fa fa-check"></i>Suggested citation</a></li>
+</ul></li>
+<li class="chapter" data-level="7" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><i class="fa fa-check"></i><b>7</b> Hierarchical Bottom-Up Modelling Extention: the Weighted Likelihood</a>
+<ul>
+<li class="chapter" data-level="" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html#introduction-3"><i class="fa fa-check"></i>Introduction</a></li>
+<li class="chapter" data-level="" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html#methods"><i class="fa fa-check"></i>Methods</a>
+<ul>
+<li class="chapter" data-level="" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html#simulated-populations"><i class="fa fa-check"></i>Simulated Populations</a></li>
+<li class="chapter" data-level="" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html#simulated-survey-data"><i class="fa fa-check"></i>Simulated Survey Data</a>
+<ul>
+<li class="chapter" data-level="" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html#random-sample"><i class="fa fa-check"></i>Random Sample</a></li>
+<li class="chapter" data-level="" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html#population-weighted-sample"><i class="fa fa-check"></i>Population-weighted Sample</a></li>
+<li class="chapter" data-level="" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html#combined-sample"><i class="fa fa-check"></i>Combined Sample</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html#statistical-models-1"><i class="fa fa-check"></i>Statistical Models</a>
+<ul>
+<li class="chapter" data-level="" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html#unweighted-log-normal"><i class="fa fa-check"></i>Unweighted Log-normal</a></li>
+<li class="chapter" data-level="" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html#weighted-likelihood-1"><i class="fa fa-check"></i>Weighted-likelihood</a></li>
+<li class="chapter" data-level="" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html#weighted-precision-stan"><i class="fa fa-check"></i>Weighted-precision (Stan)</a></li>
+<li class="chapter" data-level="" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html#weighted-precision-jags"><i class="fa fa-check"></i>Weighted-precision (JAGS)</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html#population-totals"><i class="fa fa-check"></i>Population Totals</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html#results"><i class="fa fa-check"></i>Results</a></li>
+<li class="chapter" data-level="" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html#discussion"><i class="fa fa-check"></i>Discussion</a></li>
+<li class="chapter" data-level="7.1" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html#contributing"><i class="fa fa-check"></i><b>7.1</b> Contributing</a>
+<ul>
+<li class="chapter" data-level="7.1.1" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html#suggested-citation-1"><i class="fa fa-check"></i><b>7.1.1</b> Suggested Citation</a></li>
+<li class="chapter" data-level="7.1.2" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html#license"><i class="fa fa-check"></i><b>7.1.2</b> License</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html#references"><i class="fa fa-check"></i>References</a></li>
+<li class="chapter" data-level="" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html#tables"><i class="fa fa-check"></i>Tables</a></li>
+<li class="chapter" data-level="" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html#figures"><i class="fa fa-check"></i>Figures</a></li>
+<li class="chapter" data-level="" data-path="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html"><a href="hierarchical-bottom-up-modelling-extention-the-weighted-likelihood.html#appendix-a-supplementary-files"><i class="fa fa-check"></i>Appendix A: Supplementary Files</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="hierarchical-bottom-up-modelling-use-cases.html"><a href="hierarchical-bottom-up-modelling-use-cases.html"><i class="fa fa-check"></i><i style="font-size: 110%; padding:1.5em 0 0 0; font-weight:bold;">Hierarchical Bottom-Up Modelling Use Cases</i></a></li>
+<li class="chapter" data-level="8" data-path="ch9.html"><a href="ch9.html"><i class="fa fa-check"></i><b>8</b> Nigeria (v1)</a>
+<ul>
+<li class="chapter" data-level="8.1" data-path="ch9.html"><a href="ch9.html#introduction-4"><i class="fa fa-check"></i><b>8.1</b> Introduction</a></li>
+<li class="chapter" data-level="8.2" data-path="ch9.html"><a href="ch9.html#materials-and-methods"><i class="fa fa-check"></i><b>8.2</b> Materials and Methods</a></li>
+<li class="chapter" data-level="8.3" data-path="ch9.html"><a href="ch9.html#results-1"><i class="fa fa-check"></i><b>8.3</b> Results</a></li>
+<li class="chapter" data-level="8.4" data-path="ch9.html"><a href="ch9.html#discussion-1"><i class="fa fa-check"></i><b>8.4</b> Discussion</a></li>
+<li class="chapter" data-level="8.5" data-path="ch9.html"><a href="ch9.html#conclusions"><i class="fa fa-check"></i><b>8.5</b> Conclusions</a>
+<ul>
+<li class="chapter" data-level="" data-path="ch9.html"><a href="ch9.html#suggested-citation-2"><i class="fa fa-check"></i>Suggested Citation</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="9" data-path="democratic-republic-of-congo---drc-v2.html"><a href="democratic-republic-of-congo---drc-v2.html"><i class="fa fa-check"></i><b>9</b> Democratic Republic of Congo - DRC (v2)</a>
+<ul>
+<li class="chapter" data-level="9.1" data-path="democratic-republic-of-congo---drc-v2.html"><a href="democratic-republic-of-congo---drc-v2.html#introduction-5"><i class="fa fa-check"></i><b>9.1</b> Introduction</a></li>
+<li class="chapter" data-level="9.2" data-path="democratic-republic-of-congo---drc-v2.html"><a href="democratic-republic-of-congo---drc-v2.html#methods-1"><i class="fa fa-check"></i><b>9.2</b> Methods</a></li>
+<li class="chapter" data-level="9.3" data-path="democratic-republic-of-congo---drc-v2.html"><a href="democratic-republic-of-congo---drc-v2.html#results-2"><i class="fa fa-check"></i><b>9.3</b> Results</a></li>
+<li class="chapter" data-level="9.4" data-path="democratic-republic-of-congo---drc-v2.html"><a href="democratic-republic-of-congo---drc-v2.html#discussion-2"><i class="fa fa-check"></i><b>9.4</b> Discussion</a>
+<ul>
+<li class="chapter" data-level="" data-path="democratic-republic-of-congo---drc-v2.html"><a href="democratic-republic-of-congo---drc-v2.html#suggested-citation-3"><i class="fa fa-check"></i>Suggested Citation</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="10" data-path="ghana-v2.html"><a href="ghana-v2.html"><i class="fa fa-check"></i><b>10</b> Ghana (v2)</a>
+<ul>
+<li class="chapter" data-level="10.1" data-path="ghana-v2.html"><a href="ghana-v2.html#introduction-6"><i class="fa fa-check"></i><b>10.1</b> Introduction</a></li>
+<li class="chapter" data-level="10.2" data-path="ghana-v2.html"><a href="ghana-v2.html#methods-2"><i class="fa fa-check"></i><b>10.2</b> Methods</a>
+<ul>
+<li class="chapter" data-level="10.2.1" data-path="ghana-v2.html"><a href="ghana-v2.html#data"><i class="fa fa-check"></i><b>10.2.1</b> Data</a></li>
+<li class="chapter" data-level="10.2.2" data-path="ghana-v2.html"><a href="ghana-v2.html#statistical-model"><i class="fa fa-check"></i><b>10.2.2</b> Statistical Model</a>
+<ul>
+<li class="chapter" data-level="" data-path="ghana-v2.html"><a href="ghana-v2.html#indexing"><i class="fa fa-check"></i>Indexing</a></li>
+<li class="chapter" data-level="" data-path="ghana-v2.html"><a href="ghana-v2.html#population-estimates"><i class="fa fa-check"></i>Population Estimates</a></li>
+<li class="chapter" data-level="" data-path="ghana-v2.html"><a href="ghana-v2.html#people-per-household-pph"><i class="fa fa-check"></i>People per Household (pph)</a></li>
+<li class="chapter" data-level="" data-path="ghana-v2.html"><a href="ghana-v2.html#demographic-groups"><i class="fa fa-check"></i>Demographic Groups</a></li>
+<li class="chapter" data-level="" data-path="ghana-v2.html"><a href="ghana-v2.html#households-per-building-hpb"><i class="fa fa-check"></i>Households per Building (hpb)</a></li>
+<li class="chapter" data-level="" data-path="ghana-v2.html"><a href="ghana-v2.html#measurement-error-in-census-projections"><i class="fa fa-check"></i>Measurement Error in Census Projections</a></li>
+</ul></li>
+<li class="chapter" data-level="10.2.3" data-path="ghana-v2.html"><a href="ghana-v2.html#model-implementation-and-diagnostics"><i class="fa fa-check"></i><b>10.2.3</b> Model Implementation and Diagnostics</a></li>
+</ul></li>
+<li class="chapter" data-level="10.3" data-path="ghana-v2.html"><a href="ghana-v2.html#results-3"><i class="fa fa-check"></i><b>10.3</b> Results</a>
+<ul>
+<li class="chapter" data-level="10.3.1" data-path="ghana-v2.html"><a href="ghana-v2.html#people-per-household"><i class="fa fa-check"></i><b>10.3.1</b> People per household</a></li>
+<li class="chapter" data-level="10.3.2" data-path="ghana-v2.html"><a href="ghana-v2.html#age-sex-structure-1"><i class="fa fa-check"></i><b>10.3.2</b> Age-sex structure</a></li>
+<li class="chapter" data-level="10.3.3" data-path="ghana-v2.html"><a href="ghana-v2.html#census-projections"><i class="fa fa-check"></i><b>10.3.3</b> Census projections</a></li>
+</ul></li>
+<li class="chapter" data-level="10.4" data-path="ghana-v2.html"><a href="ghana-v2.html#discussion-3"><i class="fa fa-check"></i><b>10.4</b> Discussion</a></li>
+<li class="chapter" data-level="" data-path="ghana-v2.html"><a href="ghana-v2.html#contribution-6"><i class="fa fa-check"></i>Contribution</a></li>
+</ul></li>
+<li class="chapter" data-level="11" data-path="burkina-faso-v1.html"><a href="burkina-faso-v1.html"><i class="fa fa-check"></i><b>11</b> Burkina Faso (v1)</a>
+<ul>
+<li class="chapter" data-level="11.1" data-path="burkina-faso-v1.html"><a href="burkina-faso-v1.html#introduction-7"><i class="fa fa-check"></i><b>11.1</b> Introduction</a></li>
+<li class="chapter" data-level="11.2" data-path="burkina-faso-v1.html"><a href="burkina-faso-v1.html#estimating-missed-communes"><i class="fa fa-check"></i><b>11.2</b> Estimating Missed <em>Communes</em></a>
+<ul>
+<li class="chapter" data-level="11.2.1" data-path="burkina-faso-v1.html"><a href="burkina-faso-v1.html#model-method"><i class="fa fa-check"></i><b>11.2.1</b> Model Method</a></li>
+<li class="chapter" data-level="11.2.2" data-path="burkina-faso-v1.html"><a href="burkina-faso-v1.html#model-implementation"><i class="fa fa-check"></i><b>11.2.2</b> Model Implementation</a>
+<ul>
+<li class="chapter" data-level="11.2.2.1" data-path="burkina-faso-v1.html"><a href="burkina-faso-v1.html#input-data-1"><i class="fa fa-check"></i><b>11.2.2.1</b> Input data</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="11.3" data-path="burkina-faso-v1.html"><a href="burkina-faso-v1.html#model-results"><i class="fa fa-check"></i><b>11.3</b> Model results</a>
+<ul>
+<li class="chapter" data-level="11.3.1" data-path="burkina-faso-v1.html"><a href="burkina-faso-v1.html#implementing-the-model-3"><i class="fa fa-check"></i><b>11.3.1</b> Implementing the model</a></li>
+<li class="chapter" data-level="11.3.2" data-path="burkina-faso-v1.html"><a href="burkina-faso-v1.html#assessing-the-model-goodness-of-fit"><i class="fa fa-check"></i><b>11.3.2</b> Assessing the model goodness-of-fit</a></li>
+</ul></li>
+<li class="chapter" data-level="11.4" data-path="burkina-faso-v1.html"><a href="burkina-faso-v1.html#estimating-gridded-population-for-the-entire-country"><i class="fa fa-check"></i><b>11.4</b> Estimating Gridded Population for the Entire Country</a>
+<ul>
+<li class="chapter" data-level="11.4.1" data-path="burkina-faso-v1.html"><a href="burkina-faso-v1.html#model-method-1"><i class="fa fa-check"></i><b>11.4.1</b> Model Method</a></li>
+<li class="chapter" data-level="11.4.2" data-path="burkina-faso-v1.html"><a href="burkina-faso-v1.html#model-implementation-1"><i class="fa fa-check"></i><b>11.4.2</b> Model Implementation</a>
+<ul>
+<li class="chapter" data-level="11.4.2.1" data-path="burkina-faso-v1.html"><a href="burkina-faso-v1.html#input-data-2"><i class="fa fa-check"></i><b>11.4.2.1</b> Input data</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="11.5" data-path="burkina-faso-v1.html"><a href="burkina-faso-v1.html#model-results-1"><i class="fa fa-check"></i><b>11.5</b> Model Results</a>
+<ul>
+<li class="chapter" data-level="11.5.1" data-path="burkina-faso-v1.html"><a href="burkina-faso-v1.html#implementing-the-model-4"><i class="fa fa-check"></i><b>11.5.1</b> Implementing the model</a></li>
+<li class="chapter" data-level="11.5.2" data-path="burkina-faso-v1.html"><a href="burkina-faso-v1.html#assessing-the-model-goodness-of-fit-1"><i class="fa fa-check"></i><b>11.5.2</b> Assessing the model goodness-of-fit</a></li>
+</ul></li>
+<li class="chapter" data-level="11.6" data-path="burkina-faso-v1.html"><a href="burkina-faso-v1.html#discussion-4"><i class="fa fa-check"></i><b>11.6</b> Discussion</a>
+<ul>
+<li class="chapter" data-level="" data-path="burkina-faso-v1.html"><a href="burkina-faso-v1.html#suggested-citation-4"><i class="fa fa-check"></i>Suggested Citation</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="12" data-path="zambia-v1.html"><a href="zambia-v1.html"><i class="fa fa-check"></i><b>12</b> Zambia (v1)</a>
+<ul>
+<li class="chapter" data-level="12.1" data-path="zambia-v1.html"><a href="zambia-v1.html#introduction-8"><i class="fa fa-check"></i><b>12.1</b> Introduction</a>
+<ul>
+<li class="chapter" data-level="12.1.1" data-path="zambia-v1.html"><a href="zambia-v1.html#background"><i class="fa fa-check"></i><b>12.1.1</b> Background</a></li>
+<li class="chapter" data-level="12.1.2" data-path="zambia-v1.html"><a href="zambia-v1.html#zambia-context"><i class="fa fa-check"></i><b>12.1.2</b> Zambia Context</a></li>
+</ul></li>
+<li class="chapter" data-level="12.2" data-path="zambia-v1.html"><a href="zambia-v1.html#methods-3"><i class="fa fa-check"></i><b>12.2</b> Methods</a>
+<ul>
+<li class="chapter" data-level="12.2.1" data-path="zambia-v1.html"><a href="zambia-v1.html#data-1"><i class="fa fa-check"></i><b>12.2.1</b> Data</a>
+<ul>
+<li class="chapter" data-level="12.2.1.1" data-path="zambia-v1.html"><a href="zambia-v1.html#geospatial-covariates-4"><i class="fa fa-check"></i><b>12.2.1.1</b> Geospatial Covariates</a></li>
+</ul></li>
+<li class="chapter" data-level="12.2.2" data-path="zambia-v1.html"><a href="zambia-v1.html#statistical-modelling"><i class="fa fa-check"></i><b>12.2.2</b> Statistical Modelling</a></li>
+<li class="chapter" data-level="12.2.3" data-path="zambia-v1.html"><a href="zambia-v1.html#predictions-and-final-dataset"><i class="fa fa-check"></i><b>12.2.3</b> Predictions and Final Dataset</a></li>
+</ul></li>
+<li class="chapter" data-level="12.3" data-path="zambia-v1.html"><a href="zambia-v1.html#results-4"><i class="fa fa-check"></i><b>12.3</b> Results</a>
+<ul>
+<li class="chapter" data-level="12.3.1" data-path="zambia-v1.html"><a href="zambia-v1.html#assessment-of-building-footprints-data"><i class="fa fa-check"></i><b>12.3.1</b> Assessment of Building Footprints Data</a></li>
+<li class="chapter" data-level="12.3.2" data-path="zambia-v1.html"><a href="zambia-v1.html#model-fit"><i class="fa fa-check"></i><b>12.3.2</b> Model Fit</a></li>
+<li class="chapter" data-level="12.3.3" data-path="zambia-v1.html"><a href="zambia-v1.html#summary-of-population-estimates"><i class="fa fa-check"></i><b>12.3.3</b> Summary of Population Estimates</a></li>
+</ul></li>
+<li class="chapter" data-level="12.4" data-path="zambia-v1.html"><a href="zambia-v1.html#discussion-5"><i class="fa fa-check"></i><b>12.4</b> Discussion</a></li>
+<li class="chapter" data-level="" data-path="zambia-v1.html"><a href="zambia-v1.html#contribution-7"><i class="fa fa-check"></i>Contribution</a></li>
+</ul></li>
+<li class="chapter" data-level="13" data-path="bottom-up-geostatistical-population-modelling.html"><a href="bottom-up-geostatistical-population-modelling.html"><i class="fa fa-check"></i><b>13</b> <i style="font-size: 110%; padding:1.5em 0 0 0; font-weight:bold;">Bottom-Up Geostatistical Population Modelling </i></a></li>
+<li class="chapter" data-level="14" data-path="ch16.html"><a href="ch16.html"><i class="fa fa-check"></i><b>14</b> Geostatistical Bottom-Up Modelling</a>
+<ul>
+<li class="chapter" data-level="14.1" data-path="ch16.html"><a href="ch16.html#introduction-9"><i class="fa fa-check"></i><b>14.1</b> Introduction</a></li>
+<li class="chapter" data-level="14.2" data-path="ch16.html"><a href="ch16.html#model-structure"><i class="fa fa-check"></i><b>14.2</b> Model Structure</a></li>
+<li class="chapter" data-level="14.3" data-path="ch16.html"><a href="ch16.html#implementation-within-r-inla"><i class="fa fa-check"></i><b>14.3</b> Implementation within R-INLA</a></li>
+<li class="chapter" data-level="14.4" data-path="ch16.html"><a href="ch16.html#posterior-simulation-and-grid-cell-prediction"><i class="fa fa-check"></i><b>14.4</b> Posterior Simulation and grid cell prediction</a></li>
+<li class="chapter" data-level="14.5" data-path="ch16.html"><a href="ch16.html#model-fit-checks-and-cross-validation"><i class="fa fa-check"></i><b>14.5</b> Model Fit Checks and Cross-Validation</a></li>
+<li class="chapter" data-level="14.6" data-path="ch16.html"><a href="ch16.html#contribution-8"><i class="fa fa-check"></i><b>14.6</b> Contribution</a></li>
+</ul></li>
+<li class="chapter" data-level="15" data-path="ch17.html"><a href="ch17.html"><i class="fa fa-check"></i><b>15</b> Geostatistical Use Cases</a>
+<ul>
+<li class="chapter" data-level="15.1" data-path="ch17.html"><a href="ch17.html#introduction-10"><i class="fa fa-check"></i><b>15.1</b> Introduction</a></li>
+<li class="chapter" data-level="15.2" data-path="ch17.html"><a href="ch17.html#materials-and-methods-1"><i class="fa fa-check"></i><b>15.2</b> Materials and Methods</a></li>
+<li class="chapter" data-level="15.3" data-path="ch17.html"><a href="ch17.html#simulation-study"><i class="fa fa-check"></i><b>15.3</b> Simulation Study</a>
+<ul>
+<li class="chapter" data-level="15.3.1" data-path="ch17.html"><a href="ch17.html#model-parameter-values-and-sample-sizes"><i class="fa fa-check"></i><b>15.3.1</b> Model parameter values and sample sizes</a></li>
+<li class="chapter" data-level="15.3.2" data-path="ch17.html"><a href="ch17.html#geospatial-covariates-and-random-effects"><i class="fa fa-check"></i><b>15.3.2</b> Geospatial Covariates and Random Effects</a></li>
+<li class="chapter" data-level="15.3.3" data-path="ch17.html"><a href="ch17.html#estimating-the-mean-of-the-population-density"><i class="fa fa-check"></i><b>15.3.3</b> Estimating the mean of the population density</a></li>
+<li class="chapter" data-level="15.3.4" data-path="ch17.html"><a href="ch17.html#data-simulation"><i class="fa fa-check"></i><b>15.3.4</b> Data Simulation</a>
+<ul>
+<li class="chapter" data-level="15.3.4.1" data-path="ch17.html"><a href="ch17.html#data-simulation-steps"><i class="fa fa-check"></i><b>15.3.4.1</b> Data Simulation Steps</a></li>
+</ul></li>
+<li class="chapter" data-level="15.3.5" data-path="ch17.html"><a href="ch17.html#selection"><i class="fa fa-check"></i><b>15.3.5</b> Model fit checks and cross-validation</a></li>
+<li class="chapter" data-level="15.3.6" data-path="ch17.html"><a href="ch17.html#simulation-study-results"><i class="fa fa-check"></i><b>15.3.6</b> Simulation Study Results</a></li>
+</ul></li>
+<li class="chapter" data-level="15.4" data-path="ch17.html"><a href="ch17.html#application-to-cameroon-household-listing-datasets"><i class="fa fa-check"></i><b>15.4</b> Application to Cameroon Household Listing Datasets</a>
+<ul>
+<li class="chapter" data-level="15.4.1" data-path="ch17.html"><a href="ch17.html#input-datasets"><i class="fa fa-check"></i><b>15.4.1</b> Input Datasets</a></li>
+<li class="chapter" data-level="15.4.2" data-path="ch17.html"><a href="ch17.html#bayesian-hierarchical-modelling"><i class="fa fa-check"></i><b>15.4.2</b> Bayesian Hierarchical Modelling</a>
+<ul>
+<li class="chapter" data-level="15.4.2.1" data-path="ch17.html"><a href="ch17.html#covariate-selection"><i class="fa fa-check"></i><b>15.4.2.1</b> Covariate Selection</a></li>
+<li class="chapter" data-level="15.4.2.2" data-path="ch17.html"><a href="ch17.html#model-implementation-within-inla-spde-framework"><i class="fa fa-check"></i><b>15.4.2.2</b> Model Implementation Within INLA-SPDE Framework</a></li>
+</ul></li>
+<li class="chapter" data-level="15.4.3" data-path="ch17.html"><a href="ch17.html#results-5"><i class="fa fa-check"></i><b>15.4.3</b> Results</a>
+<ul>
+<li class="chapter" data-level="15.4.3.1" data-path="ch17.html"><a href="ch17.html#model-fit-metrics"><i class="fa fa-check"></i><b>15.4.3.1</b> Model fit metrics</a></li>
+<li class="chapter" data-level="15.4.3.2" data-path="ch17.html"><a href="ch17.html#proportion-of-variance-explained"><i class="fa fa-check"></i><b>15.4.3.2</b> Proportion of variance explained</a></li>
+<li class="chapter" data-level="15.4.3.3" data-path="ch17.html"><a href="ch17.html#cross--validation"><i class="fa fa-check"></i><b>15.4.3.3</b> Cross- Validation</a></li>
+<li class="chapter" data-level="15.4.3.4" data-path="ch17.html"><a href="ch17.html#fixed-effects-coefficients"><i class="fa fa-check"></i><b>15.4.3.4</b> Fixed Effects Coefficients</a></li>
+<li class="chapter" data-level="15.4.3.5" data-path="ch17.html"><a href="ch17.html#comparison-between-inla-spde-estimates-and-nis-projections-at-admin-1"><i class="fa fa-check"></i><b>15.4.3.5</b> Comparison Between INLA-SPDE Estimates and NIS Projections at Admin 1</a></li>
+</ul></li>
+<li class="chapter" data-level="15.4.4" data-path="ch17.html"><a href="ch17.html#discussion-6"><i class="fa fa-check"></i><b>15.4.4</b> Discussion</a></li>
+</ul></li>
+<li class="chapter" data-level="15.5" data-path="ch17.html"><a href="ch17.html#contributions"><i class="fa fa-check"></i><b>15.5</b> Contributions</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="top-down-population-mapping-method.html"><a href="top-down-population-mapping-method.html"><i class="fa fa-check"></i><i style="font-size: 110%; padding:1.5em 0 0 0; font-weight:bold;">Top-Down Population Mapping Method</i></a></li>
+<li class="chapter" data-level="16" data-path="ch19.html"><a href="ch19.html"><i class="fa fa-check"></i><b>16</b> Top-Down Population Modelling</a>
+<ul>
+<li class="chapter" data-level="16.1" data-path="ch19.html"><a href="ch19.html#introduction-11"><i class="fa fa-check"></i><b>16.1</b> Introduction</a></li>
+<li class="chapter" data-level="16.2" data-path="ch19.html"><a href="ch19.html#approach-to-top-down-disaggregation"><i class="fa fa-check"></i><b>16.2</b> Approach to Top-Down Disaggregation</a>
+<ul>
+<li class="chapter" data-level="16.2.1" data-path="ch19.html"><a href="ch19.html#random-forest"><i class="fa fa-check"></i><b>16.2.1</b> Random Forest</a></li>
+</ul></li>
+<li class="chapter" data-level="16.3" data-path="ch19.html"><a href="ch19.html#global-1"><i class="fa fa-check"></i><b>16.3</b> Global 1</a></li>
+<li class="chapter" data-level="16.4" data-path="ch19.html"><a href="ch19.html#top-down-unconstrained"><i class="fa fa-check"></i><b>16.4</b> Top-Down Unconstrained</a></li>
+<li class="chapter" data-level="16.5" data-path="ch19.html"><a href="ch19.html#top-down-constrained"><i class="fa fa-check"></i><b>16.5</b> Top-Down Constrained</a></li>
+<li class="chapter" data-level="16.6" data-path="ch19.html"><a href="ch19.html#contributions-1"><i class="fa fa-check"></i><b>16.6</b> Contributions</a></li>
+</ul></li>
+<li class="chapter" data-level="17" data-path="ch18.html"><a href="ch18.html"><i class="fa fa-check"></i><b>17</b> Top-Down Disaggregation</a>
+<ul>
+<li class="chapter" data-level="17.1" data-path="ch18.html"><a href="ch18.html#introduction-12"><i class="fa fa-check"></i><b>17.1</b> Introduction</a>
+<ul>
+<li class="chapter" data-level="17.1.1" data-path="ch18.html"><a href="ch18.html#pre-requisites"><i class="fa fa-check"></i><b>17.1.1</b> Pre-requisites</a></li>
+</ul></li>
+<li class="chapter" data-level="17.2" data-path="ch18.html"><a href="ch18.html#background-1"><i class="fa fa-check"></i><b>17.2</b> Background</a></li>
+<li class="chapter" data-level="17.3" data-path="ch18.html"><a href="ch18.html#r-environment"><i class="fa fa-check"></i><b>17.3</b> R Environment</a>
+<ul>
+<li class="chapter" data-level="17.3.1" data-path="ch18.html"><a href="ch18.html#source-data"><i class="fa fa-check"></i><b>17.3.1</b> Source Data</a></li>
+</ul></li>
+<li class="chapter" data-level="17.4" data-path="ch18.html"><a href="ch18.html#random-forest-1"><i class="fa fa-check"></i><b>17.4</b> Random Forest</a>
+<ul>
+<li class="chapter" data-level="17.4.1" data-path="ch18.html"><a href="ch18.html#response-variable"><i class="fa fa-check"></i><b>17.4.1</b> Response Variable</a></li>
+<li class="chapter" data-level="17.4.2" data-path="ch18.html"><a href="ch18.html#predictor-variables"><i class="fa fa-check"></i><b>17.4.2</b> Predictor Variables</a></li>
+<li class="chapter" data-level="17.4.3" data-path="ch18.html"><a href="ch18.html#model-fitting"><i class="fa fa-check"></i><b>17.4.3</b> Model Fitting</a>
+<ul>
+<li class="chapter" data-level="17.4.3.1" data-path="ch18.html"><a href="ch18.html#settings"><i class="fa fa-check"></i><b>17.4.3.1</b> Settings</a></li>
+<li class="chapter" data-level="17.4.3.2" data-path="ch18.html"><a href="ch18.html#run-the-model"><i class="fa fa-check"></i><b>17.4.3.2</b> Run the Model</a></li>
+</ul></li>
+<li class="chapter" data-level="17.4.4" data-path="ch18.html"><a href="ch18.html#weighting-layer"><i class="fa fa-check"></i><b>17.4.4</b> Weighting Layer</a></li>
+<li class="chapter" data-level="17.4.5" data-path="ch18.html"><a href="ch18.html#redistribution-to-ea-level"><i class="fa fa-check"></i><b>17.4.5</b> Redistribution to EA-level</a></li>
+<li class="chapter" data-level="17.4.6" data-path="ch18.html"><a href="ch18.html#diagnostics"><i class="fa fa-check"></i><b>17.4.6</b> Diagnostics</a>
+<ul>
+<li class="chapter" data-level="17.4.6.1" data-path="ch18.html"><a href="ch18.html#summing-enumeration-areas"><i class="fa fa-check"></i><b>17.4.6.1</b> Summing Enumeration Areas</a></li>
+<li class="chapter" data-level="17.4.6.2" data-path="ch18.html"><a href="ch18.html#goodness-of-fit"><i class="fa fa-check"></i><b>17.4.6.2</b> Goodness-of-Fit</a></li>
+<li class="chapter" data-level="17.4.6.3" data-path="ch18.html"><a href="ch18.html#ea-level-assessment"><i class="fa fa-check"></i><b>17.4.6.3</b> EA-level Assessment</a></li>
+<li class="chapter" data-level="17.4.6.4" data-path="ch18.html"><a href="ch18.html#covariate-importance"><i class="fa fa-check"></i><b>17.4.6.4</b> Covariate Importance</a></li>
+</ul></li>
+</ul></li>
+<li class="chapter" data-level="17.5" data-path="ch18.html"><a href="ch18.html#limitations"><i class="fa fa-check"></i><b>17.5</b> Limitations</a></li>
+<li class="chapter" data-level="17.6" data-path="ch18.html"><a href="ch18.html#tips-and-tricks"><i class="fa fa-check"></i><b>17.6</b> Tips and Tricks</a>
+<ul>
+<li class="chapter" data-level="17.6.1" data-path="ch18.html"><a href="ch18.html#map-results"><i class="fa fa-check"></i><b>17.6.1</b> Map Results</a></li>
+<li class="chapter" data-level="17.6.2" data-path="ch18.html"><a href="ch18.html#zonal-statistics"><i class="fa fa-check"></i><b>17.6.2</b> Zonal Statistics</a></li>
+<li class="chapter" data-level="17.6.3" data-path="ch18.html"><a href="ch18.html#gridded-population-estimates-1"><i class="fa fa-check"></i><b>17.6.3</b> Gridded Population Estimates</a></li>
+<li class="chapter" data-level="17.6.4" data-path="ch18.html"><a href="ch18.html#parallel-processing"><i class="fa fa-check"></i><b>17.6.4</b> Parallel Processing</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="ch18.html"><a href="ch18.html#contributions-2"><i class="fa fa-check"></i>Contributions</a></li>
+<li class="chapter" data-level="" data-path="ch18.html"><a href="ch18.html#suggested-citation-5"><i class="fa fa-check"></i>Suggested Citation</a></li>
+</ul></li>
+<li class="chapter" data-level="" data-path="bespoke-top-down-population-models.html"><a href="bespoke-top-down-population-models.html"><i class="fa fa-check"></i><i style="font-size: 110%; padding:1.5em 0 0 0; font-weight:bold;">Bespoke Top-Down Population Models</i></a></li>
+<li class="chapter" data-level="18" data-path="south-sudan-v2.html"><a href="south-sudan-v2.html"><i class="fa fa-check"></i><b>18</b> South Sudan (v2)</a>
+<ul>
+<li class="chapter" data-level="18.1" data-path="south-sudan-v2.html"><a href="south-sudan-v2.html#introduction-13"><i class="fa fa-check"></i><b>18.1</b> Introduction</a></li>
+<li class="chapter" data-level="18.2" data-path="south-sudan-v2.html"><a href="south-sudan-v2.html#methods-4"><i class="fa fa-check"></i><b>18.2</b> Methods</a>
+<ul>
+<li class="chapter" data-level="18.2.1" data-path="south-sudan-v2.html"><a href="south-sudan-v2.html#boundaries-settled-area-and-unadjusted-baseline-county-population-totals"><i class="fa fa-check"></i><b>18.2.1</b> Boundaries, settled area and unadjusted (baseline) county population totals</a></li>
+<li class="chapter" data-level="18.2.2" data-path="south-sudan-v2.html"><a href="south-sudan-v2.html#mapping-of-internally-displaced-persons"><i class="fa fa-check"></i><b>18.2.2</b> Mapping of internally displaced persons</a></li>
+<li class="chapter" data-level="18.2.3" data-path="south-sudan-v2.html"><a href="south-sudan-v2.html#mapping-of-unadjusted-population-population-distribution-in-the-absence-of-displacement"><i class="fa fa-check"></i><b>18.2.3</b> Mapping of unadjusted population (population distribution in the absence of displacement)</a></li>
+<li class="chapter" data-level="18.2.4" data-path="south-sudan-v2.html"><a href="south-sudan-v2.html#mapping-locations-where-people-have-been-displaced-from"><i class="fa fa-check"></i><b>18.2.4</b> Mapping locations where people have been displaced from</a></li>
+<li class="chapter" data-level="18.2.5" data-path="south-sudan-v2.html"><a href="south-sudan-v2.html#final-population-distribution-accounting-for-displacement"><i class="fa fa-check"></i><b>18.2.5</b> Final population distribution accounting for displacement</a></li>
+</ul></li>
+<li class="chapter" data-level="18.3" data-path="south-sudan-v2.html"><a href="south-sudan-v2.html#results-6"><i class="fa fa-check"></i><b>18.3</b> Results</a>
+<ul>
+<li class="chapter" data-level="18.3.1" data-path="south-sudan-v2.html"><a href="south-sudan-v2.html#mapping-of-internally-displaced-persons-1"><i class="fa fa-check"></i><b>18.3.1</b> Mapping of internally displaced persons</a></li>
+<li class="chapter" data-level="18.3.2" data-path="south-sudan-v2.html"><a href="south-sudan-v2.html#mapping-of-unadjusted-population-population-distribution-in-the-absence-of-displacement-1"><i class="fa fa-check"></i><b>18.3.2</b> Mapping of unadjusted population (population distribution in the absence of displacement)</a></li>
+<li class="chapter" data-level="18.3.3" data-path="south-sudan-v2.html"><a href="south-sudan-v2.html#mapping-of-where-people-have-been-displaced-from"><i class="fa fa-check"></i><b>18.3.3</b> Mapping of where people have been displaced from</a></li>
+<li class="chapter" data-level="18.3.4" data-path="south-sudan-v2.html"><a href="south-sudan-v2.html#final-population-distribution-accounting-for-displacement-1"><i class="fa fa-check"></i><b>18.3.4</b> Final population distribution accounting for displacement</a></li>
+</ul></li>
+<li class="chapter" data-level="18.4" data-path="south-sudan-v2.html"><a href="south-sudan-v2.html#discussion-7"><i class="fa fa-check"></i><b>18.4</b> Discussion</a></li>
+<li class="chapter" data-level="" data-path="south-sudan-v2.html"><a href="south-sudan-v2.html#contribution-9"><i class="fa fa-check"></i>Contribution</a></li>
+</ul></li>
+<li class="chapter" data-level="19" data-path="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html"><a href="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html"><i class="fa fa-check"></i><b>19</b> High Resolution Gridded Population Datasets for Latin America and the Caribbean using Official Statistics</a>
+<ul>
+<li class="chapter" data-level="19.1" data-path="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html"><a href="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html#background-summary"><i class="fa fa-check"></i><b>19.1</b> Background &amp; Summary</a></li>
+<li class="chapter" data-level="19.2" data-path="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html"><a href="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html#methods-5"><i class="fa fa-check"></i><b>19.2</b> Methods</a>
+<ul>
+<li class="chapter" data-level="19.2.1" data-path="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html"><a href="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html#random-forest-based-dasymetric-population-mapping-approach"><i class="fa fa-check"></i><b>19.2.1</b> Random forest-based dasymetric population mapping approach</a></li>
+<li class="chapter" data-level="19.2.2" data-path="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html"><a href="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html#data-collection"><i class="fa fa-check"></i><b>19.2.2</b> Data Collection</a></li>
+<li class="chapter" data-level="19.2.3" data-path="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html"><a href="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html#data-processing"><i class="fa fa-check"></i><b>19.2.3</b> Data Processing</a></li>
+<li class="chapter" data-level="19.2.4" data-path="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html"><a href="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html#random-forest-modelling-scenarios"><i class="fa fa-check"></i><b>19.2.4</b> Random Forest Modelling Scenarios</a></li>
+</ul></li>
+<li class="chapter" data-level="19.3" data-path="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html"><a href="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html#data-records"><i class="fa fa-check"></i><b>19.3</b> Data Records</a></li>
+<li class="chapter" data-level="19.4" data-path="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html"><a href="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html#technical-validation"><i class="fa fa-check"></i><b>19.4</b> Technical Validation</a></li>
+<li class="chapter" data-level="19.5" data-path="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html"><a href="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html#wsf3d-quantitative-assessment"><i class="fa fa-check"></i><b>19.5</b> WSF3D Quantitative Assessment</a></li>
+<li class="chapter" data-level="19.6" data-path="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html"><a href="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html#usage-notes"><i class="fa fa-check"></i><b>19.6</b> Usage Notes</a></li>
+<li class="chapter" data-level="19.7" data-path="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html"><a href="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html#code-availability"><i class="fa fa-check"></i><b>19.7</b> Code Availability</a></li>
+<li class="chapter" data-level="19.8" data-path="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html"><a href="high-resolution-gridded-population-datasets-for-latin-america-and-the-caribbean-using-official-statistics.html#contributions-3"><i class="fa fa-check"></i><b>19.8</b> Contributions</a></li>
+</ul></li>
+</ul>
+
+      </nav>
+    </div>
+
+    <div class="book-body">
+      <div class="body-inner">
+        <div class="book-header" role="navigation">
+          <h1>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">WorldPop Book of Methods</a>
+          </h1>
+        </div>
+
+        <div class="page-wrapper" tabindex="-1" role="main">
+          <div class="page-inner">
+
+            <section class="normal" id="section-">
+<div id="ch16" class="section level1 hasAnchor" number="14">
+<h1><span class="header-section-number">14</span> Geostatistical Bottom-Up Modelling<a href="ch16.html#ch16" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<div id="introduction-9" class="section level2 hasAnchor" number="14.1">
+<h2><span class="header-section-number">14.1</span> Introduction<a href="ch16.html#introduction-9" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>The bottom-up population modelling methods highlighted in the preceding chapters (see <a href="ch5.html#ch5">chapter 5</a> to <a href="ch7.html#ch7">chapter 7</a>) rely on Markov chain Monte Carlo (MCMC) simulations via the STAN statistical software for parameter estimation. STAN uses the Hamiltonian Markov Chain (HMC) updating steps with the No-U-Turn Sampler (NUTS) algorithm <span class="citation">(<a href="#ref-Hoffman_CMR">Hoffman &amp; Gelman 2014</a>)</span> which is known to be relatively faster when compared to other MCMC algorithms. However, as with other MCMC algorithms, the issue of model parameters convergence is still not eliminated because estimates of parameters are based on the posterior samples which are believed to correspond to the stationary distributions of the respective Markov chains.</p>
+<p>In addition, according to the first law of Geography which states that locations that are close to each other are more similar in characteristics than those that are further apart <span class="citation">(<a href="#ref-Tobler_CMR">Tobler 1970</a>)</span>, it is therefore crucial that population estimation models consider the potential influence of spatial autocorrelation in population distribution within a given small area. This important factor is yet to be incorporated within bottom-up population modelling framework.</p>
+<p>To address these identified gaps and ensure more accurate posterior parameter estimates, here we introduce an alternative modelling approach based on the Integrated Nested Laplace Approximation method in conjunction with the Stochastic Partial Differential Equation (<strong>INLA-SPDE</strong>) which is known to be both fast and accurate <span class="citation">(<a href="#ref-Rue_CMR">Rue et al. 2009</a>)</span>.The INLA-SPDE approach evaluates the posterior marginal distribution of the parameters of interest using a deterministic Laplace Approximation technique thus ensuring that the posterior estimates are always reproducible. Furthermore, the use of the SPDE approach ensures an efficient computational gain in that instead of assuming a continuous Gaussian surface, the SPDE allows for discretization of the entire study location into smaller triangles via the mesh, thereby, circumventing the need to carry out several computationally expensive operations involving the dense covariance matrix of the spatially varying random effect <span class="citation">(<a href="#ref-Rue_2005">Rue &amp; Held 2005</a>)</span>. INLA is thus computationally faster compared to the MCMC <span class="citation">(<a href="#ref-Carroll_CMR">Carroll et al. 2015</a>)</span></p>
+</div>
+<div id="model-structure" class="section level2 hasAnchor" number="14.2">
+<h2><span class="header-section-number">14.2</span> Model Structure<a href="ch16.html#model-structure" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>In general, the population estimate of people in a given area of interest is defined as the number of people within a settled area. In other words,</p>
+<p><span class="math display" id="eq:1">\[\begin{equation*}
+population = \frac{people}{building}\times building\tag{8.1}
+\end{equation*}\]</span></p>
+<p>where the first term, number of people per building, is the population density, <span class="math inline">\(D\)</span>. Note that the ‘building’ in Equation (1) <a href="ch9.html#eq:1">(8.1)</a> can be any covariate that sufficiently defines the settlement intensity, e.g., the total built-up area, number of buildings, number of households, building intensity</p>
+<p>The population count <span class="math inline">\(Y_i\)</span> within a given settled area <span class="math inline">\(i\)</span> is naturally assumed to be a Poisson distributed random variable with the parameter <span class="math inline">\(\lambda_i\)</span>, that is,</p>
+<p><span class="math display" id="eq:2">\[\begin{equation}
+Y_i \sim \text{Poisson}(D_i \times B_i)\tag{8.2}
+\end{equation}\]</span></p>
+<p>where <span class="math inline">\(D_i\)</span> is the population density which captures the variability in the population data, and <span class="math inline">\(B_i\)</span> is the (usually satellite observed) settlement (building) intensity. The overdispersion is therefore modelled explicitly via the density parameter by assuming appropriate statistical distribution. In the context of Nigeria (see <a href="ch9.html#ch9">chapter 9</a>), <span class="citation">(<a href="#ref-Leasure">Leasure et al. 2020e</a>)</span> assumed a LogNormal distribution for the population density such that,</p>
+<p><span class="math display" id="eq:3">\[\begin{equation}
+D_i \sim \text{logNormal}(\bar{D_i}, \sigma_D^2) \tag{8.3}
+\end{equation}\]</span></p>
+<p>where <span class="math inline">\(D_i\)</span> is the log of the expected population density based on a set of geospatial covariates, and <span class="math inline">\(\sigma_D^2\)</span>
+captures and quantifies the random variations in the population density due to overdispersion. As noted in <span class="citation">(<a href="#ref-Leasure">Leasure et al. 2020e</a>)</span>, the choice of the LogNormal distribution on the Microcensus data is purely context-specific and followed from a posthoc simulation study.</p>
+<p>Apart from the LogNormal distribution, other positively skewed long-tail probability distributions such as the Gamma and Log-logistic distributions could also be used. Following initial model exploration we adopt a gamma distribution for the INLA-SPDE approach. The model is given as</p>
+<p><span class="math display" id="eq:4">\[\begin{equation}
+D_i \sim \text{Gamma}(a_{\gamma}, b_{\gamma}) \tag{8.4}
+\end{equation}\]</span></p>
+<p>Where <span class="math inline">\(a_{\gamma}\)</span> and <span class="math inline">\(b_{\gamma}\)</span> are the shape and rate parameters such that <span class="math inline">\(E[D_i ]\)</span> = <span class="math inline">\(\bar{D_i}\)</span> = <span class="math inline">\(a_{\gamma}\)</span>
+/<span class="math inline">\(b_{\gamma}\)</span>, <span class="math inline">\(var(D_i )=a_γ/(b_γ^2 )\)</span>, then <span class="math inline">\(\bar{D_i}\)</span> is linked to the geospatial covariates through the linear predictor <span class="math inline">\(η_i\)</span> given by</p>
+<p><span class="math display" id="eq:5">\[\begin{equation}
+ln(\bar{D_i}) = \eta_i = \beta_ {0} + \sum_ {k=1}^ {K} \beta_ {k} x_ {ik} + \varepsilon_i \tag{8.5}
+\end{equation}\]</span></p>
+<p>where <span class="math inline">\(β_0\)</span> is the intercept parameter representing the average national population density when there is zero effect of the other covariates; <span class="math inline">\((β_1,…,β_K )\)</span> are the fixed effect coefficients (to be estimated) of the <span class="math inline">\(K\)</span> geospatial covariates <span class="math inline">\((x_1,x_2,…,x_K )\)</span> found to significantly associate with the population density; <span class="math inline">\(ε_i\)</span> is a Gaussian noise or nugget effect <span class="citation">(<a href="#ref-Cressie_CMR">Cressie 2015</a>)</span>, which accounts for the variabilities not captured by the geospatial covariates, that is, <span class="math inline">\(ε_i∼Normal(0,σ_ε^2 )\)</span>.</p>
+<p>Previous studies have identified the need to develop population models which account for the variations in population data due to spatial autocorrelation to minimize potential biases in the population estimates due to unobserved spatially varying factors <span class="citation">(e.g., <a href="#ref-Leasure_CMR">Leasure et al. 2020h</a>, <a href="#ref-Paige_CMR">Paige et al. 2022</a>)</span>. With that in mind, we set to fill this gap and extended Equation (4) <a href="ch9.html#eq:4">(8.4)</a> to include the spatial autocorrelation term <span class="math inline">\(ξ(s_i )\)</span> so that locations <span class="math inline">\(s_i∼s_j\)</span> which share common boundaries are more similar to each other in terms of population distribution than those further apart <span class="citation">(<a href="#ref-Tobler_CMR">Tobler 1970</a>)</span>. Thus, the spatially varying linear predictor <span class="math inline">\(η(s_i )\)</span> is given by</p>
+<p><span class="math display" id="eq:6">\[\begin{equation}
+\eta (s_ {i}) = \beta_ {0} + \sum_ {k=1}^ {K} \beta_ {k} x_ {ik} + \xi (s_ {i}) + \varepsilon_ {i} \tag{8.6}
+\end{equation}\]</span></p>
+<p>where <span class="math inline">\(s_i∈{s_1,s_2,…,s_N }\)</span> is the index of the i-th unit (e.g., Enumeration areas, etc) of the <span class="math inline">\(N\)</span> geolocated spatial units within the study domain; where <span class="math inline">\(ξ(s_i )\)</span> is the i-th realisation of the Gaussian Random Field (GRF), that is, <span class="math inline">\(ξ(s)∼GRF(0,Σ)\)</span>, with the distance dependent Matérn covariance function</p>
+<p><span class="math display" id="eq:7">\[\begin{equation}
+C(s_ {i}, s_ {j}) = \frac {\sigma_ {\zeta}^ {2}} {\Gamma (\nu) 2^ {\nu - 1}} (\kappa |\lvert s_ {i} - s_ {j}| \rvert)^ {\nu} K_ {\nu} (\kappa |\lvert s_ {i} - s_ {j} \rvert|)  \tag{8.7}
+\end{equation}\]</span></p>
+<p>where <span class="math inline">\(Γ\)</span> is a gamma function; <span class="math inline">\(K_ν\)</span> is the modified Bessel function of the second kind, order <span class="math inline">\(ν\)</span>; <span class="math inline">\(||s_i-s_j ||\)</span> is the Euclidean distance between spatial locations <span class="math inline">\(s_i\)</span> and <span class="math inline">\(s_j\)</span>; <span class="math inline">\(ν\)</span> is the smoothness parameter; <span class="math inline">\(κ=√8ν/ρ\)</span> is the scale parameter where <span class="math inline">\(ρ\)</span> is the spatial distance at which the correlation is approximately 0.13; <span class="math inline">\(σ\)</span> is the marginal variance. Within the context of geostatistics, the computation of the dense covariance matrix <span class="math inline">\(Σ\)</span> becomes very expensive as the sample size increases with a computational cost of <span class="math inline">\(O(n^3 )\)</span> <span class="citation">(e.g., <a href="#ref-Bakka_CMR">Bakka et al. 2018</a>)</span>. However, Rue and Held (2005) showed that the use of the sparse precision matrix <span class="math inline">\(Q = \Sigma^ {-1}\)</span> which specifies the conditional independence between the random variables offers a huge computational gain <span class="citation">(<a href="#ref-Rue_2005">Rue &amp; Held 2005</a>)</span>. Using an INLA-based stochastic partial differential approach (SPDE), Lindgren et al. (2011) showed that a further computational gain is achieved specifying the continuously indexed GRF, ξ(s) as a discretely indexed Gaussian Markov Random Field (GMRF) using a piecewise linear basis function representation on a triangulation of the entire study domain also known as ‘mesh’ <span class="citation">(<a href="#ref-Lindgren_CMR">Lindgren et al. 2011</a>)</span>.That is,</p>
+<p><span class="math display" id="eq:8">\[\begin{equation}
+\xi (s) = \sum_ {d=1}^ {D} \phi_ {d} (s) \tilde {\zeta}_ {d}  \tag{8.8}  
+\end{equation}\]</span></p>
+<p>where <span class="math inline">\(\phi_d∈{0,1}\)</span> is the value of the piecewise linear function which takes the value of 1 at the d-th node of the mesh and 0 elsewhere for a mesh with a total of <span class="math inline">\(D\)</span> nodes; <span class="math inline">\(ζ= (ζ_1,ζ_2..., ζ_D)\)</span> is a GMRF with sparse correlation matrix parameters <span class="math inline">\(κ\)</span> and <span class="math inline">\(σ_ζ^2\)</span> <span class="citation">(see, <a href="#ref-Lindgren_CMR">Lindgren et al. 2011</a>, <a href="#ref-Marta_CMR">Blangiardo et al. 2013</a>)</span>. Thus, under the INLA-SPDE approach, Equation (6) <a href="ch9.html#eq:6">(8.6)</a> is re-specified as</p>
+<p><span class="math display" id="eq:9">\[\begin{equation}
+
+\eta (s_ {i}) = \beta_ {0} + \sum_ {k=1}^ {K} \beta_ {k} x_ {ik} + \sum_ {d=1}^ {D} \tilde {A}_ {id} \zeta + \varepsilon_ {i} \tag{8.9}
+
+\end{equation}\]</span></p>
+<p>where <span class="math inline">\(\tilde {A}_ {id}\)</span> is the d-th element of the <span class="math inline">\(N \times D\)</span> sparse projection matrix which maps the <span class="math inline">\(N\)</span> observations to the <span class="math inline">\(D\)</span> nodes of the mesh.</p>
+<p>Different settlement types and administrative units can also be included in the modelling to account for spatial variation in the distribution of the population across settlement type and administrative regions. In such an instance the model can be re-parameterized as:</p>
+<p><span class="math display" id="eq:10">\[\begin{equation}
+
+\eta (s_ {i}) = \beta_ {0} + \sum_ {k=1}^ {K} \beta_ {k} x_ {ik} + \sum_ {d=1}^ {D} \tilde {A}_ {id}\zeta + f_p(\text{type}) + f_r(\text{reg}) + \varepsilon_ {i}  \tag{8.10}
+
+\end{equation}\]</span></p>
+<p>where <span class="math inline">\(f_p(\text{type})\)</span> is settlement type and <span class="math inline">\(f_r(\text{reg})\)</span> is the administrative region and the other parameters assume the usual notations as specified in <a href="ch9.html#eq:9">(8.9)</a>.</p>
+<p>Thus, within a Bayesian hierarchical regression modelling framework, the full model is specified below:</p>
+<p><span class="math display">\[\begin{equation}
+Y_i \sim \text{Poisson}(D_i \times B_i)
+\end{equation}\]</span></p>
+<p><span class="math display">\[\begin{equation}
+D_i \sim \text{Gamma}(a_{\gamma}, b_{\gamma}), \text{where }  E[D_i ] = \bar{D_i} = a_{\gamma}
+/b_{\gamma}
+\end{equation}\]</span></p>
+<p><span class="math display">\[\begin{equation}
+ln(\bar{D_i}(s_i)) = \eta_i(s_i)
+\end{equation}\]</span></p>
+<p><span class="math display">\[\begin{equation}
+
+\eta (s_ {i}) = \beta_ {0} + \sum_ {k=1}^ {K} \beta_ {k} x_ {ik} + \sum_ {d=1}^ {D} \tilde {A}_ {id} \zeta + f_p(\text{type}) + f_r(\text{reg}) + \varepsilon_ {i}
+\end{equation}\]</span></p>
+<p><span class="math display">\[\begin{equation}
+\pi(\beta_0) \propto 1
+\end{equation}\]</span></p>
+<p><span class="math display">\[\begin{equation}
+\beta_k \sim \text{Normal}(\mu_\beta, 1/\tau_\beta)
+\end{equation}\]</span></p>
+<p><span class="math display">\[\begin{equation}
+\zeta \sim \text{GMRF}(0, \psi(\kappa, \sigma_\zeta^2))
+\end{equation}\]</span></p>
+<p><span class="math display">\[\begin{equation}
+f_p \sim \text{Normal}(0, 1/\tau_p)
+\end{equation}\]</span></p>
+<p><span class="math display">\[\begin{equation}
+f_r \sim \text{Normal}(0, 1/\tau_r)
+\end{equation}\]</span></p>
+<p><span class="math display">\[\begin{equation}
+\varepsilon_i \sim \text{Normal}(0, 1/\tau_\varepsilon)
+\end{equation}\]</span></p>
+<p><span class="math display" id="eq:11">\[\begin{equation}
+\tau_w \sim \text{Gamma}(\alpha_w, \beta_w)  \tag{8.11}
+\end{equation}\]</span></p>
+<p>where <span class="math inline">\(\alpha_w &gt; 0\)</span> and <span class="math inline">\(\beta_w &gt; 0\)</span> are hyperparameters and <span class="math inline">\(w \in \{ \beta, p, r,\varepsilon \}\)</span>. Note that <span class="math inline">\(a_\gamma = \frac{\mu}{\phi^2}\)</span> and <span class="math inline">\(b_\gamma = \frac{\mu}{\phi}\)</span>, where <span class="math inline">\(\mu\)</span> (<span class="math inline">\(\bar{D_i}\)</span>) and <span class="math inline">\(\phi\)</span> are the mean and the overdispersion parameter. Then the predicted population density <span class="math inline">\(\hat {D}_ {(s_ {i})}\)</span> is obtained as the backtransformed values of the predicted linear predictor <span class="math inline">\(\hat {\eta}_ {i}\)</span>, that is, <span class="math inline">\(\hat {D}_ {i} = \exp (\hat {\eta}_ {i})\)</span> in this case. Note that the backtransformation function is simply the inverse function of the likelihood link function. Finally, the predicted population count is given as a weighted product of the population density and the building count, that is, <span class="math inline">\(\hat {y}_ {i} = \hat {D}_ {i} \times B_ {i}\)</span></p>
+<p>Moreover, we assumed that the random observations were conditionally independent of the latent field <span class="math inline">\(w = (\eta, \beta_0, \beta,f_p, f_r, \zeta, \varepsilon)\)</span> and the hyperparameters <span class="math inline">\(\theta = (\tau_\beta,\tau_p, \tau_r, \tau_\beta, \tau_\varepsilon)\)</span>, so that the joint posterior distribution of the latent fields and the hyperparameters given the data is given by</p>
+<p><span class="math display" id="eq:12">\[\begin{equation}
+\pi(w, \theta | y) \propto \pi(\theta) \pi(w | \theta) \prod_{i \in I} \pi(y_i | w_i, \theta) \tag{8.12}
+\end{equation}\]</span></p>
+<p>Where <span class="math inline">\(\pi(\theta)\)</span> is the prior distribution, <span class="math inline">\(\pi(w | \theta)\)</span> is a latent Gaussian model (LGM), and <span class="math inline">\(\pi(y | w, \theta)\)</span> is the likelihood function of observing the data given the latent field and the hyperparameters. The posterior distribution is then approximated and evaluated using INLA-SPDE as already stated above.</p>
+</div>
+<div id="implementation-within-r-inla" class="section level2 hasAnchor" number="14.3">
+<h2><span class="header-section-number">14.3</span> Implementation within R-INLA<a href="ch16.html#implementation-within-r-inla" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>All the statistical modelling framework described above can be implemented using the <strong>R-INLA</strong> package <span class="citation">(<a href="#ref-Rue_2005">Rue &amp; Held 2005</a>, <a href="#ref-Lindgren_CMR">Lindgren et al. 2011</a>)</span>. To implement the <strong>INLA-SPDE</strong> approach, we begin by building a triangulation mesh based on the geolocations of the spatial units (longitude and latitude of the centroids of the spatial units). Different mesh types such as a non-null convex mesh convering the entire study domain can be built. The mesh is used to approximate the spatial domain and the spatial random effects by a finite-dimensional Gaussian Markov random field (GMRF) <span class="citation">(<a href="#ref-Lindgren_CMR">Lindgren et al. 2011</a>)</span>. The GMRF is specified by a sparse precision matrix that encodes the conditional dependencies among the spatial effects. Note that when building a mesh, we include both internal and external mesh. Model estimation is based on the internal mesh and the extended mesh is only added to avoid boundary effects <span class="citation">(<a href="#ref-Lindgren_CMR">Lindgren et al. 2011</a>, <a href="#ref-Marta_CMR">Blangiardo et al. 2013</a>)</span>.</p>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:meshCMR"></span>
+<img src="pic/mesh_CMR.png" alt="The Delaunay Triangulation of a Sample Mesh used for the INLA-SPDE implementation. The red points are the centroids of the spatial units." width="60%"  />
+<p class="caption">
+Figure 14.1: The Delaunay Triangulation of a Sample Mesh used for the INLA-SPDE implementation. The red points are the centroids of the spatial units.
+</p>
+</div>
+</div>
+<div id="posterior-simulation-and-grid-cell-prediction" class="section level2 hasAnchor" number="14.4">
+<h2><span class="header-section-number">14.4</span> Posterior Simulation and grid cell prediction<a href="ch16.html#posterior-simulation-and-grid-cell-prediction" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Usually, within the context of population estimation, interest is not only on the point estimates or the high resolution gridded population estimates at pixel and administrative levels, but also on the uncertainties around the estimates which are key to humanitarian intervention purposes.
+R-INLA only automatically calculates the 95% credible intervals for the mean values as part of the model outputs with no inbuilt functionality for calculating the quantiles of totals because the sum of quantiles is not the same as the quantile of totals. One solution to this challenge is to draw samples from the (approximate) joint posterior distribution of the latent field and hyperparameters given the data <span class="math inline">\(\pi(w, \theta |y\)</span> and then evaluate the desire summary statistics of interest from the respective sampling distributions <span class="citation">(e.g <a href="#ref-Gomez_CMR">Gómez-Rubio et al. 2021</a>)</span>.</p>
+<p>Besides, drawing samples from the conditional distribution of a given parameter <span class="math inline">\(θ_1\)</span>, say, and then averaging over all the iterations will normally improve the estimation of the posterior marginal distribution <span class="math inline">\(π(θ_1│θ_2,y)\)</span>. This may be viewed as synonymous to the Rao-Blackwellization theory since group averaged estimators cannot increase the variance <span class="citation">(<a href="#ref-Blackwell_CMR">Blackwell 1947</a>, <a href="#ref-Rao_CMR">Rao 1992</a>, <a href="#ref-Robert_CMR">Robert &amp; Roberts 2021</a>)</span></p>
+<p>Thus, to obtain improved estimates of population with lower variance as well as the grid cell level administrative units level estimates along with the corresponding uncertainties, we can carry out posterior simulation using the five (5) key steps outlined below.</p>
+<p><strong>Posterior Simulation Steps</strong></p>
+<ol style="list-style-type: decimal">
+<li><p>Specify and fit the INLA model using the inla() function setting config = TRUE within the control.compute argument. This allows INLA to draw samples from the (approximate) joint posterior distribution<span class="math display">\[ \pi(w̃, θ̃ | ỹ) \]</span> obtained, when prompted.</p></li>
+<li><p>Using the (approximate) joint posterior distribution obtained in step 1, draw <span class="math inline">\(N\)</span> samples of the latent field <span class="math inline">\(\{w̃_t\}_{t=1}^T\)</span> and hyperparameters <span class="math inline">\(\{\thetã_t\}_{t=1}^T\)</span> via the <code>inla.posterior.sample()</code> function of the R-INLA package. This entails refitting the INLA model <span class="math inline">\(N\)</span> times while allowing some variabilities within the random parameters. Note that the number of iterations <span class="math inline">\(T\)</span> is variable, and the larger the better. However, computational cost would also increase with <span class="math inline">\(T\)</span>.</p></li>
+<li><p>For the <span class="math inline">\(G\)</span> 100m × 100m square grid cells, define a <span class="math inline">\(G \times D\)</span> projection matrix <span class="math inline">\(\tilde{A}_{gd}\)</span> to project the grid cell level values at the mesh nodes.</p></li>
+<li><p>For <span class="math inline">\(t\)</span> in 1 to <span class="math inline">\(T\)</span>, do the following:</p></li>
+</ol>
+<ol style="list-style-type: lower-alpha">
+<li><p>Select the <span class="math inline">\(t\)</span>-th sample from the joint posterior <span class="math inline">\(\{w̃_t, θ̃_t\}\)</span>.</p></li>
+<li><p>Using the scaled grid cell values of the covariates used in the model fitting stage at step 1, along with the intercept and the associated fixed effects coefficients <span class="math inline">\(\beta = (\hat{\beta}_0, \hat{\beta}_1, \ldots, \hat{\beta}_8)\)</span>, and the estimates of the random effects therein, predict the population density <span class="math inline">\(\hat{D}_{g,t}\)</span> for each pixel based on <a href="ch9.html#eq:10">(8.10)</a>. The random effects values are simulated from their respective posterior means, that is,</p></li>
+</ol>
+<p><span class="math display" id="eq:13">\[\begin{equation}
+   \gamma_{gt} \sim \text{Normal}(0, \sigma_\gamma)  \tag{14.1}
+\end{equation}\]</span></p>
+<p>where <span class="math inline">\(\gamma \in \{f_p, f_r, \varepsilon\}\)</span> and <span class="math inline">\(\sigma_\gamma &gt; 0\)</span> is the estimated variance for each random effect obtained in step 1.</p>
+<ol start="3" style="list-style-type: lower-alpha">
+<li>Using the predicted density and the observed building counts within a given grid cell, obtain the predicted population counts as</li>
+</ol>
+<p><span class="math display" id="eq:14">\[\begin{equation}
+\hat{y}_{g,t} = \hat{D}_{g,t} \times B_g  \tag{14.2}   
+\end{equation}\]</span></p>
+<ol start="4" style="list-style-type: lower-alpha">
+<li><p>Repeat sub-steps (a) to (c) until a sample of the desired size is obtained.</p></li>
+<li><p>Store the predicted population density and population count across the grid cells.</p></li>
+</ol>
+<ol start="5" style="list-style-type: decimal">
+<li>From the stored simulated posterior samples, generate the various summary statistics such as:</li>
+</ol>
+<ol style="list-style-type: lower-roman">
+<li><strong>Mean grid cell level population density</strong> is obtained as the average predicted population densities across the entire sample of size T for the g-th grid cell.</li>
+</ol>
+<p><span class="math display" id="eq:15">\[\begin{equation}
+\overline{D}_g = \frac{1}{T} \sum_{t=1}^T \hat{D}_{g,t} \tag{14.3}
+\end{equation}\]</span></p>
+<ol start="2" style="list-style-type: lower-roman">
+<li><p><strong>Mean grid cell population count</strong> is obtained as the average predicted population count across the entire sample of size <span class="math inline">\(T\)</span> for the <span class="math inline">\(g\)</span>-th grid cell.
+<span class="math display" id="eq:16">\[\begin{equation}
+\overline{y}_g = \frac{1}{T} \sum_{t=1}^T \hat{y}_{g,t} \tag{14.4}
+\end{equation}\]</span></p></li>
+<li><p><strong>Grid cell level uncertainties</strong> in the estimates of the grid cell population density and population count are based on the 95% credible interval obtained by taking the 2.5% and 97.5% quantiles of the <span class="math inline">\(g\)</span>-th grid cell samples
+<span class="math inline">\(\hat{y}_{g,1}, \hat{y}_{g,2}, \dots, \hat{y}_{g,T}\)</span> and <span class="math inline">\(\hat{D}_{g,1}, \hat{D}_{g,2}, \dots, \hat{D}_{g,T}\)</span>
+for population count and population density, respectively. Alternatively, the pixel level upper and lower bounds estimates of uncertainties can be obtained as confidence intervals using for example, the lower bound can be calculated as</p></li>
+</ol>
+<p><span class="math display" id="eq:17">\[\begin{equation}
+\text{lower}^{(g)} = \overline{w}_g - 2\sigma_g \tag{14.5}
+\end{equation}\]</span></p>
+<p>while the upper bound is given by</p>
+<p><span class="math display" id="eq:18">\[\begin{equation}
+\text{upper}^{(g)} = \overline{w}_g + 2\sigma_g \tag{14.6}
+\end{equation}\]</span></p>
+<p>where the grid cell level standard deviation, <span class="math inline">\(\sigma_g\)</span>, is given by</p>
+<p><span class="math display" id="eq:19">\[\begin{equation}
+\sigma_g = \sqrt{\frac{1}{T-1} \sum_{t=1}^T (\hat{y}_{g,t} - \overline{w}_g)^2} \tag{14.7}
+\end{equation}\]</span></p>
+<p>and <span class="math inline">\(\overline{w}_g \in \{\overline{D}_g, \overline{y}_g\}\)</span>.</p>
+<p>The lower and upper bounds of the estimates provide an indication of the variability around the posterior estimates. A unique measure of <span class="math inline">\(uncertainty^{(g)}\)</span> may then be derived as the average deviation given by
+<span class="math display" id="eq:20">\[\begin{equation}
+\text{uncertainty}^{(g)} = \frac{\text{upper}^{(g)} - \text{lower}^{(g)}}{\overline{w}_g} \tag{14.8}
+\end{equation}\]</span></p>
+<ol start="4" style="list-style-type: lower-roman">
+<li><strong>Obtain a distribution of the population totals</strong> at the various administrative levels: For each iteration, obtain <strong>the total population</strong> <span class="math inline">\(\hat{y}_t\)</span> by summing the predicted count over all the grid cells, that is,
+<span class="math display" id="eq:21">\[\begin{equation}
+\hat{y}_t = \sum_{g=1}^G \hat{y}_{g,t} \tag{14.9}
+\end{equation}\]</span></li>
+</ol>
+<p>Thus, <strong>the administrative level summary statistics</strong> of interest will then be obtained from the distribution of the total counts for all the <span class="math inline">\(T\)</span> iterations <span class="math inline">\(\hat{y}_1, \hat{y}_2, \dots, \hat{y}_T\)</span>, so that the <strong>mean total count</strong> within a given administrative unit <span class="math inline">\(\overline{y}_{\text{admin}}\)</span> is given by
+<span class="math display" id="eq:22">\[\begin{equation}
+\overline{y}_{\text{admin}} = \frac{1}{T} \sum_{t=1}^T \hat{y}^{(t)} \tag{14.10}
+\end{equation}\]</span></p>
+<p>The <strong>standard deviation</strong> <span class="math inline">\(\sigma_{\text{admin}}\)</span> is given by
+<span class="math display" id="eq:23">\[\begin{equation}
+\sigma_{\text{admin}} = \sqrt{\frac{1}{T-1} \sum_{i=1}^T (\hat{y}_t - \overline{y}_{\text{admin}})^2} \tag{14.11}
+\end{equation}\]</span></p>
+<p>Similarly, the measures of uncertainty are then obtained as the 95% credible intervals using the <strong>quantile()</strong> function of base R set at 2.5% for the lower bound and at 97.5% for the upper bound. The uncertainty can also be given as confidence intervals using,</p>
+<p><span class="math display" id="eq:24">\[\begin{equation}
+\text{lower} = \overline{y}_{\text{admin}} - 2\sigma_{\text{admin}} \tag{14.12}
+\end{equation}\]</span></p>
+<p>while the upper bound is given by
+<span class="math display" id="eq:25">\[\begin{equation}
+\text{upper} = \overline{y}_{\text{admin}} + 2\sigma_{\text{admin}} \tag{14.13}
+\end{equation}\]</span></p>
+<p>In addition, a unique measure of <strong>uncertainty</strong> may be obtained for the lower administrative units as
+<span class="math display" id="eq:26">\[\begin{equation}
+\text{uncertainty} = \frac{\text{upper} - \text{lower}}{\overline{y}_{\text{admin}}} \tag{14.14}
+\end{equation}\]</span></p>
+<p>Similar to the usual posterior sampling using methods such as MCMC, one may wish to view the mixing and distribution of the posterior samples across the parameter space using trace plots and histograms. However, unlike in the MCMC where these graphs are used to check convergence of the Markov chains, here the graphs are for descriptive statistics because the samples are drawn from the ‘true’ joint posterior density. The final estimates produced from the posterior simulations can be obtained in various formats as data tables, maps or raster files.</p>
+</div>
+<div id="model-fit-checks-and-cross-validation" class="section level2 hasAnchor" number="14.5">
+<h2><span class="header-section-number">14.5</span> Model Fit Checks and Cross-Validation<a href="ch16.html#model-fit-checks-and-cross-validation" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>A number of model fit checks and cross validations can be conducted to assess the goodness-of-fit and the predictive ability of models. These metrics include the the Widely Applicable Information Criterion <span class="citation">(WAIC, <a href="#ref-Watanabe_CMR">Watanabe 2013</a>)</span>, the Deviance Information Criterion <span class="citation">(DIC, <a href="#ref-Spie_CMR">Spiegelhalter et al. 2002</a>)</span>, and Conditional Predictive Ordinate <span class="citation">(CPO, <a href="#ref-Pettit_CMR">Pettit 1990</a>)</span>. While the WAIC which is similar to the DIC measures the goodness-of-fit of a model based on model complexity with a smaller value indicating a better fit, the CPO is a cross-validatory criterion which calculates the probability of observing a held-out observation not used in model training.
+In addition, further predictive ability of the best fit model can also assessed based on k-fold cross validation technique in which the dataset is divided into two parts such that the model is trained with 80% of the data and then used to predict the 20% of the test samples that were held out. The process is then repeated k times with different samples making up the 20% test sample.
+We can also use other model fit metrics such as the Mean Absolute Error (MAE), Root Mean Square Error (RMSE), Pearson Correlation between the predicted and the observed values and the proprtions of observations that are within the 95% credible interval of the predictions to assess our model goodness-0f-fit and the predictive ability of models.</p>
+<p><strong>Mean Absolute Error (MAE)</strong> provides a measure of the average magnitude of errors within a set of predictions irrespective of the direction. It is calculated using</p>
+<p><span class="math display" id="eq:27">\[\begin{equation}
+\text{MAE} = \frac{1}{N} \sum_{i=1}^N |y_i - \hat{y}_i|  \tag{14.15}
+\end{equation}\]</span>
+where, <span class="math inline">\(y_i\)</span> and <span class="math inline">\(\hat{y}_i\)</span> are the observed and predicted values, respectively. The model with the smaller MAE value provides a better fit.</p>
+<p><strong>Root Mean Square Error (RMSE)</strong> is similar to the MAE in that they both provide an idea on the average magnitude of prediction error. However, the RMSE is found to be more useful when large errors are not desirable. RMSE is given by</p>
+<p><span class="math display" id="eq:28">\[\begin{equation}
+\text{RMSE} = \sqrt{\frac{1}{N} \sum_{i=1}^N (y_i - \hat{y}_i)^2}  \tag{14.16}
+\end{equation}\]</span></p>
+<p>Similar to the MAE, models with lower RMSE values provide better fit.</p>
+<p><strong>Proportion of the observations that are within the 95% credible interval of the predictions:</strong>
+The INLA-SPDE estimates include estimates of the uncertainties along with the mean values. One way of assessing these measures of uncertainties across the various models is to calculate the proportion of the observations that are within the 95% credible interval of the predictions.</p>
+<p><span class="math display" id="eq:29">\[\begin{equation}
+\text{INCI} = \frac{1}{N} \sum_i I(y_i)  \tag{14.17}
+\end{equation}\]</span></p>
+<p>where <span class="math inline">\(I(y_i)\)</span> is an indicator function defined as
+<span class="math display">\[I(y_i) = \begin{cases}
+1, &amp; \text{lower} \leq y_i \leq \text{upper} \\
+0, &amp; \text{Otherwise}
+\end{cases} )\]</span>
+where lower and upper are the 2.5% and 97.5% quantiles of the predicted values, respectively.</p>
+<p><strong>Pearson correlation between the predicted test values and the observed values:</strong>
+Another key model validation metric utilised for the cross-validated predictions is the (pearson) correlation coefficient <span class="math inline">\(r: -1 \leq r \leq 1\)</span> between the values predicted for the withheld data and the actual observations withheld. This gives an indication of how strongly or how weakly the predicted values are in agreement with the observed values with values closer to 1 and -1 indicating high positive and high negative relationships, respectively.
+This is obtained using the equation</p>
+<p><span class="math display" id="eq:30">\[\begin{equation}
+r = \frac{\sum_i (y_i - \overline{y})(y_i^{(\text{pred})} - \overline{y}^{(\text{pred})})}{\sqrt{\sum_i (y_i - \overline{y})^2 \sum_i (y_i^{(\text{pred})} - \overline{y}^{(\text{pred})})^2}} \tag{14.18}
+\end{equation}\]</span></p>
+<p>where <span class="math inline">\(y_i, \overline{y}, y_i^{(\text{pred})}\)</span> and <span class="math inline">\(\overline{y}^{(\text{pred})}\)</span> are the observed values, mean of the observed values, the predicted values, and the mean of the predicted values, respectively. Note that Equation <a href="ch16.html#eq:30">(14.18)</a> can be simply written as</p>
+<p><span class="math display" id="eq:31">\[\begin{equation}
+r = \frac{\text{Cov}(Y, Y^{(\text{pred})})}{\sigma_Y \sigma_{Y^{(\text{pred})}}} \tag{14.19}
+\end{equation}\]</span></p>
+<p>where, <span class="math inline">\(\text{Cov}(Y, Y^{(\text{pred})})\)</span> is the covariance between the observed <span class="math inline">\(y\)</span> and the predicted value <span class="math inline">\(y^{(\text{pred})}\)</span>, and <span class="math inline">\(\sigma_z, z \in \{y, y^{(\text{pred})}\}\)</span>, are the corresponding standard deviations.</p>
+</div>
+<div id="contribution-8" class="section level2 hasAnchor" number="14.6">
+<h2><span class="header-section-number">14.6</span> Contribution<a href="ch16.html#contribution-8" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>This chapter was written by <a href="https://www.worldpop.org/team/chris_nnanatu/">Chris Nnanatu</a></p>
+
+</div>
+</div>
+<h3>References</h3>
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0" line-spacing="2">
+<div id="ref-Bakka_CMR" class="csl-entry">
+Bakka H, Rue H, Fuglstad G, Riebler A, Bolin D, Illian J, Krainski E, Simpson D, Lindgren F. 2018. Spatial modeling with r‐INLA: A review. <em>Wiley Interdisciplinary Reviews: Computational Statistics</em> 10:e1443.
+</div>
+<div id="ref-Blackwell_CMR" class="csl-entry">
+Blackwell D. 1947. Conditional expectation and unbiased sequential estimation. <em>The Annals of Mathematical Statistics</em>:105–110.
+</div>
+<div id="ref-Marta_CMR" class="csl-entry">
+Blangiardo M, Cameletti M, Baio G, Rue H. 2013. Spatial and spatio-temporal models with r-INLA. <em>Spatial and spatio-temporal epidemiology</em> 7:39–55.
+</div>
+<div id="ref-Carroll_CMR" class="csl-entry">
+Carroll R, Lawson A, Faes C, Kirby RS, Aregay M, Watjou K. 2015. Comparing INLA and OpenBUGS for hierarchical poisson modeling in disease mapping. <em>Spatial and spatio-temporal epidemiology</em> 14:45–54.
+</div>
+<div id="ref-Cressie_CMR" class="csl-entry">
+Cressie N. 2015. <em>Statistics for spatial data</em>. John Wiley &amp; Sons.
+</div>
+<div id="ref-Gomez_CMR" class="csl-entry">
+Gómez-Rubio V, Bivand RS, Rue H. 2021. Estimating spatial econometrics models with integrated nested laplace approximation. <em>Mathematics</em> 9:2044.
+</div>
+<div id="ref-Hoffman_CMR" class="csl-entry">
+Hoffman MD, Gelman A. 2014. The no-u-turn sampler: Adaptively setting path lengths in hamiltonian monte carlo. <em>J. Mach. Learn. Res.</em> 15:1593–1623.
+</div>
+<div id="ref-Leasure" class="csl-entry">
+Leasure DR, Jochem WC, Weber EM, Seaman V, Tatem AJ. 2020e. National population mapping from sparse survey data: A hierarchical bayesian modeling framework to account for uncertainty. <em>Proceedings of the National Academy of Sciences</em> 117:24173–24179.
+</div>
+<div id="ref-Leasure_CMR" class="csl-entry">
+Leasure DR, Jochem WC, Weber EM, Seaman V, Tatem AJ. 2020h. National population mapping from sparse survey data: A hierarchical bayesian modeling framework to account for uncertainty. <em>Proceedings of the National Academy of Sciences</em> 117:24173–24179.
+</div>
+<div id="ref-Lindgren_CMR" class="csl-entry">
+Lindgren F, Rue H, Lindström J. 2011. An explicit link between gaussian fields and gaussian markov random fields: The stochastic partial differential equation approach. <em>Journal of the Royal Statistical Society Series B: Statistical Methodology</em> 73:423–498.
+</div>
+<div id="ref-Paige_CMR" class="csl-entry">
+Paige J, Fuglstad G-A, Riebler A, Wakefield J. 2022. Spatial aggregation with respect to a population distribution: Impact on inference. <em>Spatial Statistics</em> 52:100714.
+</div>
+<div id="ref-Pettit_CMR" class="csl-entry">
+Pettit L. 1990. The conditional predictive ordinate for the normal distribution. <em>Journal of the Royal Statistical Society: Series B (Methodological)</em> 52:175–184.
+</div>
+<div id="ref-Rao_CMR" class="csl-entry">
+Rao CR. 1992. Information and the accuracy attainable in the estimation of statistical parameters. In: <em>Breakthroughs in statistics: Foundations and basic theory</em>. Springer, 235–247.
+</div>
+<div id="ref-Robert_CMR" class="csl-entry">
+Robert CP, Roberts G. 2021. Rao–blackwellisation in the markov chain monte carlo era. <em>International Statistical Review</em> 89:237–249.
+</div>
+<div id="ref-Rue_2005" class="csl-entry">
+Rue H, Held L. 2005. <em>Gaussian markov random fields: Theory and applications</em>. CRC press.
+</div>
+<div id="ref-Rue_CMR" class="csl-entry">
+Rue H, Martino S, Chopin N. 2009. Approximate bayesian inference for latent gaussian models by using integrated nested laplace approximations. <em>Journal of the Royal Statistical Society Series B: Statistical Methodology</em> 71:319–392.
+</div>
+<div id="ref-Spie_CMR" class="csl-entry">
+Spiegelhalter DJ, Best NG, Carlin BP, Van Der Linde A. 2002. Bayesian measures of model complexity and fit. <em>Journal of the Royal Statistical Society Series B: Statistical Methodology</em> 64:583–639.
+</div>
+<div id="ref-Tobler_CMR" class="csl-entry">
+Tobler WR. 1970. A computer movie simulating urban growth in the detroit region. <em>Economic geography</em> 46:234–240.
+</div>
+<div id="ref-Watanabe_CMR" class="csl-entry">
+Watanabe S. 2013. A widely applicable bayesian information criterion. <em>The Journal of Machine Learning Research</em> 14:867–897.
+</div>
+</div>
+            </section>
+
+          </div>
+        </div>
+      </div>
+<a href="bottom-up-geostatistical-population-modelling.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="ch17.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+    </div>
+  </div>
+<script src="libs/gitbook-2.6.7/js/app.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/clipboard.min.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-search.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-sharing.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-fontsettings.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-bookdown.js"></script>
+<script src="libs/gitbook-2.6.7/js/jquery.highlight.js"></script>
+<script src="libs/gitbook-2.6.7/js/plugin-clipboard.js"></script>
+<script>
+gitbook.require(["gitbook"], function(gitbook) {
+gitbook.start({
+  "sharing": {
+    "github": false,
+    "facebook": true,
+    "twitter": true,
+    "linkedin": false,
+    "weibo": false,
+    "instapaper": false,
+    "vk": false,
+    "whatsapp": false,
+    "all": ["facebook", "twitter", "linkedin", "weibo", "instapaper"]
+  },
+  "fontsettings": {
+    "theme": "white",
+    "family": "sans",
+    "size": 2
+  },
+  "edit": {
+    "link": null,
+    "text": null
+  },
+  "history": {
+    "link": null,
+    "text": null
+  },
+  "view": {
+    "link": null,
+    "text": null
+  },
+  "download": null,
+  "search": {
+    "engine": "fuse",
+    "options": null
+  },
+  "toc": {
+    "collapse": "section",
+    "scroll_highlight": true
+  }
+});
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    var src = "true";
+    if (src === "" || src === "true") src = "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/latest.js?config=TeX-MML-AM_CHTML";
+    if (location.protocol !== "file:")
+      if (/^https?:/.test(src))
+        src = src.replace(/^https?:/, '');
+    script.src = src;
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+</body>
+
+</html>
