@@ -12,7 +12,7 @@ import pandas as pd
 import torch
 
 from .contracts import ODData, FeatureBundle
-from .metrics import matrix_metrics, aggregate_metrics
+from .metrics import aggregate_metrics, matrix_metrics, selection_score
 from .model import DeepGravity, FeatureTransform
 from .programs import haversine, pair_features
 
@@ -34,6 +34,12 @@ class Region:
 class ODStore:
     def __init__(self, data: ODData, row_splits=None):
         self.data = data
+        if row_splits is None and data.metadata.get("split_mode") == "origin_rows":
+            row_splits = json.loads((data.root / "origin_splits.json").read_text(encoding="utf-8"))
+        if row_splits is not None:
+            assigned = [str(x) for s in ("train", "validation", "test") for x in row_splits[s]]
+            if len(assigned) != len(set(assigned)) or set(assigned) - set(data.zones.zone_id):
+                raise ValueError("Origin splits overlap or contain unknown zones")
         self.row_splits = {k: set(v) for k, v in row_splits.items()} if row_splits else None
         self.regions: dict[str, Region] = {}
         zone_to_region = data.zones.set_index("zone_id").region_id.to_dict()
@@ -100,7 +106,7 @@ def load_checkpoint(path, device):
     if str(device).startswith("cuda"):
         torch.backends.cuda.matmul.allow_tf32 = True
         torch.backends.cudnn.allow_tf32 = True
-    model = DeepGravity(saved["input_ids"], saved["hidden_sizes"], saved["dropout"])
+    model = DeepGravity(saved["input_ids"], saved["hidden_sizes"], saved["dropout"], saved.get("backbone_input_ids"))
     model.load_state_dict(saved["model_state_dict"])
     model.to(device)
     return model, FeatureTransform.from_dict(saved["feature_transform"]), saved
@@ -122,16 +128,28 @@ def fit_model(store, bundle, config, output_dir, seed, parent_model=None, parent
         return model, transform, saved["training"]
     random.seed(seed); np.random.seed(seed); torch.manual_seed(seed)
     if torch.cuda.is_available(): torch.cuda.manual_seed_all(seed)
-    model = DeepGravity(bundle.input_ids, config.get("hidden_sizes"), config.get("dropout", 0.))
+    model = DeepGravity(bundle.input_ids, config.get("hidden_sizes"), config.get("dropout", 0.), config.get("backbone_input_ids"))
     transfer = model.transfer_from(parent_model) if parent_model else None
     model.to(device)
     transform = fit_transform(store, bundle, seed, parent_transform)
-    optimizer = torch.optim.RMSprop(model.parameters(), lr=float(config.get("learning_rate", 5e-6)), momentum=float(config.get("momentum", .9)))
+    groups = [{"params": model.layers.parameters(), "lr": float(config.get("learning_rate", 5e-6))}]
+    if model.program_mode and model.program_weights.numel():
+        groups.append({"params": [model.program_weights], "lr": float(config.get("program_learning_rate", 3e-4))})
+    optimizer = torch.optim.RMSprop(groups, momentum=float(config.get("momentum", .9)))
     examples = store.examples("train", positive_only=True)
     batch_size = int(config.get("batch_size", 64))
     sample_size = int(config.get("sample_destinations", 512))
     epochs = int(config.get("epochs", 20))
     history = []; started = time.perf_counter()
+    select_validation = bool(config.get("select_validation_checkpoint", False))
+    selection_metric = str(config.get("selection_metric", "cpc"))
+    best_score, best_state, best_epoch = -float("inf"), None, 0
+    validation_every = int(config.get("validation_every", 5))
+    patience = int(config.get("patience_epochs", epochs))
+    if select_validation and parent_model is not None:
+        initial, _ = evaluate(store, bundle, model, transform, "validation")
+        best_score = selection_score(initial, selection_metric)
+        best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
     for epoch in range(epochs):
         model.train()
         rng = np.random.default_rng(seed + epoch + 1)
@@ -166,6 +184,8 @@ def fit_model(store, bundle, config, output_dir, seed, parent_model=None, parent
                 loss = -((y / y.sum(-1, keepdim=True)) * logp).sum(-1).mean()
             else:
                 loss = nll / y.sum()
+            if model.program_mode and model.program_weights.numel():
+                loss = loss + float(config.get("program_l1", 0.)) * model.program_weights.abs().mean()
             if not torch.isfinite(loss): raise RuntimeError("Non-finite training objective")
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), float(config.get("gradient_clip", 5.)))
@@ -174,13 +194,31 @@ def fit_model(store, bundle, config, output_dir, seed, parent_model=None, parent
         record = {"epoch": epoch+1, "sampled_count_nll_per_trip": epoch_loss/max(epoch_mass, 1),
                   "sampled_flow_mass": epoch_mass, "zero_sample_rows_skipped": skipped,
                   "elapsed_seconds": time.perf_counter()-started}
+        if select_validation and ((epoch+1) % validation_every == 0 or epoch+1 == epochs):
+            validation, _ = evaluate(store, bundle, model, transform, "validation")
+            score = selection_score(validation, selection_metric)
+            record["validation_cpc"] = validation["macro"].get("cpc")
+            record["validation_offdiagonal_cpc"] = validation["macro"].get("offdiagonal_cpc")
+            record["selection_metric"] = selection_metric
+            record["selection_score"] = score
+            if score > best_score:
+                best_score, best_epoch = score, epoch+1
+                best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
         history.append(record)
         with (out / "training.jsonl").open("a", encoding="utf-8") as f: f.write(json.dumps(record) + "\n")
         print(f"{out.name}: epoch {epoch+1}/{epochs}, NLL={record['sampled_count_nll_per_trip']:.5f}, elapsed={record['elapsed_seconds']:.1f}s", flush=True)
+        if select_validation and epoch+1 >= int(config.get("min_epochs", 20)) and epoch+1-best_epoch >= patience:
+            break
+    if best_state is not None:
+        model.load_state_dict(best_state)
     training = {"history": history, "elapsed_seconds": time.perf_counter()-started,
                 "n_training_origins": len(examples), "seed": seed, "transfer": transfer, "config": config}
+    if select_validation:
+        training.update({"selected_epoch": best_epoch, "selection_metric": selection_metric,
+                         "best_selection_score": best_score})
     torch.save({"model_state_dict": {k: v.detach().cpu() for k, v in model.state_dict().items()},
                 "input_ids": model.input_ids, "hidden_sizes": model.hidden_sizes, "dropout": model.dropout,
+                "backbone_input_ids": model.backbone_input_ids if model.program_mode else None,
                 "feature_transform": transform.to_dict(), "training": training}, checkpoint)
     save_json(out / "feature_transform.json", transform.to_dict())
     save_json(out / "feature_report.json", bundle.report)
@@ -221,23 +259,51 @@ def evaluate(store, bundle, model, transform, split, output_dir=None):
                                 origin_ids=region.zone_ids[rows].astype(str), destination_ids=region.zone_ids.astype(str))
         if split != "test":
             errors = (truth-pred).sum(axis=0)
-            order = np.argsort(np.abs(errors))[-3:][::-1]
+            order = np.unique(np.concatenate([np.argsort(errors)[:3], np.argsort(errors)[-3:]]))
+            order = order[np.argsort(-np.abs(errors[order]))]
             destination_errors = []
             for j in order:
                 g = region.global_indices[j]
                 vals = {c: float(store.data.base_features.iloc[g][c]) for c in store.data.base_features.columns}
-                destination_errors.append({"zone_id": str(region.zone_ids[j]), "residual": float(errors[j]), "observed_features": vals})
+                destination_errors.append({"zone_id": str(region.zone_ids[j]),
+                                           "observed": float(truth[:, j].sum()),
+                                           "predicted": float(pred[:, j].sum()),
+                                           "residual": float(errors[j]),
+                                           "direction": "underprediction" if errors[j] > 0 else "overprediction" if errors[j] < 0 else "matched",
+                                           "observed_features": vals})
+            cell_errors = truth - pred
+            diagonal = region.zone_ids[rows, None] == region.zone_ids[None, :]
+            pair_errors = []
+            for direction, mask in (("underprediction", cell_errors > 0), ("overprediction", cell_errors < 0)):
+                indices = np.flatnonzero(mask & ~diagonal)
+                chosen = indices[np.argsort(-np.abs(cell_errors.ravel()[indices]))[:4]]
+                for flat in chosen:
+                    i, j = np.unravel_index(flat, truth.shape)
+                    pair_errors.append({"diagnostic_id": f"{split}:{r}:{region.zone_ids[rows[i]]}:{region.zone_ids[j]}",
+                                        "origin_id": str(region.zone_ids[rows[i]]), "destination_id": str(region.zone_ids[j]),
+                                        "observed": float(truth[i, j]), "predicted": float(pred[i, j]),
+                                        "residual": float(cell_errors[i, j]), "direction": direction,
+                                        "distance_km": float(distances[i, j])})
             bins = [0, 1, 3, 10, 30, float("inf")]
             distance_errors = []
             for lo, hi in zip(bins[:-1], bins[1:]):
                 mask = (distances >= lo) & (distances < hi)
                 distance_errors.append({"distance_km": [lo, hi if np.isfinite(hi) else "inf"],
-                                        "observed": float(truth[mask].sum()), "predicted": float(pred[mask].sum())})
-            diagnostics.append({"region_id": r, "cpc": metrics["cpc"], "destinations": destination_errors, "distance_errors": distance_errors})
+                                        "observed": float(truth[mask].sum()), "predicted": float(pred[mask].sum()),
+                                        "residual": float(cell_errors[mask].sum()),
+                                        "direction": "underprediction" if cell_errors[mask].sum() > 0 else "overprediction" if cell_errors[mask].sum() < 0 else "matched"})
+            diagnostics.append({"region_id": r, "cpc": metrics["cpc"],
+                                "offdiagonal_cpc": metrics.get("offdiagonal_cpc"),
+                                "observed_diagonal": float(truth[diagonal].sum()),
+                                "predicted_diagonal": float(pred[diagonal].sum()),
+                                "destinations": destination_errors, "pair_errors": pair_errors,
+                                "distance_errors": distance_errors})
     summary = aggregate_metrics(records)
     summary["split"] = split
     if output_dir:
         save_json(Path(output_dir)/"metrics.json", summary)
         pd.DataFrame(records).to_csv(Path(output_dir)/"region_metrics.csv", index=False)
     diagnostics.sort(key=lambda x: x["cpc"] if x["cpc"] is not None else 1.)
-    return summary, {"split": split, "summary": summary, "largest_error_regions": diagnostics[:6]}
+    return summary, {"split": split, "residual_definition": "observed - predicted; positive = underprediction; negative = overprediction",
+                     "production_constraint": "Observed row totals are supplied, so only destination allocation can change.",
+                     "summary": summary, "largest_error_regions": diagnostics[:6]}

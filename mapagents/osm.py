@@ -6,12 +6,42 @@ import json
 from pathlib import Path
 
 
-def read_objects(path, target_crs=5070):
+def read_objects(path, target_crs=5070, predicate=None):
     import geopandas as gpd
     import pandas as pd
     import shapely
     path = Path(path)
-    if path.suffix.lower() in {".parquet", ".pq"}:
+    stream_filtered = False
+    if predicate and path.suffix.lower() in {".parquet", ".pq"}:
+        import pyarrow as pa
+        import pyarrow.parquet as pq
+        schema = pq.read_schema(path)
+        stream_filtered = 'geometry_wkb' in schema.names and 'tags' in schema.names and pa.types.is_string(schema.field('tags').type)
+    if stream_filtered:
+        import pyarrow.compute as pc
+        import pyarrow.parquet as pq
+        pieces = []
+        parquet = pq.ParquetFile(path)
+        for batch in parquet.iter_batches(batch_size=25000):
+            # The extractor stores JSON tags. Arrow rejects most objects by
+            # key before Python decodes the much smaller candidate set.
+            mask = None
+            for key in predicate:
+                found = pc.match_substring(batch.column('tags'), json.dumps(key) + ':')
+                mask = found if mask is None else pc.and_(mask, found)
+            part = batch.filter(mask).to_pandas()
+            if part.empty: continue
+            part['tags'] = part.tags.map(json.loads)
+            keep = pd.Series(True, index=part.index)
+            for key, wanted in predicate.items():
+                options = wanted if isinstance(wanted, list) else [wanted]
+                keep &= part.tags.map(lambda t: key in t if '*' in options else t.get(key) in options)
+            if keep.any(): pieces.append(part.loc[keep])
+        if not pieces:
+            return gpd.GeoDataFrame({'tags': []}, geometry=[], crs=target_crs)
+        data = pd.concat(pieces, ignore_index=True)
+        frame = gpd.GeoDataFrame(data.drop(columns=['geometry_wkb']), geometry=shapely.from_wkb(data.geometry_wkb), crs=4326)
+    elif path.suffix.lower() in {".parquet", ".pq"}:
         try: frame = gpd.read_parquet(path)
         except ValueError:
             data = pd.read_parquet(path)
@@ -20,6 +50,10 @@ def read_objects(path, target_crs=5070):
     if frame.crs is None: raise ValueError("OSM input must declare a CRS")
     if "tags" not in frame: raise ValueError("OSM input requires a tags mapping or JSON string column")
     frame["tags"] = frame.tags.map(lambda t: json.loads(t) if isinstance(t, str) else dict(t))
+    if predicate and not stream_filtered:
+        for key, wanted in predicate.items():
+            options = wanted if isinstance(wanted, list) else [wanted]
+            frame = frame.loc[frame.tags.map(lambda t: key in t if '*' in options else t.get(key) in options)].copy()
     frame = frame.loc[frame.geometry.notna() & ~frame.geometry.is_empty & frame.geometry.is_valid].copy()
     if "element_type" in frame and "osm_id" in frame:
         # Areas are emitted after corresponding ways; prefer their assembled
@@ -29,13 +63,14 @@ def read_objects(path, target_crs=5070):
 
 
 def tag_inventory(path, limit=500):
-    import pandas as pd
     path = Path(path)
     cache = path.with_suffix(path.suffix + ".tag_inventory.json")
     if cache.exists() and cache.stat().st_mtime >= path.stat().st_mtime:
         return json.loads(cache.read_text(encoding="utf-8"))[:limit]
     if path.suffix.lower() in {".parquet", ".pq"}:
-        tags = pd.read_parquet(path, columns=["tags"]).tags
+        import pyarrow.parquet as pq
+        tags = (value for batch in pq.ParquetFile(path).iter_batches(columns=['tags'], batch_size=25000)
+                for value in batch.column('tags').to_pylist())
     else: tags = read_objects(path).tags
     counts = Counter()
     for t in tags:
@@ -61,6 +96,14 @@ def extract_pbf(pbf_path, zones_path, output_path, buffer_m=3000):
     import shapely
     try: import osmium
     except ImportError as e: raise RuntimeError("Install optional 'osmium' in the selected runtime for PBF ingestion") from e
+    with osmium.io.Reader(str(pbf_path)) as reader:
+        snapshot_date = reader.header().get("osmosis_replication_timestamp") or None
+    source_manifest = None
+    manifest_path = Path(pbf_path).parent / "manifest.json"
+    if manifest_path.exists():
+        candidate = json.loads(manifest_path.read_text(encoding="utf-8"))
+        if candidate.get("raw_file") == Path(pbf_path).name:
+            source_manifest = {k: candidate.get(k) for k in ("nominal_archive_date", "od_reference_year", "same_year_as_od", "temporal_alignment_note", "download")}
     zones_path = Path(zones_path)
     if zones_path.suffix == ".parquet":
         z = pd.read_parquet(zones_path)
@@ -113,6 +156,8 @@ def extract_pbf(pbf_path, zones_path, output_path, buffer_m=3000):
     finally: writer.close()
     temp.replace(output_path)
     metadata = {"source_pbf": str(Path(pbf_path).resolve()), "study_bounds": bounds.tolist(),
+                "osm_snapshot_date": snapshot_date,
+                "source_manifest": source_manifest,
                 "buffer_m": buffer_m, "objects": handler.count, "geometry_errors": handler.geometry_errors,
                 "units": "WGS84 geometry; projected on execution", "tag_vocabulary": "all observed tagged objects"}
     output_path.with_suffix(output_path.suffix + ".json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")

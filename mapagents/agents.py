@@ -25,7 +25,7 @@ class AgentSystem:
         if not key: raise RuntimeError("LLM API key is absent. Set the configured API key environment variable.")
         self.client = OpenAI(api_key=key, base_url=base_url or None,
                              timeout=float(config.get("timeout_seconds", 240)), max_retries=2)
-        self.index = KnowledgeIndex(rag_root, self.output_dir / "rag_cache", config.get("embeddings"))
+        self.index = KnowledgeIndex(rag_root, Path(config.get("rag_cache_dir", self.output_dir / "rag_cache")), config.get("embeddings"))
         self.usage = {"calls": 0, "prompt_tokens": 0, "completion_tokens": 0, "seconds": 0.}
 
     def _call(self, role, instruction, payload, _format_attempt=0):
@@ -67,12 +67,15 @@ class AgentSystem:
         survey = self._call("Surveyor",
             "You discover city-specific spatial representations for OD prediction using retrieved mobility knowledge and observed map covariates. "
             "There is no closed list of attractors. Distinguish employment commuting from general movement. "
+            "The diagnostic convention is residual=observed-predicted: positive means underprediction and negative means overprediction. "
+            "Use the supplied diagnostic IDs and do not reverse this sign. "
             "Propose useful executable geographic compositions and give exact evidence IDs. "
             "If raw OSM is unavailable, use named supplied columns and spatial operations; do not invent tag-level measurements. "
             "Supplied source units may be unverified: do not interpret their magnitudes as meters or square kilometers. "
             "Return {mechanisms:[{name,hypothesis,evidence,proposed_expressions}], search_queries:[str], cautions:[str]}. "
             "Hypotheses are not causal findings.",
-            {"task": task, "profile": profile, "catalog": catalog, "request": request, "retrieved_evidence": evidence})
+            {"task": task, "profile": profile, "catalog": catalog, "request": request, "retrieved_evidence": evidence,
+             "diagnostic_contract": {"residual": "observed - predicted", "positive": "underprediction", "negative": "overprediction"}})
         extra = []
         for q in survey.get("search_queries", [])[:2]: extra.extend(self.index.retrieve(str(q), k=5))
         by_id = {d["id"]: d for d in evidence + extra}
@@ -176,6 +179,7 @@ class AgentSystem:
             "You guide joint spatial-program and OD-model adaptation. Read validation residual diagnostics and past edits. "
             "Identify which spatial distinctions could explain systematic prediction error, then ask Surveyor for targeted retrieval. "
             "No test OD labels are available. Do not invent error statistics. "
+            "Residual is observed minus predicted: positive = underprediction, negative = overprediction. Repeat the arithmetic before proposing an edit. "
             "Return {error_patterns:[str], retrieval_requests:[str], edits:[{action,reason}], parameter_advice:str}. "
             "Use additions, refinements, scale changes, proxy substitutions, and removal of redundant features as appropriate. "
             "At most three focused edits per candidate; all predictor weights are trainable.",

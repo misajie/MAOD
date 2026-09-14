@@ -1,0 +1,69 @@
+seed: 1234
+task: >-
+  Predict the public Deep Gravity New York STATE general movement OD allocation.
+  Follow the public DGM mass-prior protocol: dgm_mass is the full original OD
+  row sum before tile filtering, available for every zone; it is not census
+  population and the destination mass is that destination's OUTGOING total.
+  Retain the original tract and tile supports and fixed development splits.
+  Individual heldout OD errors and metrics must not guide agent adaptation.
+  The trainable DG starts from 39 inputs: 18 stored geographic aggregates and
+  natural-log mass at each endpoint, plus centroid distance. Supplied area/length
+  units are uncertain. Historical raw OSM can recover finer, measurable features.
+  The DGM aggregation catalog is an open prior, not an attractor taxonomy.
+  Infer separate, potentially mixed origin and destination roles from actual
+  evidence. Compile directed relations among source scale, destination supply,
+  local context and distance. A zone can serve different roles in different OD
+  pairs. Avoid assigning commuting purposes to general movement without support.
+  All DG weights stay trainable; program features give an additive learned score
+  correction before complete-row softmax. Explain the correction precisely and
+  check whether it changes the diagnosed OD pairs in the proposed direction.
+env_file: .env.example
+rag_root: resources/LLMrag
+prior_catalog: resources/priors/deepgravity.json
+output_dir: runs/new_york_mapagents
+data:
+  format: generic
+  prepared: data/processed/new_york_dgm_mass
+  osm_path: data/processed/new_york/osm_2020_objects.parquet
+  latest_osm_year: 2021
+training:
+  device: cuda
+  hidden_sizes: [256, 256, 256, 256, 256, 128, 128, 128, 128, 128, 128, 128, 128, 128, 128]
+  dropout: 0.0
+  epochs: 100
+  batch_size: 32
+  sample_destinations: 512
+  learning_rate: 0.000005
+  program_learning_rate: 0.0003
+  program_l1: 0.0001
+  momentum: 0.9
+  loss: count_weighted
+  gradient_clip: 5.0
+  cpu_threads: 8
+  select_validation_checkpoint: true
+  selection_metric: offdiagonal_cpc
+  validation_every: 5
+  patience_epochs: 30
+  min_epochs: 30
+search:
+  rounds: 3
+  candidates_per_round: 2
+  candidate_epochs: 50
+  min_improvement: 0.0001
+llm:
+  api_key_env: DEEPSEEK_API_KEY
+  base_url_env: DEEPSEEK_BASE_URL
+  model_env: DEEPSEEK_MODEL
+  temperature: 0.2
+  max_tokens: 12000
+  timeout_seconds: 240
+  extra_body:
+    thinking:
+      type: disabled
+  embeddings:
+    enabled: true
+    api_key_env: QWEN_API_KEY
+    base_url_env: QWEN_BASE_URL
+    model_env: QWEN_EMBEDDING_MODEL
+    batch_size: 10
+  rag_cache_dir: runs/new_york_main/agents/rag_cache

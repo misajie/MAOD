@@ -132,5 +132,16 @@ def aggregate_metrics(records: Iterable[dict[str, Any]]) -> dict[str, Any]:
     return {"n_regions": len(rows), "macro": macro, "defined_counts": counts, "totals": totals}
 
 
+def selection_score(summary, metric="cpc"):
+    """Numeric keep-rule score. Callers that must ignore the diagonal pass metric='offdiagonal_cpc'.
+    Total matrix CPC remains the default so other datasets are unchanged.
+    """
+    macro = summary.get("macro", summary)
+    value = macro.get(metric)
+    if value is None or (isinstance(value, float) and not np.isfinite(value)):
+        raise ValueError(f"Selection metric {metric!r} is undefined on this split")
+    return float(value)
+
+
 # Explicit alias for callers that prefer the longer name.
 aggregate_region_metrics = aggregate_metrics

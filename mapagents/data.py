@@ -2,8 +2,8 @@
 
 The bundled DeepGravity example contains aggregated OSM variables and GeoDS
 movement flows. It is neither raw OSM nor a census commuting dataset. The
-adapter preserves the stored OSM values, fixes geometry measurements, and never
-uses flow-derived outflow as an input population feature.
+adapter preserves the stored OSM values and fixes geometry measurements. The
+explicit DGM mass-prior import additionally exposes full-table origin totals.
 """
 from __future__ import annotations
 
@@ -163,7 +163,7 @@ def _finish_dataset(zones: pd.DataFrame, features: pd.DataFrame, raw_flows: pd.D
         raise ValueError("Train, validation, and test region assignments must be disjoint and unique")
     if set(assigned) != all_regions:
         raise ValueError("Every retained region must have exactly one split assignment")
-    # These quantities are audit metadata, never features given to agents/model.
+    # The optional DGM protocol separately declares its flow-derived mass prior.
     source_totals = raw_flows.groupby("origin").flow.sum()
     internal_totals = flows.groupby("origin").flow.sum()
     metadata = dict(metadata)
@@ -182,7 +182,7 @@ def _finish_dataset(zones: pd.DataFrame, features: pd.DataFrame, raw_flows: pd.D
         "destination_support": "all retained zones in each origin's region, including self",
         "unlisted_internal_edges": "zero within the supplied complete flow table",
         "production_constraint": "observed internal-region row totals supplied only to output scaling",
-        "flow_derived_population_feature": False,
+        "flow_derived_population_feature": bool(metadata.get("flow_derived_population_feature", False)),
         "split_region_counts": {s: len(v) for s, v in splits.items()},
     })
     output = Path(output)
@@ -346,6 +346,57 @@ def prepare_generic(zones_path: Path, flows_path: Path, features_path: Path, out
     return _finish_dataset(zones, features, flows, splits, details, Path(output))
 
 
+def prepare_dgm_mass_prior(prepared: Path, source: Path, output: Path) -> ODData:
+    """Retain the prepared supports and expose the public DGM 18+1 inputs."""
+    prepared, output = Path(prepared), Path(output)
+    if prepared.resolve() == output.resolve() or output.exists():
+        raise ValueError("DGM mass-prior preparation requires a new output directory")
+    data = load_dataset(prepared)
+    source = _source_directory(Path(source))
+    mapping = json.loads((source / "processed/tileid2oa2handmade_features.json").read_text())
+    entries = {zone: values for tile in mapping.values() for zone, values in tile.items()}
+    names = sorted(next(iter(entries.values())))
+    if len(names) != 18: raise ValueError("Expected the 18 geographic fields in the public DGM example")
+    rows = []
+    for zone in data.zones.zone_id:
+        entry = entries[zone]
+        rows.append({"zone_id": zone, **{name: entry[name][0] if isinstance(entry[name], list) else entry[name] for name in names}})
+    features = pd.DataFrame(rows).set_index("zone_id")
+    raw = pd.read_csv(source / "processed/flows_oa.csv.zip", dtype={"residence": str, "workplace": str})
+    raw = _validate_flows(raw.rename(columns={"residence": "origin", "workplace": "destination", "commuters": "flow"}))
+    mass = raw.groupby("origin").flow.sum().reindex(features.index, fill_value=0.)
+    features.insert(0, "dgm_mass", mass.where(mass > 0, 1e-6))
+    metadata = dict(data.metadata)
+    metadata.update({
+        "dataset": "deepgravity_new_york_public_dgm_mass",
+        "flow_derived_population_feature": True,
+        "population_feature_available": False,
+        "mass_prior": {"column": "dgm_mass", "definition": "M_z = sum_d raw_OD[z,d] over the complete source table before tile filtering",
+                       "zero_or_missing_value": 1e-6, "units": "source movement counts, not census residents",
+                       "available_for": "all zones, including validation and heldout zones, as an explicitly supplied aggregate covariate",
+                       "source": "resources/deepgravity/deepgravity/utils.py:149-160",
+                       "destination_meaning": "M_j is the outflow from j, not the inflow to j"},
+        "base_feature_expressions": {"dgm_mass": {"op": "log", "arg": {"op": "source", "column": "dgm_mass"}, "epsilon": 1e-6}},
+        "feature_units": {"dgm_mass": "source movement counts, OD-derived"},
+        "feature_descriptions": {name: {"description": "Public DGM stored geographic aggregate; first component only"} for name in names},
+        "feature_source": "processed/tileid2oa2handmade_features.json first components, matching oa2features.pkl; full source OD row sums for dgm_mass",
+        "feature_measurement_note": "The public New York oa2features.pkl matches the 18 stored raw first components; it does not divide them by zone area at load time. Preserve these values. Raw OSM-derived additions use separately documented projected units.",
+        "prior_catalog": "resources/priors/deepgravity.json",
+        "input_protocol": "39 backbone inputs: log(M_i), 18 stored origin aggregates, log(M_j), 18 stored destination aggregates, centroid distance",
+        "label_access_protocol": "Individual OD targets are used for training/validation only. Full-table origin sums, including withheld zones, are supplied as DGM mass covariates by explicit protocol; heldout pair metrics are not evaluated during discovery.",
+    })
+    result = _finish_dataset(data.zones.copy(), features.reset_index(), raw,
+                             {k: list(v) for k, v in data.splits.items()}, metadata, output)
+    _json_write(output / "dgm_input_audit.json", {
+        "geographic_columns": names, "n_geographic_columns": len(names), "n_backbone_inputs": 39,
+        "mass_source_rows": len(raw), "zero_or_missing_mass_zones": int((mass <= 0).sum()),
+        "raw_mass_quantiles": {str(k): float(v) for k, v in mass.quantile([0, .25, .5, .75, 1]).items()},
+        "mass_before_region_filtering": True, "density_normalization_applied": False,
+        "retained_support": "same zones and split assignments as " + str(prepared),
+    })
+    return result
+
+
 def load_dataset(root: Path) -> ODData:
     """Read a prepared dataset, checking its stable schema and split boundaries."""
     root = Path(root)
@@ -355,8 +406,12 @@ def load_dataset(root: Path) -> ODData:
     splits = json.loads((root / "splits.json").read_text(encoding="utf-8"))
     metadata = json.loads((root / "metadata.json").read_text(encoding="utf-8"))
     assignments = [str(r) for s in ("train", "validation", "test") for r in splits[s]]
-    if len(assignments) != len(set(assignments)) or set(assignments) != set(zones.region_id):
-        raise ValueError("Prepared dataset has overlapping or incomplete region splits")
+    # A single-city origin-row protocol keeps the complete OD matrix while
+    # withholding origins. In this mode all zones share one spatial region and
+    # row_splits supplied to ODStore define train/validation/test origins.
+    if metadata.get("split_mode") != "origin_rows":
+        if len(assignments) != len(set(assignments)) or set(assignments) != set(zones.region_id):
+            raise ValueError("Prepared dataset has overlapping or incomplete region splits")
     region_map = zones.set_index("zone_id").region_id
     origins, destinations = flows.origin.map(region_map), flows.destination.map(region_map)
     if origins.isna().any() or destinations.isna().any() or not origins.eq(destinations).all():

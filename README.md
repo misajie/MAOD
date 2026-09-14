@@ -4,6 +4,11 @@ MapAgents uses retrieved map/mobility knowledge, executable spatial feature
 programs, and validation residuals to adapt a Deep Gravity OD predictor. The
 predictor has 15 hidden layers and all of its parameters remain trainable.
 
+The grounded New York development workflow is documented in
+[DISCOVERY.md](DISCOVERY.md). It adds local map queries, executable evidence,
+explicit residual directions and an additive spatial correction to trainable DG.
+It requires historical OSM and uses training/validation tiles without heldout scoring.
+
 The first supplied configuration runs on the **public New York movement example
 in `resources/deepgravity`**. That example is derived from GeoDS COVID-19 data;
 it is not presented here as a census commuting dataset. This configuration uses
@@ -83,7 +88,9 @@ conda run -n my-neuro python -m pip install osmium
 6. Expands/reorders the model input by semantic feature identity, initializes new
    input weights to zero, and fine-tunes all weights. Every search round also
    includes a weight-only continuation from the same parent.
-7. Selects programs with validation CPC. Only after selection, predicts every
+7. Selects programs with validation **off-diagonal CPC**. Total matrix CPC is
+   recorded but does not decide keeps on the New York GeoDS example, where the
+   diagonal is about 89% of internal mass. Only after selection, predicts every
    destination for every held-out origin and exports the OD matrices.
 
 The configuration uses one initial program proposal, two feedback rounds, two
@@ -270,6 +277,60 @@ ordered IDs and uses the standard symmetric CPC denominator. Other metrics
 include log-flow Pearson, NRMSE, mean origin-distribution JSD, destination-flow
 error, distance error, and row-conservation error. Undefined metrics are null.
 Means are region-weighted, not silently pooled across all travelers.
+
+## Public City Experiments
+
+The London, Paris, Madrid and Barcelona runners use the complete destination
+set of each city, including self trips. Origins with positive released outflow
+are split once into 60% training, 20% validation and 20% held-out rows (split
+seed 1234). This is within-city origin generalization, distinct from the New
+York tile holdout and from cross-city adaptation.
+
+Historical OSM supplies 24 fixed count/area/length features plus zone area.
+The agents may query additional tags and construct spatial programs without a
+closed attractor vocabulary. OSM is 2014 for London (OD 2011), 2022 for Paris,
+and 2023 for Madrid/Barcelona. No external population layer is supplied.
+
+```powershell
+& E:/conda/envs/my-neuro/python.exe -u scripts/run_city_experiments.py `
+  --cities london paris madrid barcelona --seeds 1234 1235 1236
+```
+
+Completed results and LLM proposals are reused on resume. Outputs are under
+`runs/cities_v1/`: `main_table.csv`, `results_by_seed.csv`, `REPORT.md`, and per
+city/seed checkpoints, agent traces, training logs and complete held-out NPZ
+matrices. Configurations use `.env.example` through the existing secret loader.
+
+G estimates destination attractiveness from **training-origin flows only**,
+fits its mass exponent and distance decay, then selects exponential versus
+power decay on validation off-diagonal CPC. DG and MapAgents share the complete 15-hidden-
+layer predictor and initial fixed features. Initial training runs for up to
+100 epochs, selecting checkpoints by validation off-diagonal CPC; patience is 30 epochs.
+MapAgents evaluates an initial proposal plus two feedback rounds with two
+proposals per feedback round and a weight-only control, up to 30 epochs per
+candidate. The DG control receives up to 90 extra fixed-feature epochs, with
+validation checkpoint selection. Candidate search still consumes additional
+training and LLM compute, which must be reported separately.
+
+The target is the **public-release OD matrix** and its released within-city
+row subtotals. Unlisted cells represent zero released mass, not an assertion
+of zero latent travel. In particular, Spain suppresses combinations below
+five people. Barcelona's three origins without published outflow remain
+destinations but are excluded from origin scoring. The aligned raw tables
+are preserved unchanged. G is deterministic; its single fit is not counted
+as three seeds. Model-seed variation keeps the data split fixed.
+
+To rebuild a city's processed schema, run `scripts/prepare_city_datasets.py
+--city CITY`, extract its historical PBF with `mapagents extract-osm` into
+`data/processed/CITY/osm_objects.parquet`, then run
+`scripts/prepare_city_datasets.py --city CITY --features`. Existing completed
+feature tables are retained. Raw downloads and years are catalogued under
+`data/raw/`.
+
+The earlier New York G experiment used destination inflows from training
+tiles, which become constant in unseen tiles. It is not a valid comparison
+for the destination-attractiveness G used here and is excluded from the city
+tables. NeuroGravity is also excluded.
 
 ## Implementation status
 

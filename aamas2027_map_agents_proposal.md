@@ -1,418 +1,531 @@
-# MapAgents: Compiling City-Conditioned OSM Feature Programs with Gated Multi-Agent Tool Use for Origin–Destination Generation
+# MapAgents: Evidence-Grounded Multi-Agent Discovery of Role-Aware Spatial Programs for Origin-Destination Prediction
 
-**Venue.** AAMAS 2027 Main Track, area **Generative and Agentic AI (GAAI)**. Findings opt-in.  
-**Deadlines.** Author accounts 17 Sep 2026; abstract 1 Oct; paper 8 Oct. Eight pages + references. Double-blind.  
-**Fallback.** The Web Conference 2027 (abstract 18 Oct, paper 25 Oct), tracks Evaluation / Resources or Web Infrastructure and Agentic Systems.
-
-**Object.** An \(N\times N\) commuting-count matrix on one named tessellation per study area.  
-**Transfer unit.** An executable feature program \(P_s\), not a weight vector \(\theta\).  
-**Acceptance.** Common part of commuters (CPC) on spatially held-out origins, under production-constrained emission.
+**Target.** AAMAS 2027 Main Track, Generative and Agentic AI.  
+**Revision.** 14 September 2026. Research proposal and experiment plan; empirical claims remain to be established.  
+**Scope.** Three cooperating agents discover executable spatial representations for OD prediction. Deep Gravity remains trainable. The main flow comparison is Gravity, Deep Gravity, and MapAgents.  
+**Primary artifact.** A spatial program with measured evidence, separate origin and destination roles, and a trace of how its numerical contributions affect predictions.  
+**Working horizon.** Four weeks, beginning with New York State and extending to public study areas whose observation support can be established.
 
 ---
 
 ## Abstract
 
-Deep Gravity replaced population-and-distance attractiveness with one frozen OpenStreetMap (OSM) feature table. That table is identical for a university city, a polycentric industrial belt, and a sparsely tagged peri-urban county. We treat the table as a *program* \(P_s\) that must be compiled from a city scene, executed against a typed OSM API, and rewritten when a few target edges become visible.
+Geographic OD models depend on how raw spatial information is aggregated before prediction. A fixed feature schema can represent broad land use and facility counts while losing distinctions between facility types, neighborhood scales, and the different functions of a place as an origin and a destination. A flexible neural predictor can learn interactions among supplied variables, but it cannot recover measurements discarded during aggregation.
 
-MapAgents is a three-agent system. Surveyor emits a structured scene card (urban form, dominant commute attractors, OSM coverage holes, banned keys). Cartographer may call only a frozen organisation API: typed predicates, zone-level aggregators, and coverage reports. An institutional gate rejects queries that leave the dictionary, mix tessellation scales, or double-count population as a destination attractor. Adapter rewrites the program text under a \(1\%\) or \(10\%\) edge budget on training-block origins; it does not retrain the flow backbone. Destination probabilities still come from a production-constrained generator
-\[
-\widehat{T}_{ij}=O_i\,p_{j\mid i}\bigl(x_i^{P_s},x_j^{P_s},d_{ij}\bigr).
-\]
-The score is the common part of commuters
-\[
-\mathrm{CPC}(A,B)=\frac{2\sum_{ij}\min(A_{ij},B_{ij})}{\sum_{ij}A_{ij}+\sum_{ij}B_{ij}},
-\]
-with Pearson correlation on log flows, NRMSE, and Jensen–Shannon divergence as companions.
+We propose MapAgents, a three-agent framework for discovering evidence-grounded spatial programs. Surveyor retrieves mobility knowledge and examines raw OpenStreetMap objects, existing aggregation recipes, and local geographic measurements. It develops hypotheses about source context, destination opportunities, and their directed relationships. Cartographer compiles these hypotheses into reusable numerical expressions and uses execution feedback to repair invalid or uninformative features. Adapter diagnoses validation errors, compares candidate programs after model training, and directs subsequent investigation. The resulting program augments a trainable Deep Gravity predictor through a learned additive score component, enabling exact decomposition of the program contribution.
 
-Experiments use the three public Deep Gravity geographies—England census commuting, Italy ISTAT commuting, New York State tract flows—plus one fully open LEHD LODES metro clip. Protocol baselines are single-agent ReAct on the same API, tool-free role play, and an ungated pipeline. Flow baselines are gravity, radiation, Deep Gravity with the published frozen OSM query, and (optional) Atwal building-type features on the same Deep Gravity backbone. Ablations remove the scene card, the gate, the few-shot rewrite, and the OSM API. Program traces—tag-set Jaccard, gate-reject codes, card–program alignment, \(\Delta\mathrm{CPC}\) by key family, CPC versus shot budget—are first-class results.
-
-City specificity in trip distribution is a compilation problem. What transfers across cities is a gated feature program.
+The evaluation will distinguish final OD accuracy from the value of agent collaboration. Gravity and Deep Gravity provide flow baselines; fixed feature libraries, LLM feature selection, single-agent tool use, and controlled removals of retrieval, endpoint-role reasoning, and feedback examine the proposed mechanism. CPC, RMSE, and off-diagonal performance measure prediction quality. Executed evidence links, feature interventions, and responses on diagnosed OD pairs measure explanatory fidelity. New York State provides the initial development case, followed by public European study areas with documented flow semantics. The central question is whether coordinated investigation produces useful and verifiable spatial representations beyond those obtained from fixed aggregation or a single feature-selection agent.
 
 ---
 
-## 1. Problem
+## 1. Problem and research question
 
-Flow generation writes a matrix \(\widehat{T}\) on a tessellation when destination choices for some or all origins are unseen. The short-run mobility literature already separates this task from next-location prediction, crowd-flow forecasting, and trajectory generation. On the law side the named models are the gravity law with power or exponential deterrence and the radiation law [1, 2]. On the learned side Deep Gravity maps origin features, destination features, and distance through a multilayer perceptron and a softmax [3]. Its geographic lift comes from one OSM inventory—land use, roads, transport, food, health, education, retail—applied everywhere.
+OD prediction estimates how flow from an origin is allocated among candidate destinations. Depending on the source, the flow may represent general movement, commuting people, or weighted census estimates. These meanings remain explicit for each dataset. The present task supplies origin totals and predicts destination allocation; it does not introduce a separate model of total trip production.
 
-That inventory is an implicit theory of attractiveness, and it is wrong in the same way for every city. A docklands employment core, a campus–hospital complex, and a logistics belt do not share a tag grammar. Coverage is uneven: the same key is dense in one metro and empty in the next. Copying England weights onto Italy therefore copies the wrong object. The object that should move is the query that built the table.
+Deep Gravity [3] represents each OD pair using attributes of both endpoints and their geographic distance. Its feature schema covers population or mass, land use, roads, and several facility groups. The schema is shared across places, while feature values and learned nonlinear responses can differ. The research gap is the information lost when raw geography is reduced to that schema.
 
-Scale and heterogeneity already decide which closed form wins [2]. Closed-form gravity-like expressions recovered by symbolic regression remain competitive with deep models at several scales [4]. Building-type counts from OSM predict commuting when they are fed to a graph attention network [5]. None of these lines supplies a *procedure* that writes a different legal feature program when the city, the OSM hole list, or the dominant attractor family changes.
+Several distinctions motivate a richer representation. A hospital and a pharmacy may have different spatial roles despite sharing a health category. A campus can be described through land area, buildings, surrounding services, and access to transport. Facility counts can be interpreted relative to source movement scale or competing opportunities nearby. The same transport facility can describe departure access at one endpoint and arrival access at the other. These alternatives concern what is measured and how measurements are combined.
 
-Language models fail as world models of neighbourhood flows [21]. They succeed as compilers when the output is executable, the tool surface is typed, and acceptance is a matrix score on held-out origins. WorldCoder showed that an LLM agent can build a world model by writing code and interacting with an environment [18]. MapAgents continues that line: the model does not predict the next destination; it compiles the OSM query that feeds a named generator.
+MapAgents treats feature construction as an investigation. An agent must identify the missing distinction, retrieve or compute relevant evidence, express it as a spatial program, and assess the resulting prediction change. Functional roles are open and potentially mixed: a zone can support residence, services, education, and transport simultaneously. A role is a hypothesis about the function of measured geography in an ordered OD relationship, not a categorical identity assigned permanently to a place.
 
-neuroGravity improves the *backbone*: a meta-Gravity module parameterises the gravitational constant and the distance-decay exponent, and a GNN refines residuals, then few-shot transfers across cities [10]. MapAgents does not touch the backbone. It changes the feature program that the backbone reads. The two moves are orthogonal. A program compiled here can in principle be fed to any production-constrained generator, including a meta-Gravity module. The transfer unit in this paper is the program text \(P_s\), not the weights \(\theta\).
+**Research question.** Can a multi-agent investigation of geographic evidence and prediction errors discover directed spatial programs that improve OD allocation and provide faithful, inspectable explanations of their numerical contribution?
 
-**Question.** Can a constrained multi-agent system compile a city-specific OSM feature program that a named production-constrained generator uses to beat a frozen geographic table, and can a few observed edges rewrite that program without retraining the backbone?
-
----
-
-## 2. Thesis and contributions
-
-**Thesis.** Attractiveness for commuting origin–destination (OD) flows is city-conditioned and program-shaped. A Surveyor–Cartographer–Adapter loop, bound to a typed OSM API and an institutional gate, compiles that program. Few-shot adaptation acts on program text. CPC on spatially held-out origins is the test.
-
-**C1. A grounded multi-agent compilation protocol.** Three roles, a frozen tool dictionary, a gate with typed reject codes, and a program schema
-\[
-P_s=\bigl\{(k_\ell,v_\ell,\mathrm{agg}_\ell,\mathrm{scale}_\ell)\bigr\}_{\ell=1}^{m}.
-\]
-This is the AAMAS object.
-
-**C2. Program-level few-shot transfer.** Adapter edits \(P_s\) under budgets \(\tau\in\{0,0.01,0.10\}\) on training-block edges and a spatial block hold-out. Backbone weights stay frozen. What crosses England \(\to\) Italy / New York is the program, not \(\theta\). This is distinct from neuroGravity’s cross-city move (retrain the GNN and adapt meta-Gravity parameters). Adaptation cost drops from “refit the model” to “rewrite the query”.
-
-**C3. Interpretability that is the artifact.** Every accepted destination feature is a tag set plus an aggregator. We report gate-reject rates, tag-set Jaccard across cities, alignment between the scene card and the compiled keys, and
-\[
-\Delta\mathrm{CPC}(\mathcal{F})=\mathrm{CPC}\bigl(T,\widehat{T}^{P_s}\bigr)-\mathrm{CPC}\bigl(T,\widehat{T}^{P_s\setminus\mathcal{F}}\bigr)
-\]
-when a key family \(\mathcal{F}\) is dropped.
-
-**C4. A reproducible three-geography testbed.** England, Italy, New York State (Deep Gravity geographies) and one LODES metro clip. Frozen Deep Gravity query, classical laws, Atwal building-type features on the same backbone, and agent-protocol baselines on the same tessellations.
+The AAMAS contribution centers on cooperation among agents with different responsibilities and feedback. It does not require a new universal law of urban movement, a larger collection of city case studies, or a more complex flow backbone.
 
 ---
 
-## 3. Related work
+## 2. Intended contributions
 
-| # | Line | What they did | What we take | What we replace |
-| --- | --- | --- | --- | --- |
-| 1 | Simini et al., 2021, Deep Gravity [3] | Frozen OSM table + DG + CPC on England / Italy / NYS | Backbone, geographies, CPC, tile hold-out | The table becomes a compiled program |
-| 2 | Simini et al., 2012, radiation [1] | Parameter-free population radiation | Law-side parameter-free baseline | Program features enter DG; no new closed form |
-| 3 | Cabanas-Tirapu et al., 2025 [4] | Automatically learned closed-form gravity-like models remain strong | Law-side closed-form evidence | Features are compiled, not symbolically rediscovered |
-| 4 | Urban-MAS (Lou, 2025) [10] | LLM agents + Nominatim / Overpass for urban prediction | MAS + OSM pattern | Executable programs + matrix GOF |
-| 5 | ChatSUMO-Agent, 2026 [12] | OSM–SUMO tool loop + KPI feedback | Closed loop against an external scorer | Feature program + CPC, not signal timing |
-| 6 | osmAG + LLM (Xie and Schwertfeger, 2024) [11] | LLMs read OSM-shaped text maps | Maps must be typed for models | Compilation to zone features for OD |
-| 7 | MetaGPT [16] / CAMEL [17] / ReAct [15] | Role orchestration and tool cycles | Protocol baselines (Table A) | Grounding in a gated geo API |
-| 8 | MALMAS, 2026 [23] | Multi-agent automated feature generation on tabular data, with memory | Iterative feature rewrite | Geospatial programs under a typed geo API, not tabular operators |
-| 9 | LLMs for mobility data, 2026 [21] | Empirical reasoning bias of LLMs on travel data | Do not use the LLM as a next-location world model | LLM as compiler only |
-| 10 | neuroGravity (Yang et al., 2026) [6] | Physics-informed GNN + meta-Gravity; few-shot cross-city reconstruction | Few-shot transfer motive; OSM features as inputs to a flow model | Rewrite program text \(P_s\); freeze backbone \(\theta\) |
-| 11 | Atwal et al., 2025 [5] | OSM building types + GAT for commuting-flow prediction | OSM features as commuting predictors | A compiled program replaces a single building-type table; same DG backbone in B9 |
-| 12 | GlODGen (Rong et al., 2025) [9] | Satellite imagery + VLM \(\to\) global commuting OD product | Public output matrices as an *output-level* reference | City-conditioned compilation vs. one global generator |
+**Evidence-grounded feature discovery.** Surveyor, Cartographer, and Adapter coordinate retrieval, numerical execution, and validation-guided revision. Their handoffs carry explicit hypotheses, measurement requests, executable expressions, and observed candidate outcomes. This structure makes it possible to examine where a proposed mechanism originated and whether it survived execution and model evaluation.
 
-Additional citations, not rows of the contrast table:
+**Role-aware spatial programs.** Programs distinguish origin context from destination opportunity and express directional interactions with distance and neighborhood structure. The method moves beyond selecting columns from a fixed table by constructing measurements and compositions from available geographic layers.
 
-- WorldCoder [18] anchors “LLM as compiler” in §1–§2.
-- Masucci, 2013 [2] anchors scale and heterogeneity in §1.
-- Rong et al., ICLR 2025 commuting-OD benchmark [8] is discussed in §5–§6 as a large-area benchmark we do not adopt wholesale, because city-conditioned compilation requires a scene card per tessellation.
-- GeoColab [19] generates general geospatial code; MapAgents emits a constrained feature program.
-- GeoJSON Agents [20] contrasts function calling with code generation; MapAgents takes the function-calling route.
-- Physics-informed mobility networks [7] locate B8 (gravity + compiled mass) on the shallow end of that spectrum.
-- Guardrail evaluations for LLM agents [22] supply precedent for the institutional gate in §4.4.
-- Decoupled Intelligence [13] and Speak to Simulate [14] extend the SUMO-agent line cited with ChatSUMO-Agent.
-- Truck Deep Gravity [24] shows that the DG skeleton travels outside commuting; we keep the commuting object.
+**Joint prediction and explanation.** Deep Gravity and the spatial-program coefficients are trained together. The program branch provides an exact score decomposition, while fixed-model feature removal measures how that branch redistributes predicted flows. Predictive usefulness and explanatory fidelity are evaluated separately.
 
-Trajectory generators, proprietary CDR, and closed operator panels stay out of the main tables. GlODGen and neuroGravity stay out of Table B for the reasons in §6–§7.
+**A focused empirical comparison.** The study compares final OD predictions against Gravity and a faithfully reproduced Deep Gravity baseline, then isolates the effects of LLM selection, tools, role separation, and iterative feedback. The intended evidence spans several public study areas, multiple training seeds, and automatic explanation measurements.
+
+These are proposed contributions. Neither a performance gain nor a benefit from multiple agents is assumed in advance.
 
 ---
 
-## 4. Method
+## 3. Research context
 
-### 4.1 Object, constraints, and named backbones
+The existing references provide context for five lines of work. Their bibliography is retained in this revision without a new citation review.
 
-One tessellation per study area. Intra-zonal cells are kept; their share
-\[
-h_{\mathrm{intra}}=\frac{\sum_i T_{ii}}{\sum_{ij}T_{ij}}
-\]
-is reported. Observed commuting matrix \(T\in\mathbb{R}^{N\times N}_{\ge 0}\), origin outflows \(O_i=\sum_j T_{ij}\), destination inflows \(D_j=\sum_i T_{ij}\). Every generator in the main tables is production-constrained:
-\[
-\widehat{T}_{ij}=O_i\,p_{j\mid i},\qquad \sum_j p_{j\mid i}=1,\qquad \sum_j\widehat{T}_{ij}=O_i.
-\]
-When outflows match, CPC equals the share of trips sent to the correct destination.
+| Research line | Relevance to MapAgents | Comparison or distinction |
+| --- | --- | --- |
+| Gravity, radiation, and learned gravity-like expressions [1-4] | Mass and distance organize OD allocation | Gravity is a main flow baseline; the proposed novelty concerns representation discovery |
+| Deep Gravity and geographic flow prediction [3, 5, 24] | Geographic measurements support flexible predictors | DGM aggregation recipes are shared prior knowledge; programs can recover finer measurements |
+| Tool use, role coordination, and automated feature generation [15-18, 23] | Retrieval, execution, and feedback support agent decisions | Single-agent tool use and LLM feature selection are substantive controls |
+| Geospatial agents and mobility applications [10-14, 19-21] | Spatial evidence requires tools and explicit geographic semantics | MapAgents produces numerical programs linked to OD prediction and measurable feature effects |
+| Cross-area reconstruction and large-scale OD resources [6, 8, 9] | Transfer and broader geographic evaluation are useful extensions | They do not determine the four-week core comparison |
 
-**Gravity law.** Attractiveness \(m_j\) (population, or a compiled mass in B8) and deterrence \(f\):
-\[
-p_{j\mid i}=\frac{m_j\,f(d_{ij})}{\sum_{k}m_k\,f(d_{ik})},\qquad
-f(d)=d^{-\beta}\quad\text{or}\quad f(d)=e^{-\beta d}.
-\]
-\(\beta\) is estimated by maximum likelihood on training-origin destination shares of the commuting table.
+NeuroGravity is outside the main experiment. Reproducing or redesigning its multi-stage model would introduce a separate architecture and task-alignment problem. The proposed study uses G and DG as its principal flow references and concentrates effort on the agents. Public model-generated OD products are not used as ground truth.
 
-**Radiation law.** Opportunity mass \(s_{ij}\) inside the closed disk of radius \(d_{ij}\) centred at \(i\), excluding \(i\) and \(j\):
-\[
-p_{j\mid i}=\frac{m_i m_j}{(m_i+s_{ij})(m_i+m_j+s_{ij})}.
-\]
-We use residential population for \(m\) unless a compiled opportunity mass is named.
-
-**Deep Gravity.** Let \(x_i,x_j\in\mathbb{R}^{m}\) be zone feature vectors and \(d_{ij}\) Euclidean (or network; stated per table) distance. A multilayer map \(g_\theta\) produces logits
-\[
-s_{ij}=g_\theta(x_i,x_j,d_{ij}),\qquad
-p_{j\mid i}=\frac{\exp(s_{ij})}{\sum_{k}\exp(s_{ik})}.
-\]
-Training minimises cross-entropy on destination shares of training origins. Architecture, candidate sampling, and epoch budget are copied from Simini et al. (2021) [3]. MapAgents changes only how \(x_i,x_j\) are built.
-
-### 4.2 Scene card (Surveyor)
-
-Surveyor emits a fixed JSON schema, not prose:
-
-- `region_id`, tessellation name, \(N\)
-- form: `{monocentric, polycentric, corridor, periurban}`
-- dominant attractors: a subset of `{employment_core, campus, hospital, logistics, retail, port, government}`
-- OSM coverage: `{dense, patchy}` plus a hole list of dictionary keys
-- banned keys (religion, ethnicity, person-level amenities)
-- legal scales per key: zone count, buffer ring, or network length
-
-The card \(C_s\) is an input artifact, logged and released.
-
-### 4.3 Typed OSM organisation API (Cartographer)
-
-Cartographer cannot emit raw Overpass. It calls a frozen dictionary:
-
-1. \(\texttt{count\_poi}(z,k,v,b)\) — count of key \(k\), value \(v\), inside zone \(z\) or a buffer of \(b\) metres.
-2. \(\texttt{length\_network}(z,c)\) — length of highway class \(c\) in \(z\).
-3. \(\texttt{area\_share}(z,u)\) — fraction of \(z\) tagged with landuse \(u\).
-4. \(\texttt{access\_count}(z,t)\) — public-transport amenity count of type \(t\).
-5. \(\texttt{coverage\_report}(z,k)\) — density of key \(k\); used to swap a hole for a proxy.
-
-Legal buffers \(b\in\{0,300,800,1500\}\) m. New keys in the main tables are failures.
-
-GeoJSON Agents contrast function calling with free code generation [20]. MapAgents is function calling against this API. GeoColab writes general geospatial scripts [19]; the output here is a feature program that the gate can type-check.
-
-### 4.4 Institutional gate
-
-A candidate program is accepted only if all of the following hold:
-
-- every predicate belongs to the dictionary;
-- a single tessellation; no mixing of output areas with districts, or tracts with counties;
-- population appears at most once, as an origin mass or a radiation opportunity, never as a silent extra destination column stacked on itself;
-- buffers lie in the legal set;
-- runtime and cell caps (no city-wide raw dump);
-- no banned keys.
-
-Reject codes: `UNKNOWN_KEY`, `SCALE_MIX`, `POP_DOUBLE`, `BUFFER_ILLEGAL`, `TIMEOUT`, `BAN`. Guardrail evaluations for LLM agents supply the design precedent [22]. Gate-reject rate is a result, not a footnote.
-
-Cartographer may repair against the reject code at most three times per compilation.
-
-### 4.5 Feature program and execution
-
-\[
-P_s=\bigl\{(k_\ell,v_\ell,\mathrm{agg}_\ell,\mathrm{scale}_\ell)\bigr\}_{\ell=1}^{m}
-\quad\longrightarrow\quad
-X^{P_s}\in\mathbb{R}^{N\times m}.
-\]
-Row \(i\) of \(X^{P_s}\) is the origin feature \(x_i\); row \(j\) is the destination feature \(x_j\). Deep Gravity reads \((x_i,x_j,d_{ij})\). Gravity B8 reads a compiled destination mass
-\[
-m_j^{P_s}=\sum_{\ell\in\mathcal{A}} w_\ell\,X^{P_s}_{j\ell},
-\]
-where \(\mathcal{A}\) is the attractor-key subset and \(w\) is a non-negative normalisation stated in the supplement. The program *text* is the transferable object.
-
-### 4.6 Few-shot Adapter
-
-Let \(\mathcal{B}_{\mathrm{train}}\) be the training origin blocks and \(\mathcal{E}_{\mathrm{train}}=\{(i,j):i\in\mathcal{B}_{\mathrm{train}}\}\). Budget \(\tau\in\{0,0.01,0.10\}\) draws a subset \(E_\tau\subset\mathcal{E}_{\mathrm{train}}\) with \(|E_\tau|=\lceil\tau\,|\mathcal{E}_{\mathrm{train}}|\rceil\), three seeds. Adapter may
-
-- add or drop a dictionary key,
-- change aggregator or buffer,
-- rewrite a proxy when \(\texttt{coverage\_report}\) is low.
-
-Adapter may not touch held-out origins, change Deep Gravity hidden sizes, train longer than the frozen protocol, or invent keys. Acceptance at round \(r\) is mean CPC on held-out origin blocks. Stop at plateau of two rounds or cap \(R=5\).
-
-Leakage check: no held-out origin identifier and no held-out edge statistic enters any prompt.
-
-### 4.7 Orchestration
-
-One compilation pass:
-\[
-C_s \;\xrightarrow{\text{Surveyor}}\;
-P_s^{(0)} \;\xrightarrow{\text{gate}\le 3}\;
-X^{P_s^{(0)}} \;\xrightarrow{\text{fit }\theta\text{ on }\mathcal{B}_{\mathrm{train}}}\;
-\mathrm{CPC}_{\mathrm{hold}}.
-\]
-Adapter then iterates \(P_s^{(r)}\mapsto P_s^{(r+1)}\). Messages, tool calls, reject codes, and program diffs are stored as a trace \(\Gamma_s\).
+Deep Gravity already separates origin and destination inputs. The proposed role-aware contribution therefore requires evidence-conditioned directed feature construction and corresponding ablations; merely naming the two endpoints is insufficient.
 
 ---
 
-## 5. Data
+## 4. Task, DGM priors, and information availability
 
-| Study area | Product | Tessellation | Status |
-| --- | --- | --- | --- |
-| England | 2011 Census commuting (WICID / UK Data Service) | Output Areas inside Deep Gravity \(25\,\mathrm{km}\) tiles |  |
-| Italy | ISTAT commuting matrix | Census areas, same tile protocol |  |
-| New York State | Deep Gravity tract flows + Census geometries | Census tracts |  |
-| One US metro clip | LEHD LODES home–work OD, aggregated to tracts | Tracts |  |
+### 4.1 Prediction support and supplied totals
 
-Inclusion defaults: \(N\ge 25\), \(h_{\mathrm{intra}}\le 0.70\) on the unsliced commuting table. OSM features are rebuilt from a dated planet extract with (i) the frozen Deep Gravity query and (ii) each compiled \(P_s\). Snapshot date is recorded.
+For origin $i$, let $\mathcal D_i$ be the declared candidate destination set. It contains all retained zones in its DGM tile for the native New York example, or all zones in the declared study area for a complete-area task. The target is
 
-Hong Kong attribute OD, Spanish MITMA cubes, proprietary CDR used by neuroGravity, and generated global commuting products as *training* or *ground-truth* sources are out of this paper.
+$$
+\widehat T_{ij}=O_i p_{j\mid i},\qquad
+O_i=\sum_{j\in\mathcal D_i}T_{ij},\qquad
+\sum_{j\in\mathcal D_i}p_{j\mid i}=1.
+$$
 
-The ICLR 2025 commuting-OD benchmark covers \(3{,}333\) regions [8]. We do not adopt it wholesale: city-conditioned compilation needs a scene card and a legal dictionary per tessellation, which that benchmark does not supply. A later subset experiment remains possible; it is not required for the AAMAS object.
+Inference evaluates and normalizes over the complete declared destination set. Computational batches do not define separate softmax denominators. Diagonal cells are retained when present in the source and are reported separately in the analysis.
 
----
+The New York tile task is a collection of complete within-tile matrices. It is not a complete New York State matrix: cross-tile pairs lie outside its prediction support. A whole-area extension changes the task and receives a separate experiment label.
 
-## 6. Evaluation protocol
+### 4.2 Decomposing the public DGM feature construction
 
-**Spatial split.** Five contiguous origin blocks on the tessellation adjacency graph (queen contiguity on tiles or zones). Laws and programs are estimated on training origins. Held-out origins are generated with observed \(O_i\). Report mean \(\pm\) block standard deviation.
+The public New York model uses 18 geographic variables per zone. These aggregation patterns form a prior catalog available to all feature-discovery methods.
 
-**Cross-city transfer.** Compile and fit on England. Zero-shot execute the England program on Italy and the US clip. Then Adapter at \(\tau=0.01\) and \(\tau=0.10\) on the target. Compare with a program compiled from scratch on the target.
+| Family | Number per zone | Aggregation recipe | Candidate extensions |
+| --- | ---: | --- | --- |
+| Land use | 5 | Areas for residential, commercial, industrial, retail, and natural classes | Area fractions, mixed-use composition, neighborhood context |
+| Roads | 3 | Lengths of residential, main, and other roads | Metric length density, road-class composition, measured cross-layer proximity |
+| Transport | 2 | Separate point and polygon counts | Facility subtype, departure/arrival context, nearby opportunities |
+| Food | 2 | Separate point and polygon counts | Finer amenity groups, scale, mass-normalized supply |
+| Health | 2 | Separate point and polygon counts | Distinguish institutions and local services through observed tags |
+| Education | 2 | Separate point and polygon counts | School/university distinctions, campus extent, transport relations |
+| Retail | 2 | Separate point and polygon counts | Store types, commercial clusters, neighboring alternatives |
+| Mass | 1 | Full-source OD row sum, then natural logarithm for the DGM input | Directed mass/facility/distance compositions |
 
-**Metrics.** Primary:
-\[
-\mathrm{CPC}(T,\widehat{T})=\frac{2\sum_{ij}\min(T_{ij},\widehat{T}_{ij})}{\sum_{ij}T_{ij}+\sum_{ij}\widehat{T}_{ij}}.
-\]
-Companions, following Deep Gravity Supplementary Note 1 [3]: Pearson correlation on \(\log(1+T_{ij})\) and \(\log(1+\widehat{T}_{ij})\); NRMSE with denominator \(\sqrt{N^{-2}\sum_{ij}(T_{ij}-\bar T)^2}\); Jensen–Shannon divergence between the empirical histograms of \(\{T_{ij}\}\) and \(\{\widehat{T}_{ij}\}\).
+The OD vector is
 
-**Shots.** Uniform draw over training-block pairs, three seeds.
+$$
+x_{ij}^{\mathrm{DG}}
+=\operatorname{concat}\!\left[
+\log M_i,\ G_i^{18},\ \log M_j,\ G_j^{18},\ d_{ij}
+\right],
+\qquad \dim x_{ij}^{\mathrm{DG}}=39.
+$$
 
-**Compute.** One backbone copied from [3]. One frozen instruction model for all agents; snapshot named in the appendix. Temperature \(0\) for Cartographer and Adapter; \(0.2\) for Surveyor.
+The supplied New York geographic vector has been checked against the local stored representation: the 18 values in `oa2features.pkl` match the first component of the 18 named aggregates on all 5,367 shared zones. Five polygon fields also contain a second component in the JSON source; these components are constant zero and do not enter the original 18-dimensional vector.
 
-**Output-level reference (not a method baseline).** On the same held-out origins we score publicly released GlODGen predicted flows [9] against local census ground truth. GlODGen is a satellite + VLM + graph-diffusion product whose training stack is not rerunnable here. The number records consistency of that public output with local truth. It is not a same-backbone comparison. If MapAgents on the local hold-out meets or exceeds that reference, the result supports city-conditioned compilation against a single global generator.
+The README describes area normalization. The public New York loader instead reads the stored vector and prepends the log-mass variable without applying an additional area division. A reproduction must follow the executed data path. Newly recomputed OSM areas and lengths use documented projected units; the unusually small stored upstream values are not silently relabeled as valid physical measurements.
 
----
+These seven geographic families are starting recipes, not a closed attractor vocabulary. Surveyor may investigate any observed tag or supported spatial relationship. Operator typing controls whether an expression can execute; it does not restrict discoveries to a fixed list of semantic categories.
 
-## 7. Baselines
+### 4.3 DGM mass prior
 
-### Table A — Agent protocol
+The public loader names its mass variable `oa2pop`, but constructs it as
 
-Mean hold-out CPC. Fill after the run.
+$$
+M_z=\sum_{u\in\mathcal D_{\mathrm{raw}}}F^{\mathrm{raw}}_{zu}.
+$$
 
-| ID | System | England | Italy | NYS / LODES | Mean |
-| --- | --- | --- | --- | --- | --- |
-| A0 | Single-agent ReAct, same API and gate [15] |  |  |  |  |
-| A1 | Three-role chat, no tools [16, 17] |  |  |  |  |
-| A2 | Surveyor \(\to\) Cartographer \(\to\) Adapter, gate off |  |  |  |  |
-| A3 | Frozen Deep Gravity `osm_query.yaml` [3] |  |  |  |  |
-| A4 | Random dictionary subset, same cardinality as \(P_s\) |  |  |  |  |
-| A5 | MapAgents (full) |  |  |  |  |
+This sum is computed from the complete source flow file before within-tile filtering. Missing or zero values are replaced by $10^{-6}$ before taking the logarithm. At the destination endpoint, $M_j$ is the outgoing total of zone $j$, not its incoming total and not an independent census population count.
 
-Human-written program on England only: appendix upper reference.
+The main New York protocol will retain this definition. G, DG, and the relevant agent controls receive the same declared mass prior. $M_i$ can differ from the internal prediction total $O_i$, because their destination supports differ. An amenity-to-mass ratio is interpreted as facilities relative to recorded movement volume, not facilities per resident.
 
-### Table B — Flow generators
+The information contract has three parts:
 
-All production-constrained, same \(O_i\), same spatial split. Primary cell is CPC; companions in the supplement.
+- Raw geography, geographic identifiers, prior recipes, and the supplied zone masses are available for all zones.
+- Training OD entries fit numerical parameters. Validation OD entries support checkpoint selection, residual diagnosis, and program search.
+- Final test OD entries, test residuals, and test scores do not guide agents or model selection.
 
-| ID | Generator | Features | England CPC | Italy CPC | NYS / LODES CPC | Pearson | NRMSE | JSD |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| B1 | Gravity, power | population |  |  |  |  |  |  |
-| B2 | Gravity, exponential | population |  |  |  |  |  |  |
-| B3 | Radiation | population |  |  |  |  |  |  |
-| B4 | Deep Gravity | frozen OSM table [3] |  |  |  |  |  |  |
-| B5 | Deep Gravity | MapAgents \(P_s\), \(\tau=0\) |  |  |  |  |  |  |
-| B6 | Deep Gravity | MapAgents \(P_s\), \(\tau=1\%\) |  |  |  |  |  |  |
-| B7 | Deep Gravity | MapAgents \(P_s\), \(\tau=10\%\) |  |  |  |  |  |  |
-| B8 | Gravity, exponential | compiled destination mass \(m_j^{P_s}\) |  |  |  |  |  |  |
-| B9 | Deep Gravity | Atwal residential / non-residential building table [5] |  |  |  |  |  |  |
+The source masses include aggregate information from validation and test zones by design. This is conditional OD allocation with supplied aggregate priors, not prediction with no target-area flow information. The map tool can expose those prepared covariates without exposing the underlying OD rows. For another dataset, the mass source and its geographic support must be stated explicitly; suppressed or partial source rows cannot silently stand in for a complete total.
 
-B8 tests whether compiled mass already lifts a shallow law (physics-informed shallow end [7]). B9 puts Atwal’s building-type extractor on the Deep Gravity MLP so the contrast is “one building-type table versus a compiled program” on the *same* backbone. neuroGravity is not a Table B row: it changes \(\theta\). GlODGen is not a Table B row: it is the output-level reference in §6.
+### 4.4 Restoring a credible DG reference
 
-### Table B-x — Cross-city program transfer
+A matching layer count or 39-dimensional input is not sufficient to establish a DGM reproduction. The planned reference must resolve the following against the local original implementation before it supplies paper results.
 
-CPC on the target geography.
-
-| Source \(\to\) target | \(\tau=0\) (zero-shot program) | \(\tau=1\%\) | \(\tau=10\%\) | From-scratch \(P_s\) on target |
-| --- | --- | --- | --- | --- |
-| England \(\to\) Italy |  |  |  |  |
-| England \(\to\) NYS / LODES |  |  |  |  |
-
----
-
-## 8. Ablations
-
-### Table C — Knockouts
-
-Hold-out CPC, England default; other geographies in the supplement.
-
-| Knockout | Removes | CPC | \(\Delta\) vs A5 |
-| --- | --- | --- | --- |
-| −Surveyor | Generic “commuting city” card |  |  |
-| −Gate | Institutional gate off |  |  |
-| −Adapter | \(\tau=0\) only |  |  |
-| −API | Population + distance |  |  |
-| −Roles | Collapse to A0 ReAct |  |  |
-| −Transport | Drop transport keys |  |  |
-| −Education | Drop education keys |  |  |
-| −Landuse | Drop land-use keys |  |  |
-| −Retail | Drop retail keys |  |  |
-
----
-
-## 9. Analysis of agent traces
-
-Traces \(\Gamma_s\) are data. The LLM is not asked to explain itself in prose.
-
-**Validity.**
-\[
-\mathrm{valid}=\frac{\#\{P_s:\text{executes}\}}{\#\{\text{compilation attempts}\}}.
-\]
-Mean repair rounds. Histogram of reject codes.
-
-**Specificity.** For key sets \(K(P)\),
-\[
-J(P,P')=\frac{|K(P)\cap K(P')|}{|K(P)\cup K(P')|}.
-\]
-Report within-city repeats (\(n=5\)) versus across-city pairs. Low within-city \(J\) is instability. High across-city \(J\) is failed specialisation.
-
-**Faithfulness.** Fraction of Surveyor attractors that appear in \(K(P_s)\); fraction of compiled keys absent from the card (hallucinated attractors).
-
-**Utility.** \(\Delta\mathrm{CPC}(\mathcal{F})\) from §2 for each key family.
-
-**Adaptation path.** For each Adapter step, edit type \(\in\{\mathrm{add},\mathrm{drop},\mathrm{buffer},\mathrm{proxy}\}\) against \(\Delta\mathrm{CPC}\). One plot of CPC versus \(\tau\).
-
-**Leakage audit.** Automatic string check that no held-out origin id or held-out edge statistic enters a prompt.
-
-**Human audit.** Twenty programs, two raters: executable, card-faithful, gate-legal. Cohen’s \(\kappa\) and pass rate.
-
-### Table D — Trace diagnostics
-
-| Geography | Valid rate | Mean repairs | Within-city \(J\) | Across-city \(J\) | Card alignment | Hallucinated keys | Human pass |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| England |  |  |  |  |  |  |  |
-| Italy |  |  |  |  |  |  |  |
-| NYS / LODES |  |  |  |  |  |  |  |
-
-Figures: (1) hold-out CPC by generator and geography; (2) CPC versus \(\tau\); (3) tag-set Jaccard heatmap; (4) reject-code bars; (5) England versus Italy program diff, one tile.
-
----
-
-## 10. Expected empirical shape
-
-On the Deep Gravity geographies, under the same backbone and the same spatial hold-out, a compiled program beats the frozen OSM table. The lift is larger where OSM coverage and urban form depart from the implicit England-centric inventory. Zero-shot program transfer already moves CPC; \(1\%\) edges rewrite the hole list and add the missing attractor family; \(10\%\) approaches a from-scratch target program.
-
-Single-agent ReAct issues more calls and compiles less stable tag sets. Tool-free role play does not emit a legal program. Ungated Cartographer raises `TIMEOUT` and `SCALE_MIX` and does not raise CPC. Random tag subsets of the same cardinality stay near population-only gravity. Adapter edits concentrate on coverage proxies and one or two city-dominant attractors rather than on rewriting the whole dictionary. B9 (building types only) sits between frozen DG and full \(P_s\).
-
-City specificity in commuting OD lives in the feature program. Surveyor changes the legal key set, the gate makes the program auditable, Adapter rewrites the program faster than a backbone refit.
-
----
-
-## 11. Eight-page map
-
-| Pages | Content |
+| Component | Required agreement or explicitly named adaptation |
 | --- | --- |
-| 0.7 | Abstract, problem, thesis, WorldCoder + neuroGravity orthogonality |
-| 0.9 | Related-work contrast (Table in §3 compressed to one page of prose + one small table) |
-| 2.2 | Method: card, API, gate, \(P_s\), Adapter, named backbones, displayed equations |
-| 0.5 | Data and split |
-| 2.0 | Tables A–C, Figures 1–2 |
-| 1.2 | Trace analysis, Table D, Figures 3–5, human audit |
-| 0.5 | Conclusion |
+| Inputs | The 18 actual geographic columns, both log-mass variables, their order, zero handling, and distance |
+| Preprocessing | The stored feature vector, geometry and centroid conventions, logarithms, and any scaling |
+| Architecture | The full original network, activations, dropout, and parameter initialization |
+| Training | Destination sampling, target construction, count-weighted objective and reduction, optimizer, epochs, and checkpoint policy |
+| Splits and support | Original tile assignments for the native case; any separate validation split and exclusions documented |
+| Prediction and evaluation | Native output/scoring behavior reproduced; paper matrices also scored on the explicitly declared support |
 
-Anonymous supplement: dictionary, card schema, prompts, reject codes, per-block CPC, three worked programs.
+Keep two records: native DGM reproduction results, and common-support matrix evaluation of the resulting predictions. Where a source scoring convention and the matrix metric differ, report the difference rather than changing the formula under the same name. A benchmark adaptation must be identified as such.
 
----
-
-## 12. Reproducibility packet (anonymous at submission)
-
-- Frozen tool dictionary and gate.
-- Scene-card schema and three worked cards.
-- Compiled programs for every area \(\times\,\tau\,\times\) seed.
-- Feature tables and train / hold-out origin identifiers.
-- Scripts that recompute CPC, Pearson, NRMSE, JSD.
-- Trace logs with tool arguments.
-
-Census flows remain behind their original licences; download scripts and hashed manifests ship. The LODES clip ships.
+The earlier development references, CPC/RMSE $0.9105/130.01$ and $0.9285/105.14$, do not meet this complete reproduction requirement. The second restored mass inputs and changed the input schema while retaining the project's own preprocessing and training choices. They are development validation measurements, not original DG results or evidence of an agent improvement. Main-table cells remain unfilled until the reference is rebuilt.
 
 ---
 
-## 13. Calendar
+## 5. Multi-agent method
 
-| Window | Output |
+### 5.1 Responsibilities and initialization
+
+Surveyor is the first investigative layer. The initial pass begins with source metadata, the DGM aggregation prior, raw map objects, and retrieved mobility knowledge. A separately fitted DG reference can then supply development residuals. In later rounds Adapter directs new investigations.
+
+| Agent | Evidence available | Decision responsibility | Output |
+| --- | --- | --- | --- |
+| Surveyor | RAG knowledge, raw OSM, local profiles, declared mass covariates, directed pair profiles | Which measurement or spatial relation could distinguish competing explanations? | Evidence-backed mechanisms, endpoint-role hypotheses, and executable measurement requests |
+| Cartographer | Mechanisms, numerical tool results, operator definitions, current program | How should a mechanism become a reusable feature, and does it have informative numerical behavior? | Typed expressions, feature reports, repairs, and evidence bindings |
+| Adapter | Training/validation protocol, validation residuals, candidate outcomes, search history | Which failures deserve investigation, which edit to retain, and where to spend the next search budget? | Diagnostic targets, accepted program, training configuration, and next-round requests |
+
+A standard optimizer fits model weights. Adapter controls the prescribed search and fitting workflow; the LLM does not invent gradients or replace numerical optimization.
+
+### 5.2 Surveyor: retrieval and local investigation
+
+Surveyor uses two complementary evidence sources. Knowledge retrieval covers OSM tag meanings, mobility-related feature organization, and known aggregation recipes, drawing on the local `resources/LLMrag` collection. Geographic retrieval executes against the actual study-area objects and covariates.
+
+Local dossiers contain facility tags and source object identifiers, measured counts and geometry, zone area, nearby zones, and zones with similar existing feature vectors. Similar-feature pairs are especially useful: they can reveal raw-map distinctions collapsed by the original aggregates. Observed tag frequency describes the available map; it does not measure real-world mapping completeness.
+
+Surveyor can request:
+
+- zone profiles and tag-specific object retrieval;
+- area, length, count, density, neighborhood, and cross-layer measurements;
+- profiles that preserve the ordering of an origin-destination pair;
+- feature probes that return distributions, redundancy, and within-origin variation;
+- directed pair probes that evaluate the same expression before and after endpoint reversal.
+
+The URBANSEM skill organization informs these local dossiers and cross-layer investigations. The study retains the DGM task and predictor rather than importing URBANSEM's NG-specific feature assumptions.
+
+### 5.3 Perceiving distinct origin and destination roles
+
+For a zone $z$, let $r_z^{o}$ and $r_z^{d}$ denote numerical role descriptors constructed by executable expressions. They can use the same raw evidence with different transformations or neighborhoods. The descriptors need not form mutually exclusive classes or sum to one.
+
+A program may construct
+
+$$
+\phi_k(i,j)=f_k(r_i^{o},r_j^{d},d_{ij},\mathcal N_i,\mathcal N_j).
+$$
+
+The origin role represents conditions that can modulate destination choice, such as movement scale, facility composition, or departure access. The destination role represents candidate opportunities and arrival context. A mixed commercial-residential zone may have both roles, and its relationship to a neighboring center can differ from its relationship to a distant institution.
+
+Examples of candidate forms include origin mass interacting with destination facility supply; destination supply relative to its movement mass; origin land-use composition paired with a different destination composition; and departure/arrival contexts combined with a distance basis. These are hypotheses to measure, not explanations established by their names.
+
+For example, if $A_j$ is a measured destination facility count, a candidate can express
+
+$$
+\phi_{\mathrm{mass,supply}}(i,j)
+=\log(1+M_i)\,\frac{A_j}{1+M_j}\,\exp(-d_{ij}/h).
+$$
+
+Here the origin supplies movement context, the destination supplies facility intensity relative to its movement mass, and $h$ specifies a distance scale. The unit pseudocount regularizes zero mass. The role hypothesis, denominator, and scale must be supported or selected within development; the fitted coefficient and final softmax determine the prediction effect. Reversing endpoints exchanges the source and opportunity quantities. Other role constructions remain available, and none is required to improve prediction merely because it has this form.
+
+Each feature records `origin_role`, `destination_role`, the supporting measurements, and the expected effect of swapping endpoints. A directed expression is evaluated as both $\phi_k(i,j)$ and $\phi_k(j,i)$. A nonzero difference demonstrates directional numerical behavior, but does not by itself establish that the proposed role interpretation is correct.
+
+A standalone additive term depending only on the origin is constant across its destination row and cancels under softmax. Origin context must therefore enter an interacting pair term if it is to affect the program branch. Symmetric relations remain valid candidates when appropriate; directionality is not enforced by arbitrary asymmetry.
+
+### 5.4 Cartographer: from hypotheses to spatial programs
+
+A feature program consists of typed zone or pair expressions:
+
+$$
+P=\{(\mathrm{name}_k,\mathrm{scope}_k,\phi_k,\mathrm{hypothesis}_k,
+\mathrm{evidence}_k,\mathrm{roles}_k)\}_{k=1}^{K}.
+$$
+
+The operator surface includes tag predicates; point/line/polygon aggregation; zone area; buffers; centroid neighborhoods and nearest neighbors; actual geometry proximity between layers; arithmetic and stabilized ratios; and distance functions. Network travel time or centrality requires an actual network measurement tool and cannot be inferred from road density.
+
+Semantic categories and program width are open. Execution resources are bounded: a candidate adds a small number of focused terms, and repair attempts have a fixed budget. The same program applies across the study area. Place names and zone IDs can locate evidence, but are not numerical lookup rules in the predictor.
+
+The executor checks syntax, units where available, source columns, numerical finiteness, variation, duplication, and evidence references. Failed requests return explicit feedback. New feature names cannot be used as if they were raw source columns unless a documented reference-expansion mechanism exists.
+
+An evidence link must identify the measurement relevant to the expression. Citing any successful overview is insufficient for a new raw-map relation. A candidate reports whether it adds a finer semantic group, a new aggregation scale, a cross-layer relation, or a composition of existing variables. These distinctions support the feature-library controls.
+
+### 5.5 Trainable predictor and interpretable program branch
+
+The main design retains the complete DG base representation and augments its score:
+
+$$
+s_{ij}=g_\theta(x_{ij}^{\mathrm{DG}})
++\sum_{k=1}^{K}\beta_k\,z_k(i,j),
+\qquad
+\widehat T_{ij}
+=O_i\frac{\exp(s_{ij})}{\sum_{u\in\mathcal D_i}\exp(s_{iu})}.
+$$
+
+Here $z_k$ is a compiled feature after a documented transformation fitted on training data. All DG parameters $\theta$ and program coefficients $\beta$ remain trainable. Program changes can add or remove terms and transfer compatible parameters by expression identity. Separate learning rates and modest regularization for the program branch are development choices to fix before final evaluation.
+
+DG itself can accept different feature dimensions. The additive program branch is the primary proposal because it makes the program's score contribution explicit. Concatenating discovered features into a flexible DG input is a possible supplementary architecture comparison, not a substitute for completing the main agent experiment.
+
+The base inputs remain available to the predictor. Reusing mass in distinct pair compositions is permitted; a blanket rule allowing population only once would exclude legitimate nonlinear relationships. Numerical duplication and within-row degeneracy are checked at the expression level.
+
+### 5.6 Adapter: residual-guided revision
+
+Adapter receives observed and predicted validation values with residuals defined as $T-\widehat T$, together with computed underprediction/overprediction directions. Diagnostic targets include off-diagonal pairs, destination totals, distance bands, and self-flow allocation. Claims about a residual's direction are checked against its numerical record.
+
+For each round:
+
+1. Adapter selects a bounded set of failures and proposes competing measurable explanations.
+2. Surveyor investigates the associated zones and directed relationships.
+3. Cartographer produces candidate edits and responds to execution feedback.
+4. Numerical training fits each candidate on training OD rows.
+5. Validation scores compare candidates with the incumbent and with further training of the unchanged program.
+6. Adapter retains a useful candidate or records that no edit improved the selection objective.
+
+A working development budget is three rounds with two candidates per round. The final budget and stopping rule are fixed before test evaluation. Continuing DG training is an essential control, but equal continuation depth is not equal compute: the agent search evaluates additional candidate models.
+
+The loop transfers both program information and compatible numerical parameters when useful. It does not require frozen weights or assume that changing program text is cheaper than model fitting.
+
+---
+
+## 6. Data and four-week scope
+
+New York is the initial debugging and method-development area. London and Paris are the intended core external areas; Madrid and Barcelona provide additional settings once their suppression and support rules are handled. Italy remains a separately documented extension. The goal is a small set of scientifically usable settings, not a claim that a particular city count guarantees publication.
+
+| Study area | Local source and unit | Geographic unit | Role in the plan |
+| --- | --- | --- | --- |
+| New York State | Public DGM example derived from GeoDS general movement; exact OD observation date unresolved | Census tracts within native DGM tiles | Initial reference reproduction and agent development |
+| Greater London | 2011 Census WU03EW residence-to-work counts, in people | 983 MSOAs | Core external area after establishing missing-pair semantics |
+| Paris / Ile-de-France | INSEE 2022 census reference-year weighted residence-to-work counts; 2025 geographic codes | 1,285 communes and Paris arrondissements | Core external area; retain weights and geographic version |
+| Madrid province / autonomous community | INE 2023 registered residence-to-work counts | 179 municipalities | Extension with explicit suppression handling |
+| Barcelona province | INE 2023 registered residence-to-work counts | 311 municipalities | Extension with explicit suppression handling |
+| Italy | ISTAT 2011 municipality residence-to-work counts | Municipalities; any study-area subset declared before fitting | Optional cross-country extension, not the original DGM census-area benchmark |
+
+The Italy municipal files do not reconstruct the original census-area OD experiment. Likewise, the London MSOA table is not a reproduction of the original England OA experiment. Neither source is described as categorically closed merely because the exact paper slice is unavailable.
+
+The Spanish release publishes combinations with at least five employed people. Unpublished pairs cannot be turned into true zeros. If complete target totals and observation semantics cannot support the full-matrix task, those datasets receive a separate censored-observation analysis or remain outside the main accuracy table. For all sparse sources, distinguish unreported pairs, suppressed values, and documented zeros before constructing dense targets.
+
+Internal and external flows remain separate. Internal prediction totals sum only over internal destinations. Special workplace categories without a zone geometry are not assigned artificial polygons.
+
+New York now has a historical OSM archive with nominal date **2020-01-01**. It is a historical development choice; its exact match to the OD observation date is not established. The 2026 New York snapshot is not an input to the main workflow. Other areas require their own recorded temporal relationship between OD and map data; a current snapshot is never described as same-year data. No additional downloads are part of this document revision.
+
+---
+
+## 7. Evaluation and controlled variables
+
+### 7.1 What must be shared
+
+Flow baselines may retain their own architecture, optimizer, feature transformations, and training settings. Their comparison must nevertheless concern the same target quantities.
+
+| Control | Flow-model comparison | Agent-mechanism comparison |
+| --- | --- | --- |
+| OD source, geographic unit, year, and observation mask | Same within a dataset | Same |
+| Origin split and destination support | Same declared benchmark support | Same |
+| Supplied totals and mass information | Same information contract; differences receive a separate label | Same |
+| Raw data available | Document each model's intended inputs | Same map, prior, and retrieval access except the ablated component |
+| Architecture and optimization | Native, scientifically documented settings | Same DG/program architecture and fitting protocol |
+| Hyperparameter and validation access | Document each method's selection procedure | Same candidate evaluation allowance |
+| LLM, prompts, and tool budgets | Not applicable to G/DG | Same base LLM and comparable total budgets, with actual costs reported |
+| Prediction scoring | One evaluator on aligned matrices | Same |
+
+A native DGM reproduction is recorded before adaptations for a common benchmark. Rebuilding the DGM aggregation prior from historical raw OSM is another identifiable feature version; it must not silently replace the original stored baseline.
+
+### 7.2 Splits and model selection
+
+For New York, preserve the original test-tile assignment and define validation using only the original training tiles. Any removal of invalid or empty supports is documented independently of model performance. For other areas, use a fixed spatial origin split when feasible and distinguish it from an origin-random split. An existing random split can be retained as a separately named evaluation, not relabeled as spatial generalization.
+
+Training fits parameters; validation selects checkpoints and programs by **off-diagonal CPC**. Total matrix CPC is recorded and does not decide keeps on the New York GeoDS example (internal diagonal share about 0.89). Test scoring follows the frozen program and protocol and reports total CPC, off-diagonal CPC, RMSE, and off-diagonal RMSE. `runs/new_york_grounded_mass` selected on total CPC and is not a valid program search. A complete origin row is the preferred supervised unit under row-normalized prediction. Randomly exposing isolated positive edges does not provide an equivalent destination distribution.
+
+The selected program can use all geographic covariates and the declared mass prior. Test geographic IDs are therefore not themselves forbidden prompt content. What remains unavailable during development is test pair-level supervision and performance feedback.
+
+### 7.3 Prediction metrics
+
+Primary accuracy is CPC on the declared evaluation cells $\Omega$:
+
+$$
+\mathrm{CPC}
+=\frac{2\sum_{(i,j)\in\Omega}\min(T_{ij},\widehat T_{ij})}
+{\sum_{(i,j)\in\Omega}T_{ij}+\sum_{(i,j)\in\Omega}\widehat T_{ij}}.
+$$
+
+When total mass is equal, CPC equals $1-\|T-\widehat T\|_1/(2\sum T)$. It measures matrix overlap, not the fraction of identified individuals sent to their actual destination.
+
+RMSE is reported alongside CPC:
+
+$$
+\mathrm{RMSE}
+=\sqrt{\frac{1}{|\Omega|}\sum_{(i,j)\in\Omega}
+(T_{ij}-\widehat T_{ij})^2}.
+$$
+
+Companion metrics are NRMSE using the standard deviation of observed values on $\Omega$, Pearson correlation of `log1p` flows, and mean row-wise Jensen-Shannon divergence over positive observed rows using natural logarithms. Row-wise JSD compares destination allocations rather than a histogram of cell magnitudes. Undefined statistics are reported as such.
+
+The main table includes overall and off-diagonal CPC/RMSE. Off-diagonal metrics use the off-diagonal cells directly without rescaling the remaining flows. Diagonal observed/predicted shares, destination-total error, and distance-band allocation provide compact diagnostics.
+
+For multiple tiles, pooled matrix metrics and equal-tile means are different summaries. Main matrix metrics pool the declared cells; native DGM tile summaries are reported separately. Current development logs contain equal-tile means and cannot be copied into a pooled-matrix column. Scores from single-zone tiles and the fraction of self-flow are visible; regions are not removed after observing that they favor a baseline.
+
+Cross-area summaries use dimensionless paired changes or equal-area ranks. Raw RMSE values are kept per dataset because movement counts and weighted commuting people have different scales and meanings.
+
+### 7.4 Seeds and LLM variation
+
+Use three declared numerical training seeds for stochastic models in the main comparison, with the data split fixed. A deterministic Gravity fit is reported once. For a fixed discovered program, the repeated runs measure fitting variability. Report mean and standard deviation without treating the runs as independent cities.
+
+On New York and one external area, repeat the entire agent discovery three times to measure program-search variability. Reusing a single program across three model seeds is not an end-to-end multi-agent reproducibility result. Agent repeats and training repeats are reported separately rather than expanded into an unnecessary factorial experiment.
+
+DeepSeek is the initial common LLM for all roles and LLM controls; record the exact model identifier, parameters, and run date. A second LLM on New York and one external area is a secondary portability study after the core comparisons. Full repetition of every city, seed, and LLM combination is outside the four-week core.
+
+### 7.5 Cost and information budget
+
+Record successful and failed LLM calls, prompt/completion tokens, retrieval calls, tool queries, rejected programs, candidate fits, training time, and end-to-end time. A multi-agent system is not credited with equal compute merely because it uses the same number of rounds as a single agent.
+
+Within the agent table, compare under fixed candidate-fit and LLM/tool ceilings and report actual consumption. A supplementary cost-versus-quality curve can reveal whether a gain survives comparable search expenditure.
+
+---
+
+## 8. Main comparisons and ablations
+
+### 8.1 Main OD prediction table
+
+The core table uses G, DG, and MapAgents. Gravity's power and exponential distance variants may be shown as two rows or selected on validation with the choice declared. Each uses the documented mass prior and the same output-total condition.
+
+NY only, 163 test tiles, `dgm_mass` prior. CPC is internal-matrix CPC, not the original DGM evaluator (0.444 on 188 tiles). Diagonal share 0.888; off-diagonal CPC is the informative column. Audit: `runs/new_york_main_table/REPORT.md`.
+
+| Method | Mass and geographic inputs | CPC | RMSE | Off-diagonal CPC | Off-diagonal RMSE |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Gravity | Declared mass prior and distance; fitted deterrence parameters | 0.902 | 148.2 | 0.208 | 137.0 |
+| Deep Gravity | Original `main.py`, 39-d mass+geography, last epoch | 0.911 | 121.8 | 0.431 | 114.2 |
+| MapAgents + DG | Same base inputs plus discovered role-aware spatial program; joint training | 0.935* | 97.0* | 0.513* | 93.2* |
+
+\*Currently identical to `runs/new_york_grounded_mass/reference/model.pt`. That search kept programs by total matrix CPC and is withdrawn. The next MapAgents run must select by off-diagonal CPC and write a new output directory.
+
+Repeat the block for each eligible dataset; display three-seed summaries. The main table does not force classical gravity through a neural architecture and does not contain a partial NeuroGravity implementation. Further training of unchanged DG is included in the agent controls so that an apparent gain is not attributed to feature discovery when it comes from more fitting.
+
+### 8.2 Feature-discovery and agent controls
+
+| Control | Definition | Question answered |
+| --- | --- | --- |
+| DG continuation | Keep the original feature program and allow additional fitting/selection budget | Does extra optimization explain the gain? |
+| Fixed expanded feature library + DG | A predeclared library of finer tags, scales, mass normalizations, and directed combinations | Is richer input availability sufficient without adaptive discovery? |
+| Non-LLM feature search | Search that library under the same candidate-fit allowance | Is language-guided selection useful beyond numerical search? |
+| LLM feature selection | An LLM selects from the same documented library and numerical summaries; it cannot invent expressions | Does program construction add value beyond LLM column selection? |
+| Single-agent tool loop | One agent receives the same knowledge, tools, feedback, and total budget | Does separating investigative responsibilities help? |
+| MapAgents | Surveyor, Cartographer, and Adapter with structured handoffs | Does the complete cooperative workflow add value? |
+
+The feature library includes direction-sensitive and mass-combination candidates, not only the original 18 aggregates. It is fixed before the evaluated search. LLM selection is a competitive baseline with retrieval and validation feedback, not a deliberately tool-free chat task.
+
+The shared library comparison establishes the value of selection and coordination within a common candidate space. Unrestricted program discovery can additionally construct expressions outside the library; results identify that expansion instead of attributing it entirely to the number of agents.
+
+### 8.3 Focused component removals
+
+| Variant | Single intended change | Evidence |
+| --- | --- | --- |
+| Without knowledge RAG | Keep map tools; remove retrieved mobility documents | Accuracy, useful candidates, and cost |
+| Without raw-map investigation | Keep the same supplied aggregates and mass prior; remove raw object queries | Value of recovered geographic measurements |
+| Without role-aware investigation | Remove ordered dossiers, role-specific hypotheses, and reversal feedback; retain the directed DG predictor and available operators | Value of explicit endpoint-role reasoning |
+| Without Adapter feedback | Propose the candidate batch without sequential residual/selection feedback, under the same fit allowance | Value of iterative adaptation |
+| Single agent | Preserve the same information and tools; collapse responsibility separation | Value of multi-agent cooperation |
+
+Disabling runtime type checking is not a principal scientific baseline. Executability is infrastructure; the main contribution must survive stronger information- and budget-controlled comparisons.
+
+Fixed-weight feature removal and retrained component ablation answer different questions. Both are named explicitly when used. There is no human-written upper reference or manual audit requirement.
+
+---
+
+## 9. Explanatory evidence and program analysis
+
+### 9.1 Traceable representations
+
+The explanatory object links an observed map or supplied covariate, a hypothesis, an endpoint-role description, an executed expression, and a numerical model contribution. A log of fluent LLM reasoning alone is not an explanation of the fitted predictor.
+
+Automatically report execution success, repair counts, successful measurement coverage for selected features, constant/duplicate rejection, selected program size, and the number of accepted edits. Failed measurements cannot support a feature simply because their request appears in a trace. The automatic artifact is `execution_report.json`.
+
+Tag and expression similarity across repeated searches are descriptive stability measures. High cross-area overlap can reflect reusable mechanisms; low overlap can reflect either useful adaptation or unstable search. Neither is interpreted without accuracy, evidence, and feature-value context. A valid new tag absent from an initial scene summary is not automatically a hallucination.
+
+### 9.2 Exact program contribution
+
+For a trained program branch, report the contribution centered over the complete destination row:
+
+$$
+c_k(i,j)=\beta_k\left[
+z_k(i,j)-\frac{1}{|\mathcal D_i|}
+\sum_{u\in\mathcal D_i}z_k(i,u)
+\right].
+$$
+
+The sum of these terms exactly describes the centered additive program score. It does not decompose the entire nonlinear DG backbone. The transformation and coefficient are part of the explanation, so a positive raw feature or coefficient alone is not interpreted as an unconditional flow increase.
+
+Remove term $k$ at fixed learned weights, renormalize over the same destination row, and record
+
+$$
+\Delta_k(i,j)=\widehat T_{ij}-\widehat T^{(-k)}_{ij}.
+$$
+
+Report its effect on CPC, RMSE, and the originally diagnosed pairs. Disabling the program head measures the program's contribution within the fitted model; it is not a separately trained DG baseline or a causal intervention on urban behavior.
+
+### 9.3 Does the explanation correspond to the revision?
+
+For each diagnostic target, retain its observed value, parent prediction, requested correction direction, new prediction, and term-removal predictions. Measure both direction agreement and reduction in absolute error: moving in the requested direction can still overshoot.
+
+For role-aware terms, retain measured forward and reverse feature values. Compare role-aware and role-ablated programs under the same fitting protocol. Reversal probes verify expression behavior; predictive comparisons determine whether that behavior is useful.
+
+Choose illustrative cases using a declared rule, such as the largest program-induced changes within several distance and zone-size strata, and include both improvements and failures. Development targets explain the search process. Any final test case study is produced after freezing the method and does not trigger another revision.
+
+| Analysis | Automatic output | What it supports |
+| --- | --- | --- |
+| Execution report | `execution_report.json`: query success, Cartographer repairs, measurement coverage, constant/duplicate rejection, selected program size, accepted edits | A feature is supported only by successful measurements, not by a failed request in the trace |
+| Evidence binding | Source object or covariate, query, measured value, expression | Traceability |
+| Role probes | Ordered endpoint contrasts and reversed expression values | Directed representation behavior |
+| Additive terms | Coefficients and centered score contributions | Exact explanation of the program branch |
+| Fixed-model removal | Flow, CPC, and RMSE changes with each term disabled | Predictive fidelity within the fitted model |
+| Targeted revision | Requested direction, realized change, absolute-error change | Whether an edit addresses its stated failure |
+| Repeatability and cost | Program/value stability, tokens, queries, model fits | Reliability and effort |
+
+No human rater study, Cohen's kappa, or manual program audit is included in the four-week plan.
+
+---
+
+## 10. Extensions and interpretation of outcomes
+
+The core study is feature discovery and role-aware multi-agent cooperation. Cross-city program transfer is a secondary experiment after completing the main comparisons.
+
+A transfer study must distinguish executing a source-discovered program on target geography, fitting new target model weights with that program fixed, adapting source weights, and jointly revising the program and weights. Executing a program on a new city is not automatically zero-shot OD prediction.
+
+If a small-label experiment is added, use complete origin-row budgets such as 1% and 10%, with validation and test access declared separately. Compare fixed-program parameter adaptation, program revision, and joint adaptation under equal target supervision. The full transfer grid is not a four-week requirement.
+
+Interpret the empirical outcomes as follows:
+
+- If MapAgents improves over DG and the single-agent/search controls, the results support useful cooperative representation discovery.
+- If DG improves only after restoring mass inputs, that is a baseline correction and supplies no evidence for agents.
+- If accuracy is similar but program contributions are faithful and useful, describe the measured accuracy-explanation tradeoff. Similar scores alone do not establish a multi-agent contribution.
+- If the selected program head is inactive, do not claim that the selected predictor gained an interpretable correction.
+- If several cities benefit while others do not, relate the differences to measured data and program behavior without excluding unsuccessful settings.
+
+The study does not predeclare that tool-free agents fail, that every city needs different tags, or that the multi-agent system is cheaper than a single agent.
+
+---
+
+## 11. Four-week work plan
+
+| Week | Main output | Completion criterion |
+| --- | --- | --- |
+| 1 | Native DG reproduction record, explicit matrix evaluator, DGM prior decomposition, New York historical-data contract | Baseline inputs, training, support, and metrics are unambiguous before comparative claims |
+| 2 | New York role-aware agent loop, LLM selection and single-agent controls, automatic explanation traces | The full investigation-to-training loop yields reviewable candidate outcomes, including rejections |
+| 3 | London and Paris where supervision is suitable, three numerical seeds, focused ablations | Core external comparisons use declared observation supports and information budgets |
+| 4 | Cost and repeatability analysis, selected cases, manuscript and release materials | Main claims map to completed comparisons; optional cities/second LLM/transfer are included only when completed |
+
+Madrid, Barcelona, and Italy are extensions whose inclusion depends on their observation contract, not on whether MapAgents wins. Reference reproduction, meaningful agent controls, and faithful explanations take priority over adding more cities.
+
+The original proposal used an eight-page main-text budget and an early-October submission calendar. These remain working planning assumptions; conference deadlines and formatting are to be checked separately when preparing submission. This revision does not perform that check.
+
+---
+
+## 12. Paper structure
+
+| Main-text space | Content |
 | --- | --- |
-| 13–17 Sep | OpenReview accounts. Freeze dictionary, card schema, reject codes, city list. Abstract draft. |
-| 18–22 Sep | B1–B4 on England hold-out. Wire A0 and A3. |
-| 23–27 Sep | Full MapAgents on England + Italy. Tables A and C. Twenty-program audit. |
-| 28 Sep–1 Oct | NYS or LODES clip. Cross-city zero-shot + \(1\%/10\%\). Abstract on OpenReview. |
-| 2–7 Oct | Table B, figures, leakage audit, eight-page freeze. |
-| 8 Oct | Submit Main / GAAI. Findings remain on. |
+| 0.8 pages | Problem, information loss, research question, and proposed contribution |
+| 0.6 pages | Related work and distinction from fixed feature selection |
+| 2.2 pages | Agent responsibilities, directed roles, executable programs, trainable predictor |
+| 1.0 pages | Data, supplied mass protocol, splits, and baseline definition |
+| 1.7 pages | Main OD table, agent controls, and focused ablations |
+| 1.2 pages | Program effects, diagnosed cases, stability, and cost |
+| 0.5 pages | Findings, scope, and conclusion |
+
+The supplement contains the DGM reconstruction details, complete aggregation priors, tool schemas, model settings, per-area metrics, repeat runs, and additional program cases. The abstract and conclusion are revised around observed results after experiments, rather than retaining predicted rankings.
 
 ---
 
-## 14. OpenReview metadata
+## 13. Reproducibility materials
 
-- **Area:** Generative and Agentic AI
-- **Keywords:** multi-agent systems; tool-using agents; institutional constraints; geospatial tools; origin–destination generation; program synthesis
-- **Title:** MapAgents: Compiling City-Conditioned OSM Feature Programs with Gated Multi-Agent Tool Use for Origin–Destination Generation
+Release the source/version and observation semantics of each dataset, aligned zone identifiers, destination supports, source mass definitions, and split assignments. Provide the original DG reference configuration separately from benchmark adaptations and from earlier development variants.
+
+The agent record includes prompts, LLM identifiers, retrieval sources, tool arguments and responses, candidate programs, rejected edits, validation selection decisions, and actual cost. The prediction record includes complete ordered outputs, fitted feature transformations, checkpoints, and the independent metric definitions.
+
+The proposal's current working artifacts are `resources/priors/deepgravity.json`, `DISCOVERY.md`, and the historical New York data manifest. These identify development material; they are not evidence that the complete DG reproduction or planned ablations have been completed. Public data remain subject to their source licenses, and private API credentials are not part of the release.
+
+---
+
+## 14. Target metadata
+
+- **Area:** Generative and Agentic AI.
+- **Keywords:** multi-agent systems; retrieval-augmented generation; spatial program discovery; origin-destination prediction; role-aware representations; interpretable prediction.
+- **Working title:** MapAgents: Evidence-Grounded Multi-Agent Discovery of Role-Aware Spatial Programs for Origin-Destination Prediction.
+- **Central empirical question:** Does coordinated, evidence-grounded investigation improve the usefulness and explanatory fidelity of spatial representations under a credible OD baseline and a declared search budget?
 
 ---
 

@@ -1,0 +1,37 @@
+{
+  "id": "prior:dgm_public_new_york",
+  "source": "resources/deepgravity/README.md; deepgravity/utils.py; deepgravity/main.py; deepgravity/data_loader.py; osm_query.yaml",
+  "purpose": "Reusable aggregation recipes and input semantics, not a closed ontology or measured evidence",
+  "zone_groups": [
+    {"name": "land_use", "n_features": 5, "source_columns": ["residential_landuse", "commercial_landuse", "industrial_landuse", "retail_landuse", "natural_landuse"], "recipe": "polygon area by land-use class", "documented_unit": "km2", "candidate_normalization": "divide by zone area for land-use fraction"},
+    {"name": "roads", "n_features": 3, "source_columns": ["residential_line", "main_road_line", "other_road_line"], "recipe": "line length by road class", "documented_unit": "km", "candidate_normalization": "divide by zone area for road-length density"},
+    {"name": "transport", "n_features": 2, "source_columns": ["transport_point", "transport_poly"], "recipe": "separate point and polygon facility counts", "documented_unit": "OSM elements"},
+    {"name": "food", "n_features": 2, "source_columns": ["food_point", "food_poly"], "recipe": "separate point and polygon facility counts", "documented_unit": "OSM elements"},
+    {"name": "health", "n_features": 2, "source_columns": ["health_point", "health_poly"], "recipe": "separate point and polygon facility counts", "documented_unit": "OSM elements"},
+    {"name": "education", "n_features": 2, "source_columns": ["school_point", "school_poly"], "recipe": "separate point and polygon facility counts", "documented_unit": "OSM elements"},
+    {"name": "retail", "n_features": 2, "source_columns": ["retail_point", "retail_poly"], "recipe": "separate point and polygon facility counts", "documented_unit": "OSM elements"}
+  ],
+  "mass_prior": {
+    "column": "dgm_mass",
+    "upstream_name": "population / oa2pop",
+    "actual_definition": "M_z = sum_d F_raw[z,d], over the full source OD file before tile filtering; missing or zero replaced by 1e-6",
+    "model_input": "log(M_i) and log(M_j)",
+    "interpretation": "Observed movement mass for each zone; not an independent resident population measurement. M_j is j's outflow, not j's incoming flow.",
+    "availability": "Explicit aggregate prior for every zone, including validation and heldout. Pair-level heldout scores remain unavailable during discovery."
+  },
+  "od_composition": {
+    "backbone": "concat(log(M_i), G_i[18], log(M_j), G_j[18], distance_ij_km) = 39 dimensions",
+    "origin_role": "Potential source scale and departure context, interacting with destination choice",
+    "destination_role": "Potential attraction, capacity and access context",
+    "directionality": "The same zone can have different source and destination roles; roles may coexist and change with the paired zone and distance. Reversing i,j generally changes the mechanism.",
+    "mass_combinations": ["destination facility count / regularized destination movement mass", "origin movement mass interacting with destination facilities and distance", "origin and destination mass-density contrast", "distance-weighted opportunities relative to neighboring movement mass"],
+    "measurement_limits": "Mass-normalized counts are per movement mass, not per resident. An origin-only additive score cancels in row softmax; use destination or interacting pair terms. A raw mass product followed by log may separate into origin+destination, so examine its actual within-row variation."
+  },
+  "normalization_audit": {
+    "readme": "All location features except distance described as divided by zone area",
+    "public_new_york_runtime": "oa2features.pkl equals the first component of each of the 18 stored categories on all 5367 shared zones. No area division occurs in the loader. main.py prepends natural log of oa2pop.",
+    "current_policy": "Preserve supplied numerical values. Do not assert physical units for their tiny stored area/length values. Recompute metric densities from historical OSM when needed.",
+    "discarded_placeholders": "The second list component of five polygon categories is constant zero and absent from the actual 18-dimensional upstream vector."
+  },
+  "open_extensions": "Use all observed OSM tags and executable spatial relations. The seven supplied groups are baseline recipes, not limits on attractors or zone identities."
+}

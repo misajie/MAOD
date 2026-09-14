@@ -11,6 +11,7 @@ import torch
 from .agents import AgentSystem
 from .data import load_dataset, prepare_deepgravity
 from .programs import SpatialCompiler, default_program, ProgramError
+from .metrics import selection_score
 from .training import ODStore, fit_model, evaluate, save_json, load_checkpoint
 
 
@@ -25,10 +26,8 @@ def ensure_data(config):
                                validation_fraction=float(d.get("validation_fraction", .2)))
 
 
-def _score(summary):
-    value = summary.get("macro", {}).get("cpc")
-    if value is None: raise ValueError("Validation CPC is undefined")
-    return float(value)
+def _score(summary, metric="cpc"):
+    return selection_score(summary, metric)
 
 
 def run(config, *, source_run=None, row_splits=None):
@@ -47,9 +46,12 @@ def run(config, *, source_run=None, row_splits=None):
     store = ODStore(data, row_splits=row_splits)
     if not store.examples("train", positive_only=True) or not store.examples("validation", positive_only=True):
         raise ValueError("Training and validation require positive observed origins")
-    compiler = SpatialCompiler(data, config["data"].get("osm_path"), output / "spatial_cache")
+    compiler = SpatialCompiler(data, config["data"].get("osm_path"), config["data"].get("spatial_cache", output / "spatial_cache"))
+    if store.row_splits is not None:
+        save_json(output / "row_splits.json", {k: sorted(v) for k, v in store.row_splits.items()})
     seed = int(config.get("seed", 1234))
     training_config = config["training"]
+    metric_name = str(training_config.get("selection_metric", "cpc"))
     catalog, profile = compiler.catalog(), compiler.profile()
     save_json(output / "map_profile.json", profile)
     save_json(output / "dataset_metadata.json", data.metadata)
@@ -70,9 +72,13 @@ def run(config, *, source_run=None, row_splits=None):
     save_json(reference / "validation.json", current_summary)
     save_json(reference / "diagnostics.json", current_diagnostics)
     current_checkpoint = reference / "model.pt"
-    history = [{"stage": "reference", "validation_cpc": _score(current_summary), "program": current_program["name"],
+    history = [{"stage": "reference", "selection_metric": metric_name,
+                "selection_score": _score(current_summary, metric_name),
+                "validation_cpc": current_summary["macro"].get("cpc"),
+                "validation_offdiagonal_cpc": current_summary["macro"].get("offdiagonal_cpc"),
+                "program": current_program["name"],
                 "input_columns": len(current_bundle.input_ids)}]
-    print(f"Reference validation CPC: {_score(current_summary):.6f}", flush=True)
+    print(f"Reference {metric_name}={_score(current_summary, metric_name):.6f} matrix_cpc={current_summary['macro'].get('cpc')}", flush=True)
     search = config.get("search", {})
     agent = None
     if search.get("enabled", True):
@@ -97,7 +103,7 @@ def run(config, *, source_run=None, row_splits=None):
             stage_records = []
             best = (current_program, current_bundle, current_model, current_transform, current_summary,
                     current_diagnostics, current_checkpoint)
-            best_score = _score(current_summary)
+            best_score = _score(current_summary, metric_name)
             candidate_config = {**training_config, "epochs": int(search.get("candidate_epochs", 5))}
             for label, program in candidates:
                 folder = stage / label
@@ -113,14 +119,17 @@ def run(config, *, source_run=None, row_splits=None):
                     model, transform, trained = fit_model(store, bundle, candidate_config, folder,
                                                          seed + round_index + 1, current_model, current_transform)
                     summary, diagnostics = evaluate(store, bundle, model, transform, "validation")
-                    score = _score(summary)
+                    score = _score(summary, metric_name)
                     save_json(folder / "validation.json", summary)
                     save_json(folder / "diagnostics.json", diagnostics)
                     record = {"round": round_index, "candidate": label, "name": program.get("name"),
-                              "validation_cpc": score, "delta_cpc": score-_score(current_summary),
+                              "selection_metric": metric_name, "selection_score": score,
+                              "delta_from_parent": score - _score(current_summary, metric_name),
+                              "validation_cpc": summary["macro"].get("cpc"),
+                              "validation_offdiagonal_cpc": summary["macro"].get("offdiagonal_cpc"),
                               "input_columns": len(bundle.input_ids), "training_seconds": trained["elapsed_seconds"],
                               "transfer": trained.get("transfer"), "status": "executed"}
-                    print(f"Round {round_index} {label}: validation CPC={score:.6f}", flush=True)
+                    print(f"Round {round_index} {label}: {metric_name}={score:.6f} matrix_cpc={summary['macro'].get('cpc')}", flush=True)
                     if score > best_score + float(search.get("min_improvement", 0.)):
                         best_score = score
                         best = (program, bundle, model, transform, summary, diagnostics, folder / "model.pt")
@@ -131,7 +140,8 @@ def run(config, *, source_run=None, row_splits=None):
             current_program, current_bundle, current_model, current_transform, current_summary, current_diagnostics, current_checkpoint = best
             history.extend(stage_records)
             save_json(stage / "selection.json", {"checkpoint": current_checkpoint.relative_to(output).as_posix(),
-                                                   "validation_cpc": best_score, "candidates": stage_records})
+                                                   "selection_metric": metric_name, "selection_score": best_score,
+                                                   "candidates": stage_records})
             save_json(output / "search_history.json", history)
     # Selection finishes before any test prediction or score is requested.
     save_json(output / "selected_program.json", current_program)
@@ -155,9 +165,9 @@ def run(config, *, source_run=None, row_splits=None):
               "agent_usage_including_resumed_calls": all_usage,
               "source_run": str(source_run) if source_run else None,
               "row_budget": config.get("adaptation"),
-              "interpretation": "Execution on the supplied public movement example. Not a claim of original-paper reproduction or commuting benchmark performance."}
+              "interpretation": data.metadata.get("prediction_target", "Execution on the supplied public movement example; not an original-paper reproduction.")}
     save_json(completed, result)
-    print(f"Held-out CPC: {_score(final_summary):.6f}\nRun artifacts: {output}", flush=True)
+    print(f"Held-out {metric_name}={_score(final_summary, metric_name):.6f} matrix_cpc={final_summary['macro'].get('cpc')}\nRun artifacts: {output}", flush=True)
     return result
 
 
